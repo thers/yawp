@@ -77,9 +77,32 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 				method.Source = source
 
 				stmt = append(stmt, method)
-			default:
+			case token.IDENTIFIER, token.ASYNC, token.STATIC, token.HASH:
 				p.unexpectedToken()
 				p.next()
+			case token.SEMICOLON:
+				p.consumeExpected(token.SEMICOLON)
+				stmt = append(stmt, &ast.ClassPropertyStatement{
+					Property:    idx,
+					Name:        identifier,
+					Static:      static,
+					Private:     private,
+					Initializer: nil,
+				})
+			default:
+				if p.insertSemicolon {
+					p.insertSemicolon = false
+					stmt = append(stmt, &ast.ClassPropertyStatement{
+						Property:    idx,
+						Name:        identifier,
+						Static:      static,
+						Private:     private,
+						Initializer: nil,
+					})
+				} else {
+					p.unexpectedToken()
+					p.next()
+				}
 			}
 
 		default:
