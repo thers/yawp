@@ -1,0 +1,181 @@
+package parser
+
+import (
+	"yawp/parser/ast"
+	"yawp/parser/token"
+)
+
+func (p *Parser) parseRestParameterFollowedBy(value token.Token) *ast.RestParameter {
+	p.consumeExpected(token.DOTDOTDOT)
+
+	literal := p.literal
+
+	if p.is(token.IDENTIFIER) {
+		p.next()
+	} else {
+		p.unexpectedToken()
+	}
+
+	p.shouldBe(value)
+
+	return &ast.RestParameter{
+		Name: literal,
+	}
+}
+
+func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectDestructureIdentifierParameter {
+	var parameter ast.FunctionParameter
+	var propertyName string
+
+	// Rest parameter
+	if p.is(token.DOTDOTDOT) {
+		parameter = p.parseRestParameterFollowedBy(token.RIGHT_BRACE)
+	} else {
+		if p.is(token.IDENTIFIER) {
+			identifier := p.parseIdentifier()
+
+			parameter = &ast.IdentifierParameter{
+				Name:         identifier,
+			}
+			propertyName = identifier.Name
+
+			if p.is(token.COLON) {
+				p.next()
+
+				// property rename
+				parameter = &ast.IdentifierParameter{
+					Name:         p.parseIdentifier(),
+				}
+			}
+		}
+
+		// array destructure
+		if p.is(token.LEFT_BRACKET) {
+			parameter = p.parseArrayDestructureParameter()
+		}
+
+		// object destructure
+		if p.is(token.LEFT_BRACE) {
+			parameter = p.parseObjectDestructureParameter()
+		}
+
+		// Parsing default value
+		if p.is(token.ASSIGN) {
+			p.next()
+
+			parameter.SetDefaultValue(p.parseAssignmentExpression())
+		}
+	}
+
+	if !p.is(token.RIGHT_BRACE) {
+		p.consumeExpected(token.COMMA)
+	}
+
+	return &ast.ObjectDestructureIdentifierParameter{
+		Parameter: parameter,
+		PropertyName: propertyName,
+	}
+}
+
+func (p *Parser) parseObjectDestructureParameter() *ast.ObjectDestructureParameter {
+	p.next()
+
+	if p.is(token.RIGHT_BRACE) {
+		p.unexpectedToken()
+	}
+
+	param := &ast.ObjectDestructureParameter{
+		List:         make([]*ast.ObjectDestructureIdentifierParameter, 0, 1),
+		DefaultValue: nil,
+	}
+
+	for !p.is(token.RIGHT_BRACE) && !p.is(token.EOF) {
+		param.List = append(
+			param.List,
+			p.parseObjectDestructureIdentifierParameter(),
+		)
+	}
+
+	p.consumeExpected(token.RIGHT_BRACE)
+
+	return param
+}
+
+func (p *Parser) parseArrayDestructureParameter() *ast.ArrayDestructureParameter {
+	p.next()
+
+	if p.is(token.RIGHT_BRACKET) {
+		p.unexpectedToken()
+	}
+
+	param := &ast.ArrayDestructureParameter{
+		List:         make([]ast.FunctionParameter, 0, 1),
+		DefaultValue: nil,
+	}
+
+	for !p.is(token.RIGHT_BRACKET) && !p.is(token.EOF) {
+		param.List = append(
+			param.List,
+			p.parseFunctionParameterEndingBy(token.RIGHT_BRACKET),
+		)
+	}
+
+	p.consumeExpected(token.RIGHT_BRACKET)
+
+	return param
+}
+
+func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.FunctionParameter {
+	var parameter ast.FunctionParameter
+
+	// Rest parameter
+	if p.is(token.DOTDOTDOT) {
+		parameter = p.parseRestParameterFollowedBy(ending)
+	} else {
+		if p.is(token.IDENTIFIER) {
+			// simple argument binding
+			parameter = &ast.IdentifierParameter{
+				Name:         p.parseIdentifier(),
+				DefaultValue: nil,
+			}
+		} else if p.is(token.LEFT_BRACKET) {
+			// array destructure
+			parameter = p.parseArrayDestructureParameter()
+		} else if p.is(token.LEFT_BRACE) {
+			// object destructure
+			parameter = p.parseObjectDestructureParameter()
+		} else {
+			p.arrowMode = false
+			p.unexpectedToken()
+		}
+
+		// Parsing default value
+		if p.is(token.ASSIGN) && parameter != nil {
+			p.next()
+
+			parameter.SetDefaultValue(p.parseAssignmentExpression())
+		}
+	}
+
+	if !p.is(ending) {
+		p.consumeExpected(token.COMMA)
+	}
+
+	return parameter
+}
+
+func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
+	opening := p.consumeExpected(token.LEFT_PARENTHESIS)
+	var list []ast.FunctionParameter
+
+	for !p.is(token.RIGHT_PARENTHESIS) && !p.is(token.EOF) {
+		list = append(list, p.parseFunctionParameterEndingBy(token.RIGHT_PARENTHESIS))
+	}
+	closing := p.consumeExpected(token.RIGHT_PARENTHESIS)
+
+	return &ast.FunctionParameters{
+		Opening: opening,
+		List:    list,
+		Closing: closing,
+	}
+}
