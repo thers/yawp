@@ -191,6 +191,12 @@ type (
 		Parameters []FunctionParameter
 		Body       Statement
 	}
+
+	ClassSuperExpression struct {
+		Start     file.Idx
+		End       file.Idx
+		Arguments []Expression
+	}
 )
 
 // _expressionNode
@@ -217,6 +223,7 @@ func (*ThisExpression) _expressionNode()          {}
 func (*UnaryExpression) _expressionNode()         {}
 func (*VariableExpression) _expressionNode()      {}
 func (*ArrowFunctionExpression) _expressionNode() {}
+func (*ClassSuperExpression) _expressionNode()    {}
 
 // ========= //
 // Statement //
@@ -523,6 +530,7 @@ func (self *ThisExpression) Idx0() file.Idx          { return self.Idx }
 func (self *UnaryExpression) Idx0() file.Idx         { return self.Idx }
 func (self *VariableExpression) Idx0() file.Idx      { return self.Idx }
 func (self *ArrowFunctionExpression) Idx0() file.Idx { return self.Idx }
+func (self *ClassSuperExpression) Idx0() file.Idx    { return self.Start }
 
 func (self *BadStatement) Idx0() file.Idx           { return self.From }
 func (self *BlockStatement) Idx0() file.Idx         { return self.LeftBrace }
@@ -585,6 +593,7 @@ func (self *VariableExpression) Idx1() file.Idx {
 	return self.Initializer.Idx1()
 }
 func (self *ArrowFunctionExpression) Idx1() file.Idx { return self.Idx }
+func (self *ClassSuperExpression) Idx1() file.Idx    { return self.End }
 
 func (self *BadStatement) Idx1() file.Idx        { return self.To }
 func (self *BlockStatement) Idx1() file.Idx      { return self.RightBrace + 1 }

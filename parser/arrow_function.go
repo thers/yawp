@@ -33,6 +33,13 @@ func (p *Parser) parseArrowFunctionBody() ast.Statement {
 }
 
 func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction() ast.Expression {
+	if p.scope.inClass && p.is(token.SUPER) {
+		return &ast.Identifier{
+			Name: p.literal,
+			Idx:  p.idx,
+		}
+	}
+
 	identifier := p.parseIdentifier()
 
 	if p.is(token.ARROW) {

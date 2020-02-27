@@ -71,7 +71,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 				}
 
 				body, _ := p.parseClassMethodBody()
-				source := p.slice(body.Idx0(), body.Idx1())
+				source := p.slice(identifier.Idx, body.Idx1())
 
 				method.Body = body
 				method.Source = source

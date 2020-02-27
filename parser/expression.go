@@ -21,6 +21,27 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	idx := p.idx
 
 	switch p.token {
+	case token.SUPER:
+		start := p.idx
+
+		if !p.scope.inClass && !p.scope.inFunction {
+			p.error(start, "illegal use of super keyword")
+
+			return &ast.BadExpression{
+				From: start,
+				To:   start,
+			}
+		}
+
+		p.next()
+		arguments, _, end := p.parseArgumentList()
+		p.semicolon()
+
+		return &ast.ClassSuperExpression{
+			Start:     start,
+			End:       end,
+			Arguments: arguments,
+		}
 	case token.IDENTIFIER:
 		return p.parseIdentifierOrSingleArgumentArrowFunction()
 	case token.NULL:
