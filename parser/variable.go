@@ -41,9 +41,9 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	idx := p.idx
 	p.next()
 	node := &ast.VariableExpression{
-		Kind: kind,
-		Name: literal,
-		Idx:  idx,
+		Kind:  kind,
+		Name:  literal,
+		Start: idx,
 	}
 
 	if declarationList != nil {

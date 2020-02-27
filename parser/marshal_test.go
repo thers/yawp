@@ -80,7 +80,7 @@ func testMarshalNode(node interface{}) interface{} {
 		)
 
 	case *ast.NewExpression:
-		return marshal("New",
+		return marshal("Start",
 			"Callee", testMarshalNode(node.Callee),
 			"ArgumentList", testMarshalNode(node.ArgumentList),
 		)
@@ -125,7 +125,7 @@ func testMarshalNode(node interface{}) interface{} {
 		)
 
 	case *ast.FunctionLiteral:
-		return marshal("Function", testMarshalNode(node.Body))
+		return marshal("Start", testMarshalNode(node.Body))
 
 	case *ast.Identifier:
 		return marshal("Identifier", node.Name)
@@ -278,7 +278,7 @@ func TestParserAST(t *testing.T) {
         ---
 [
   {
-    "New": {
+    "Start": {
       "ArgumentList": [],
       "Callee": {
         "Identifier": "abc"
@@ -293,7 +293,7 @@ func TestParserAST(t *testing.T) {
         ---
 [
   {
-    "New": {
+    "Start": {
       "ArgumentList": [
         {
           "Literal": 1
@@ -498,7 +498,7 @@ func TestParserAST(t *testing.T) {
       },
       "Operator": "+",
       "Right": {
-        "Function": {
+        "Start": {
           "BlockStatement": [
             {
               "Return": null
@@ -638,7 +638,7 @@ func TestParserAST(t *testing.T) {
       {
         "Key": "abc",
         "Value": {
-          "Function": {
+          "Start": {
             "BlockStatement": []
           }
         }
@@ -674,7 +674,7 @@ func TestParserAST(t *testing.T) {
   },
   {
     "Throw": {
-      "New": {
+      "Start": {
         "ArgumentList": [
           {
             "Literal": "\"Nothing happens.\""
@@ -711,7 +711,7 @@ func TestParserAST(t *testing.T) {
               "Call": {
                 "ArgumentList": [
                   {
-                    "Function": {
+                    "Start": {
                       "BlockStatement": []
                     }
                   }
@@ -786,7 +786,7 @@ func TestParserAST(t *testing.T) {
         "Identifier": "abc"
       },
       "Right": {
-        "Function": {
+        "Start": {
           "BlockStatement": [
             {
               "Literal": "'use strict'"

@@ -11,8 +11,8 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	idx := p.idx
 	p.next()
 	return &ast.Identifier{
-		Name: literal,
-		Idx:  idx,
+		Name:  literal,
+		Start: idx,
 	}
 }
 
@@ -42,6 +42,14 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			End:       end,
 			Arguments: arguments,
 		}
+	case token.AWAIT:
+		idx := p.idx
+		p.next()
+
+		return &ast.AwaitExpression{
+			Start:      idx,
+			Expression: p.parseAssignmentExpression(),
+		}
 	case token.ASYNC:
 		idx := p.idx
 		p.next()
@@ -56,7 +64,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.NULL:
 		p.next()
 		return &ast.NullLiteral{
-			Idx:     idx,
+			Start:   idx,
 			Literal: literal,
 		}
 	case token.BOOLEAN:
@@ -71,7 +79,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			p.error(idx, "Illegal boolean literal")
 		}
 		return &ast.BooleanLiteral{
-			Idx:     idx,
+			Start:   idx,
 			Literal: literal,
 			Value:   value,
 		}
@@ -82,7 +90,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			p.error(idx, err.Error())
 		}
 		return &ast.StringLiteral{
-			Idx:     idx,
+			Start:   idx,
 			Literal: literal,
 			Value:   value,
 		}
@@ -94,7 +102,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			value = 0
 		}
 		return &ast.NumberLiteral{
-			Idx:     idx,
+			Start:   idx,
 			Literal: literal,
 			Value:   value,
 		}
@@ -109,7 +117,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.THIS:
 		p.next()
 		return &ast.ThisExpression{
-			Idx: idx,
+			Start: idx,
 		}
 	case token.FUNCTION:
 		return p.parseFunction(false, p.idx, false)
@@ -152,7 +160,7 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	literal := p.str[offset:endOffset]
 
 	return &ast.RegExpLiteral{
-		Idx:     idx,
+		Start:   idx,
 		Literal: literal,
 		Pattern: pattern,
 		Flags:   flags,
@@ -177,9 +185,9 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	idx1 := p.consumeExpected(token.RIGHT_BRACKET)
 
 	return &ast.ArrayLiteral{
-		LeftBracket:  idx0,
-		RightBracket: idx1,
-		Value:        value,
+		Start: idx0,
+		End:   idx1,
+		Value: value,
 	}
 }
 
@@ -225,8 +233,8 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	return &ast.DotExpression{
 		Left: left,
 		Identifier: ast.Identifier{
-			Idx:  idx,
-			Name: literal,
+			Start: idx,
+			Name:  literal,
 		},
 	}
 }
@@ -247,7 +255,7 @@ func (p *Parser) parseNewExpression() ast.Expression {
 	idx := p.consumeExpected(token.NEW)
 	callee := p.parseLeftHandSideExpression()
 	node := &ast.NewExpression{
-		New:    idx,
+		Start:  idx,
 		Callee: callee,
 	}
 	if p.is(token.LEFT_PARENTHESIS) {
@@ -332,7 +340,7 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 		}
 		return &ast.UnaryExpression{
 			Operator: tkn,
-			Idx:      idx,
+			Start:    idx,
 			Operand:  operand,
 			Postfix:  true,
 		}
@@ -352,7 +360,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		p.next()
 		return &ast.UnaryExpression{
 			Operator: tkn,
-			Idx:      idx,
+			Start:    idx,
 			Operand:  p.parseUnaryExpression(),
 		}
 	case token.INCREMENT, token.DECREMENT:
@@ -369,7 +377,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		}
 		return &ast.UnaryExpression{
 			Operator: tkn,
-			Idx:      idx,
+			Start:    idx,
 			Operand:  operand,
 		}
 	}
@@ -635,7 +643,7 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 		switch left.(type) {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
 		default:
-			p.error(left.Idx0(), "Invalid left-hand side in assignment")
+			p.error(left.StartAt(), "Invalid left-hand side in assignment")
 			p.nextStatement()
 			return &ast.BadExpression{From: idx, To: p.idx}
 		}

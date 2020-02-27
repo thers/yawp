@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Idx is a compact encoding of a source position within a file set.
+// Start is a compact encoding of a source position within a file set.
 // It can be converted into a Position for a more convenient, but much
 // larger, representation.
 type Idx int
@@ -88,7 +88,7 @@ func (self *FileSet) File(idx Idx) *File {
 	return nil
 }
 
-// Position converts an Idx in the FileSet into a Position.
+// Position converts an Start in the FileSet into a Position.
 func (self *FileSet) Position(idx Idx) *Position {
 	position := &Position{}
 	for _, file := range self.files {

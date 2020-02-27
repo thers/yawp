@@ -20,11 +20,14 @@
 - [ ] generator function
 - [x] async function
 - [x] async arrow function
-- [ ] await
+- [x] await
 - [ ] yield
 - [ ] for of
 - [ ] for object and array destructuring
 - [ ] object and array literal spread
+- [ ] Symbols
+- [ ] computed object properties
+- [ ] computed class fields
 
 #### JSX
 - [ ] JSX support

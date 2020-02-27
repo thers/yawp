@@ -179,7 +179,7 @@ func TestLexer(t *testing.T) {
 					test = test[1:]
 				}
 				if len(test) > 0 {
-					// FIXME terst, Fix this so that cast to file.Idx is not necessary?
+					// FIXME terst, Fix this so that cast to file.Start is not necessary?
 					is(idx, file.Idx(test[0].(int)))
 					test = test[1:]
 				}

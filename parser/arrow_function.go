@@ -41,7 +41,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 		p.next()
 
 		return &ast.ArrowFunctionExpression{
-			Idx:   identifier.Idx,
+			Start: identifier.Start,
 			Async: async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
@@ -58,7 +58,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 		tkn, strict := token.IsKeyword(identifier.Name)
 		if tkn == token.KEYWORD {
 			if !strict {
-				p.error(identifier.Idx, "Unexpected reserved word")
+				p.error(identifier.Start, "Unexpected reserved word")
 			}
 		}
 	}
@@ -76,7 +76,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	if success && p.is(token.ARROW) {
 		p.next()
 		return &ast.ArrowFunctionExpression{
-			Idx:        parameters.Opening,
+			Start:      parameters.Opening,
 			Async:      async,
 			Parameters: parameters.List,
 			Body:       p.parseArrowFunctionBody(),
@@ -99,7 +99,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Idx:   identifier.Idx,
+			Start: identifier.Start,
 			Async: true,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
@@ -116,7 +116,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Idx:        parameters.Opening,
+			Start:      parameters.Opening,
 			Async:      true,
 			Parameters: parameters.List,
 			Body:       p.parseArrowFunctionBody(),

@@ -14,8 +14,8 @@ func (p *Parser) parseObjectPropertyFromShorthand(idx file.Idx, literal string) 
 			Key:  literal,
 			Kind: "value",
 			Value: &ast.Identifier{
-				Name: literal,
-				Idx:  idx,
+				Name:  literal,
+				Start: idx,
 			},
 		}
 	}
@@ -40,7 +40,7 @@ func (p *Parser) parseObjectProperty() *ast.Property {
 				parameterList := p.parseFunctionParameterList()
 
 				node := &ast.FunctionLiteral{
-					Function:   idx,
+					Start:      idx,
 					Parameters: parameterList,
 				}
 				p.parseFunctionBlock(node)
@@ -65,12 +65,12 @@ func (p *Parser) parseObjectProperty() *ast.Property {
 		if p.is(token.LEFT_PARENTHESIS) {
 			parameterList := p.parseFunctionParameterList()
 			node := &ast.FunctionLiteral{
-				Function:   idx,
+				Start:      idx,
 				Parameters: parameterList,
 			}
 
 			p.parseFunctionBlock(node)
-			node.Source = p.slice(idx, node.Body.Idx1())
+			node.Source = p.slice(idx, node.Body.EndAt())
 
 			p.consumePossible(token.COMMA)
 

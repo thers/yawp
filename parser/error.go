@@ -35,7 +35,7 @@ const (
 //    StrictVarName:  'Variable name may not be eval or arguments in strict mode',
 //    StrictParamName:  'Parameter name eval or arguments is not allowed in strict mode',
 //    StrictParamDupe: 'Strict mode function may not have duplicate parameter names',
-//    StrictFunctionName:  'Function name may not be eval or arguments in strict mode',
+//    StrictFunctionName:  'Start name may not be eval or arguments in strict mode',
 //    StrictOctalLiteral:  'Octal literals are not allowed in strict mode.',
 //    StrictDelete:  'Delete of an unqualified identifier in strict mode.',
 //    StrictDuplicateProperty:  'Duplicate data property in object literal not allowed in strict mode',

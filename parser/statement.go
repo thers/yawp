@@ -89,7 +89,7 @@ func (p *Parser) parseStatement() ast.Statement {
 		label := identifier.Name
 		for _, value := range p.scope.labels {
 			if label == value {
-				p.error(identifier.Idx0(), "Label '%s' already exists", label)
+				p.error(identifier.StartAt(), "Label '%s' already exists", label)
 			}
 		}
 		p.scope.labels = append(p.scope.labels, label) // Push the label
@@ -142,7 +142,7 @@ func (p *Parser) parseTryStatement() ast.Statement {
 
 	if node.Catch == nil && node.Finally == nil {
 		p.error(node.Try, "Missing catch or finally after try")
-		return &ast.BadStatement{From: node.Try, To: node.Body.Idx1()}
+		return &ast.BadStatement{From: node.Try, To: node.Body.EndAt()}
 	}
 
 	return node
@@ -166,8 +166,8 @@ func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.
 	p.consumeExpected(token.FUNCTION)
 
 	node := &ast.FunctionLiteral{
-		Function: idx,
-		Async:    async,
+		Start: idx,
+		Async: async,
 	}
 
 	var name *ast.Identifier
@@ -185,7 +185,7 @@ func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.
 	node.Name = name
 	node.Parameters = p.parseFunctionParameterList()
 	p.parseFunctionBlock(node)
-	node.Source = p.slice(idx, node.Idx1())
+	node.Source = p.slice(idx, node.EndAt())
 
 	return node
 }
@@ -485,7 +485,7 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 		identifier := p.parseIdentifier()
 		if !p.scope.hasLabel(identifier.Name) {
 			p.error(idx, "Undefined label '%s'", identifier.Name)
-			return &ast.BadStatement{From: idx, To: identifier.Idx1()}
+			return &ast.BadStatement{From: idx, To: identifier.EndAt()}
 		}
 		p.semicolon()
 		return &ast.BranchStatement{
@@ -526,7 +526,7 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 		identifier := p.parseIdentifier()
 		if !p.scope.hasLabel(identifier.Name) {
 			p.error(idx, "Undefined label '%s'", identifier.Name)
-			return &ast.BadStatement{From: idx, To: identifier.Idx1()}
+			return &ast.BadStatement{From: idx, To: identifier.EndAt()}
 		}
 		if !p.scope.inIteration {
 			goto illegal

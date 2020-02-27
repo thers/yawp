@@ -491,7 +491,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			class Test { field; another=123 }
+			const t = await 123
 		`)
 		if err != nil {
 			panic(err)
@@ -999,17 +999,17 @@ func TestPosition(t *testing.T) {
 
 		var node ast.Node
 		node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
-		is(node.Idx0(), file.Idx(2))
-		is(node.Idx1(), file.Idx(25))
-		is(parser.slice(node.Idx0(), node.Idx1()), "function(){ return 0; }")
-		is(parser.slice(node.Idx0(), node.Idx1()+1), "function(){ return 0; })")
-		is(parser.slice(node.Idx0(), node.Idx1()+2), "")
+		is(node.StartAt(), file.Idx(2))
+		is(node.EndAt(), file.Idx(25))
+		is(parser.slice(node.StartAt(), node.EndAt()), "function(){ return 0; }")
+		is(parser.slice(node.StartAt(), node.EndAt()+1), "function(){ return 0; })")
+		is(parser.slice(node.StartAt(), node.EndAt()+2), "")
 		is(node.(*ast.FunctionLiteral).Source, "function(){ return 0; }")
 
 		node = program
-		is(node.Idx0(), file.Idx(2))
-		is(node.Idx1(), file.Idx(25))
-		is(parser.slice(node.Idx0(), node.Idx1()), "function(){ return 0; }")
+		is(node.StartAt(), file.Idx(2))
+		is(node.EndAt(), file.Idx(25))
+		is(parser.slice(node.StartAt(), node.EndAt()), "function(){ return 0; }")
 
 		parser = newParser("", "(function(){ return abc; })")
 		program, err = parser.parse()
