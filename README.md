@@ -18,6 +18,10 @@
 - [ ] const, let, var object and array destructuring
 - [ ] new.target
 - [ ] generator function
+- [ ] async function
+- [ ] async arrow function
+- [ ] await
+- [ ] yield
 - [ ] for of
 - [ ] for object and array destructuring
 - [ ] object and array literal spread
