@@ -491,13 +491,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			class Test extends Another {
-				prop = 123;
-				
-				constructor() { test=super(); }
-			}
-			
-			module.exports = {};
+			const test = async function(){}
 		`)
 		if err != nil {
 			panic(err)

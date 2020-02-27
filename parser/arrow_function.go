@@ -2,6 +2,7 @@ package parser
 
 import (
 	"yawp/parser/ast"
+	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
@@ -32,14 +33,7 @@ func (p *Parser) parseArrowFunctionBody() ast.Statement {
 	}
 }
 
-func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction() ast.Expression {
-	if p.scope.inClass && p.is(token.SUPER) {
-		return &ast.Identifier{
-			Name: p.literal,
-			Idx:  p.idx,
-		}
-	}
-
+func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Expression {
 	identifier := p.parseIdentifier()
 
 	if p.is(token.ARROW) {
@@ -47,7 +41,8 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction() ast.Expression {
 		p.next()
 
 		return &ast.ArrowFunctionExpression{
-			Idx: identifier.Idx,
+			Idx:   identifier.Idx,
+			Async: async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
 					Name:         identifier,
@@ -70,7 +65,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction() ast.Expression {
 	return identifier
 }
 
-func (p *Parser) parseArrowFunctionOrSequenceExpression() ast.Expression {
+func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expression {
 	partialState := p.getPartialState()
 
 	// First try to parse as arrow function parameters list
@@ -82,6 +77,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression() ast.Expression {
 		p.next()
 		return &ast.ArrowFunctionExpression{
 			Idx:        parameters.Opening,
+			Async:      async,
 			Parameters: parameters.List,
 			Body:       p.parseArrowFunctionBody(),
 		}
@@ -95,4 +91,40 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression() ast.Expression {
 	expression := p.parseExpression()
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 	return expression
+}
+
+func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
+	if p.is(token.IDENTIFIER) {
+		identifier := p.parseIdentifier()
+		p.consumeExpected(token.ARROW)
+
+		return &ast.ArrowFunctionExpression{
+			Idx:   identifier.Idx,
+			Async: true,
+			Parameters: []ast.FunctionParameter{
+				&ast.IdentifierParameter{
+					Name:         identifier,
+					DefaultValue: nil,
+				},
+			},
+			Body: p.parseArrowFunctionBody(),
+		}
+	}
+
+	if p.is(token.LEFT_PARENTHESIS) {
+		parameters := p.parseFunctionParameterList()
+		p.consumeExpected(token.ARROW)
+
+		return &ast.ArrowFunctionExpression{
+			Idx:        parameters.Opening,
+			Async:      true,
+			Parameters: parameters.List,
+			Body:       p.parseArrowFunctionBody(),
+		}
+	}
+
+	return &ast.BadExpression{
+		From: idx,
+		To:   p.idx,
+	}
 }

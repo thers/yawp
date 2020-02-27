@@ -89,6 +89,7 @@ type (
 
 	FunctionLiteral struct {
 		Function   file.Idx
+		Async      bool
 		Name       *Identifier
 		Parameters *FunctionParameters
 		Body       Statement
@@ -190,6 +191,7 @@ type (
 		Idx        file.Idx
 		Parameters []FunctionParameter
 		Body       Statement
+		Async      bool
 	}
 
 	ClassSuperExpression struct {

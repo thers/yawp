@@ -42,8 +42,17 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			End:       end,
 			Arguments: arguments,
 		}
+	case token.ASYNC:
+		idx := p.idx
+		p.next()
+
+		if p.is(token.FUNCTION) {
+			return p.parseFunction(false, idx, true)
+		} else {
+			return p.tryParseAsyncArrowFunction(idx)
+		}
 	case token.IDENTIFIER:
-		return p.parseIdentifierOrSingleArgumentArrowFunction()
+		return p.parseIdentifierOrSingleArgumentArrowFunction(false)
 	case token.NULL:
 		p.next()
 		return &ast.NullLiteral{
@@ -96,14 +105,14 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.LEFT_BRACKET:
 		return p.parseArrayLiteral()
 	case token.LEFT_PARENTHESIS:
-		return p.parseArrowFunctionOrSequenceExpression()
+		return p.parseArrowFunctionOrSequenceExpression(false)
 	case token.THIS:
 		p.next()
 		return &ast.ThisExpression{
 			Idx: idx,
 		}
 	case token.FUNCTION:
-		return p.parseFunction(false)
+		return p.parseFunction(false, p.idx, false)
 	}
 
 	p.errorUnexpectedToken(p.token)
