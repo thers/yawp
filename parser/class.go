@@ -126,33 +126,39 @@ func (p *Parser) parseClassBody() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseClassStatement() ast.Statement {
+func (p *Parser) parseClassExpression() *ast.ClassExpression {
 	idx := p.consumeExpected(token.CLASS)
 
-	statement := &ast.ClassStatement{
-		Class:   idx,
+	exp := &ast.ClassExpression{
+		Start:   idx,
 		Name:    nil,
 		Extends: nil,
 		Body:    nil,
 	}
 
 	if p.is(token.IDENTIFIER) {
-		statement.Name = p.parseIdentifier()
+		exp.Name = p.parseIdentifier()
 	}
 
 	if p.is(token.EXTENDS) {
 		p.next()
 		p.shouldBe(token.IDENTIFIER)
 
-		statement.Extends = p.parseIdentifier()
+		exp.Extends = p.parseIdentifier()
 	}
 
 	p.scope.declare(&ast.ClassDeclaration{
-		Name:    statement.Name,
-		Extends: statement.Extends,
+		Name:    exp.Name,
+		Extends: exp.Extends,
 	})
 
-	statement.Body = p.parseClassBody()
+	exp.Body = p.parseClassBody()
 
-	return statement
+	return exp
+}
+
+func (p *Parser) parseClassStatement() ast.Statement {
+	return &ast.ClassStatement{
+		Expression: p.parseClassExpression(),
+	}
 }

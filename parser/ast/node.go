@@ -197,6 +197,13 @@ type (
 		Async      bool
 	}
 
+	ClassExpression struct {
+		Start   file.Idx
+		Name    *Identifier
+		Extends *Identifier
+		Body    Statement
+	}
+
 	ClassSuperExpression struct {
 		Start     file.Idx
 		End       file.Idx
@@ -233,6 +240,7 @@ func (*ThisExpression) _expressionNode()          {}
 func (*UnaryExpression) _expressionNode()         {}
 func (*VariableExpression) _expressionNode()      {}
 func (*ArrowFunctionExpression) _expressionNode() {}
+func (*ClassExpression) _expressionNode()         {}
 func (*ClassSuperExpression) _expressionNode()    {}
 func (*AwaitExpression) _expressionNode()         {}
 
@@ -365,10 +373,7 @@ type (
 	}
 
 	ClassStatement struct {
-		Class   file.Idx
-		Name    *Identifier
-		Extends *Identifier
-		Body    Statement
+		Expression *ClassExpression
 	}
 
 	ClassPropertyStatement struct {
@@ -541,6 +546,7 @@ func (self *ThisExpression) StartAt() file.Idx          { return self.Start }
 func (self *UnaryExpression) StartAt() file.Idx         { return self.Start }
 func (self *VariableExpression) StartAt() file.Idx      { return self.Start }
 func (self *ArrowFunctionExpression) StartAt() file.Idx { return self.Start }
+func (self *ClassExpression) StartAt() file.Idx         { return self.Start }
 func (self *ClassSuperExpression) StartAt() file.Idx    { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
 
@@ -565,7 +571,7 @@ func (self *TryStatement) StartAt() file.Idx           { return self.Try }
 func (self *VariableStatement) StartAt() file.Idx      { return self.Var }
 func (self *WhileStatement) StartAt() file.Idx         { return self.While }
 func (self *WithStatement) StartAt() file.Idx          { return self.With }
-func (self *ClassStatement) StartAt() file.Idx         { return self.Class }
+func (self *ClassStatement) StartAt() file.Idx         { return self.Expression.Start }
 func (self *ClassPropertyStatement) StartAt() file.Idx { return self.Property }
 func (self *ClassMethodStatement) StartAt() file.Idx   { return self.Method }
 
@@ -605,6 +611,7 @@ func (self *VariableExpression) EndAt() file.Idx {
 	return self.Initializer.EndAt()
 }
 func (self *ArrowFunctionExpression) EndAt() file.Idx { return self.Start }
+func (self *ClassExpression) EndAt() file.Idx         { return self.Body.EndAt() }
 func (self *ClassSuperExpression) EndAt() file.Idx    { return self.End }
 func (self *AwaitExpression) EndAt() file.Idx         { return self.Expression.EndAt() }
 
@@ -634,6 +641,6 @@ func (self *TryStatement) EndAt() file.Idx           { return self.Try }
 func (self *VariableStatement) EndAt() file.Idx      { return self.List[len(self.List)-1].EndAt() }
 func (self *WhileStatement) EndAt() file.Idx         { return self.Body.EndAt() }
 func (self *WithStatement) EndAt() file.Idx          { return self.Body.EndAt() }
-func (self *ClassStatement) EndAt() file.Idx         { return self.Body.EndAt() }
+func (self *ClassStatement) EndAt() file.Idx         { return self.Expression.Body.EndAt() }
 func (self *ClassMethodStatement) EndAt() file.Idx   { return self.Body.EndAt() }
 func (self *ClassPropertyStatement) EndAt() file.Idx { return self.Initializer.EndAt() }

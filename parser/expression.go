@@ -42,6 +42,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			End:       end,
 			Arguments: arguments,
 		}
+	case token.CLASS:
+		return p.parseClassExpression()
 	case token.AWAIT:
 		idx := p.idx
 		p.next()
