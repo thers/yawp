@@ -42,16 +42,16 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 
 			switch p.token {
 			case token.ASSIGN:
-				// Property can not be async, huh
+				// Start can not be async, huh
 				if async {
 					p.unexpectedToken()
 					break
 				}
 
-				// Property init
+				// Start init
 				p.next()
-				stmt = append(stmt, &ast.ClassPropertyStatement{
-					Property:    idx,
+				stmt = append(stmt, &ast.ClassFieldStatement{
+					Start:       idx,
 					Name:        identifier,
 					Static:      static,
 					Private:     private,
@@ -82,8 +82,8 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 				p.next()
 			case token.SEMICOLON:
 				p.consumeExpected(token.SEMICOLON)
-				stmt = append(stmt, &ast.ClassPropertyStatement{
-					Property:    idx,
+				stmt = append(stmt, &ast.ClassFieldStatement{
+					Start:       idx,
 					Name:        identifier,
 					Static:      static,
 					Private:     private,
@@ -92,8 +92,8 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			default:
 				if p.insertSemicolon {
 					p.insertSemicolon = false
-					stmt = append(stmt, &ast.ClassPropertyStatement{
-						Property:    idx,
+					stmt = append(stmt, &ast.ClassFieldStatement{
+						Start:       idx,
 						Name:        identifier,
 						Static:      static,
 						Private:     private,

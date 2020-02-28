@@ -376,8 +376,8 @@ type (
 		Expression *ClassExpression
 	}
 
-	ClassPropertyStatement struct {
-		Property    file.Idx
+	ClassFieldStatement struct {
+		Start       file.Idx
 		Name        *Identifier
 		Static      bool
 		Private     bool
@@ -419,9 +419,9 @@ func (*TryStatement) _statementNode()           {}
 func (*VariableStatement) _statementNode()      {}
 func (*WhileStatement) _statementNode()         {}
 func (*WithStatement) _statementNode()          {}
-func (*ClassStatement) _statementNode()         {}
-func (*ClassPropertyStatement) _statementNode() {}
-func (*ClassMethodStatement) _statementNode()   {}
+func (*ClassStatement) _statementNode()       {}
+func (*ClassFieldStatement) _statementNode()  {}
+func (*ClassMethodStatement) _statementNode() {}
 
 // ================= //
 // FunctionParameter //
@@ -571,9 +571,9 @@ func (self *TryStatement) StartAt() file.Idx           { return self.Try }
 func (self *VariableStatement) StartAt() file.Idx      { return self.Var }
 func (self *WhileStatement) StartAt() file.Idx         { return self.While }
 func (self *WithStatement) StartAt() file.Idx          { return self.With }
-func (self *ClassStatement) StartAt() file.Idx         { return self.Expression.Start }
-func (self *ClassPropertyStatement) StartAt() file.Idx { return self.Property }
-func (self *ClassMethodStatement) StartAt() file.Idx   { return self.Method }
+func (self *ClassStatement) StartAt() file.Idx       { return self.Expression.Start }
+func (self *ClassFieldStatement) StartAt() file.Idx  { return self.Start }
+func (self *ClassMethodStatement) StartAt() file.Idx { return self.Method }
 
 // ==== //
 // EndAt //
@@ -642,5 +642,5 @@ func (self *VariableStatement) EndAt() file.Idx      { return self.List[len(self
 func (self *WhileStatement) EndAt() file.Idx         { return self.Body.EndAt() }
 func (self *WithStatement) EndAt() file.Idx          { return self.Body.EndAt() }
 func (self *ClassStatement) EndAt() file.Idx         { return self.Expression.Body.EndAt() }
-func (self *ClassMethodStatement) EndAt() file.Idx   { return self.Body.EndAt() }
-func (self *ClassPropertyStatement) EndAt() file.Idx { return self.Initializer.EndAt() }
+func (self *ClassMethodStatement) EndAt() file.Idx { return self.Body.EndAt() }
+func (self *ClassFieldStatement) EndAt() file.Idx  { return self.Initializer.EndAt() }
