@@ -8,7 +8,7 @@
 - [x] Object and array function parameters destructuring
 - [x] Default function parameters values
 - [x] const, let
-- [ ] class
+- [x] class
 - [x] object literal property shorthand
 - [x] object literal function shorthand
 - [ ] import, export

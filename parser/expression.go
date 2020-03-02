@@ -16,6 +16,22 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	}
 }
 
+func (p *Parser) parseObjectOrClassFieldIdentifier() *ast.Identifier {
+	if matchIdentifier.MatchString(p.literal) {
+		literal := p.literal
+		idx := p.idx
+
+		p.next()
+
+		return &ast.Identifier{
+			Name:  literal,
+			Start: idx,
+		}
+	}
+
+	return nil
+}
+
 func (p *Parser) parsePrimaryExpression() ast.Expression {
 	literal := p.literal
 	idx := p.idx

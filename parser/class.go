@@ -36,52 +36,89 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			p.next()
 		}
 
-		switch p.token {
-		case token.IDENTIFIER:
-			identifier := p.parseIdentifier()
+		identifier := p.parseObjectOrClassFieldIdentifier()
 
-			switch p.token {
-			case token.ASSIGN:
-				// Start can not be async, huh
-				if async {
-					p.unexpectedToken()
-					break
+		if identifier == nil {
+			p.unexpectedToken()
+			p.next()
+			break
+		}
+
+		// Could be set/get
+		if identifier.Name == "set" || identifier.Name == "get" {
+			kind := identifier.Name
+
+			if p.is(token.IDENTIFIER) {
+				field := p.parseIdentifier()
+				parameterList := p.parseFunctionParameterList()
+
+				node := &ast.FunctionLiteral{
+					Start:      identifier.Start,
+					Parameters: parameterList,
 				}
+				p.parseFunctionBlock(node)
 
-				// Start init
-				p.next()
-				stmt = append(stmt, &ast.ClassFieldStatement{
-					Start:       idx,
-					Name:        identifier,
-					Static:      static,
-					Private:     private,
-					Initializer: p.parseAssignmentExpression(),
+				stmt = append(stmt, &ast.ClassAccessorStatement{
+					Start: identifier.Start,
+					Field: field,
+					Kind:  kind,
+					Body:  node,
 				})
-				p.semicolon()
-			case token.LEFT_PARENTHESIS:
-				// Method declaration
-				method := &ast.ClassMethodStatement{
-					Method:     idx,
-					Name:       identifier,
-					Static:     static,
-					Private:    private,
-					Async:      async,
-					Generator:  false,
-					Parameters: p.parseFunctionParameterList(),
-				}
+				break
+			}
+		}
 
-				body, _ := p.parseClassMethodBody()
-				source := p.slice(identifier.Start, body.EndAt())
-
-				method.Body = body
-				method.Source = source
-
-				stmt = append(stmt, method)
-			case token.IDENTIFIER, token.ASYNC, token.STATIC, token.HASH:
+		switch p.token {
+		case token.ASSIGN:
+			// Field can not be async, huh
+			if async {
 				p.unexpectedToken()
-				p.next()
-			case token.SEMICOLON:
-				p.consumeExpected(token.SEMICOLON)
+				break
+			}
+
+			p.next()
+			stmt = append(stmt, &ast.ClassFieldStatement{
+				Start:       idx,
+				Name:        identifier,
+				Static:      static,
+				Private:     private,
+				Initializer: p.parseAssignmentExpression(),
+			})
+			p.semicolon()
+		case token.LEFT_PARENTHESIS:
+			// Method declaration
+			method := &ast.ClassMethodStatement{
+				Method:     idx,
+				Name:       identifier,
+				Static:     static,
+				Private:    private,
+				Async:      async,
+				Generator:  false,
+				Parameters: p.parseFunctionParameterList(),
+			}
+
+			body, _ := p.parseClassMethodBody()
+			source := p.slice(identifier.Start, body.EndAt())
+
+			method.Body = body
+			method.Source = source
+
+			stmt = append(stmt, method)
+		case token.IDENTIFIER, token.ASYNC, token.STATIC, token.HASH:
+			p.unexpectedToken()
+			p.next()
+		case token.SEMICOLON:
+			p.consumeExpected(token.SEMICOLON)
+			stmt = append(stmt, &ast.ClassFieldStatement{
+				Start:       idx,
+				Name:        identifier,
+				Static:      static,
+				Private:     private,
+				Initializer: nil,
+			})
+		default:
+			if p.insertSemicolon {
+				p.insertSemicolon = false
 				stmt = append(stmt, &ast.ClassFieldStatement{
 					Start:       idx,
 					Name:        identifier,
@@ -89,25 +126,10 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 					Private:     private,
 					Initializer: nil,
 				})
-			default:
-				if p.insertSemicolon {
-					p.insertSemicolon = false
-					stmt = append(stmt, &ast.ClassFieldStatement{
-						Start:       idx,
-						Name:        identifier,
-						Static:      static,
-						Private:     private,
-						Initializer: nil,
-					})
-				} else {
-					p.unexpectedToken()
-					p.next()
-				}
+			} else {
+				p.unexpectedToken()
+				p.next()
 			}
-
-		default:
-			p.unexpectedToken()
-			p.next()
 		}
 	}
 
