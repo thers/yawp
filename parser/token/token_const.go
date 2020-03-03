@@ -63,7 +63,7 @@ const (
 	STRICT_NOT_EQUAL // !==
 	LESS_OR_EQUAL    // <=
 	GREATER_OR_EQUAL // >=
-	ARROW			 // =>
+	ARROW            // =>
 
 	LEFT_PARENTHESIS // (
 	LEFT_BRACKET     // [
@@ -95,6 +95,7 @@ const (
 	EXTENDS
 
 	IMPORT
+	AS
 	EXPORT
 	FROM
 
@@ -238,6 +239,7 @@ var token2string = [...]string{
 	STATIC:                      "static",
 	EXTENDS:                     "extends",
 	IMPORT:                      "import",
+	AS:                          "as",
 	EXPORT:                      "export",
 }
 
@@ -354,6 +356,9 @@ var keywordTable = map[string]_keyword{
 	"import": _keyword{
 		token: IMPORT,
 	},
+	"as": _keyword{
+		token: AS,
+	},
 	"from": _keyword{
 		token: FROM,
 	},
@@ -391,6 +396,6 @@ var keywordTable = map[string]_keyword{
 		strict:        true,
 	},
 	"static": _keyword{
-		token:         STATIC,
+		token: STATIC,
 	},
 }

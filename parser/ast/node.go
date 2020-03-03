@@ -214,6 +214,13 @@ type (
 		Start      file.Idx
 		Expression Expression
 	}
+
+	ImportClause struct {
+		Start            file.Idx
+		Namespace        bool
+		ModuleIdentifier *Identifier
+		LocalIdentifier  *Identifier
+	}
 )
 
 // _expressionNode
@@ -243,6 +250,7 @@ func (*ArrowFunctionExpression) _expressionNode() {}
 func (*ClassExpression) _expressionNode()         {}
 func (*ClassSuperExpression) _expressionNode()    {}
 func (*AwaitExpression) _expressionNode()         {}
+func (*ImportClause) _expressionNode()            {}
 
 // ========= //
 // Statement //
@@ -402,6 +410,16 @@ type (
 		Body       Statement
 		Source     string
 	}
+
+	ImportDeclaration struct {
+		Start              file.Idx
+		Imports            []*ImportClause
+		From               string
+		End                file.Idx
+		HasNamespaceClause bool
+		HasDefaultClause   bool
+		HasNamedClause     bool
+	}
 )
 
 // _statementNode
@@ -430,6 +448,7 @@ func (*ClassStatement) _statementNode()         {}
 func (*ClassFieldStatement) _statementNode()    {}
 func (*ClassAccessorStatement) _statementNode() {}
 func (*ClassMethodStatement) _statementNode()   {}
+func (*ImportDeclaration) _statementNode()      {}
 
 // ================= //
 // FunctionParameter //
@@ -557,6 +576,7 @@ func (self *ArrowFunctionExpression) StartAt() file.Idx { return self.Start }
 func (self *ClassExpression) StartAt() file.Idx         { return self.Start }
 func (self *ClassSuperExpression) StartAt() file.Idx    { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
+func (self *ImportClause) StartAt() file.Idx            { return self.Start }
 
 func (self *BadStatement) StartAt() file.Idx           { return self.From }
 func (self *BlockStatement) StartAt() file.Idx         { return self.LeftBrace }
@@ -583,6 +603,7 @@ func (self *ClassStatement) StartAt() file.Idx         { return self.Expression.
 func (self *ClassFieldStatement) StartAt() file.Idx    { return self.Start }
 func (self *ClassAccessorStatement) StartAt() file.Idx { return self.Start }
 func (self *ClassMethodStatement) StartAt() file.Idx   { return self.Method }
+func (self *ImportDeclaration) StartAt() file.Idx      { return self.Start }
 
 // ==== //
 // EndAt //
@@ -619,10 +640,11 @@ func (self *VariableExpression) EndAt() file.Idx {
 	}
 	return self.Initializer.EndAt()
 }
-func (self *ArrowFunctionExpression) EndAt() file.Idx { return self.Start }
+func (self *ArrowFunctionExpression) EndAt() file.Idx { return self.Body.EndAt() }
 func (self *ClassExpression) EndAt() file.Idx         { return self.Body.EndAt() }
 func (self *ClassSuperExpression) EndAt() file.Idx    { return self.End }
 func (self *AwaitExpression) EndAt() file.Idx         { return self.Expression.EndAt() }
+func (self *ImportClause) EndAt() file.Idx            { return self.Start }
 
 func (self *BadStatement) EndAt() file.Idx        { return self.To }
 func (self *BlockStatement) EndAt() file.Idx      { return self.RightBrace + 1 }
@@ -654,3 +676,4 @@ func (self *ClassStatement) EndAt() file.Idx         { return self.Expression.Bo
 func (self *ClassMethodStatement) EndAt() file.Idx   { return self.Body.EndAt() }
 func (self *ClassFieldStatement) EndAt() file.Idx    { return self.Initializer.EndAt() }
 func (self *ClassAccessorStatement) EndAt() file.Idx { return self.Body.EndAt() }
+func (self *ImportDeclaration) EndAt() file.Idx      { return self.End }

@@ -11,7 +11,8 @@
 - [x] class
 - [x] object literal property shorthand
 - [x] object literal function shorthand
-- [ ] import, export
+- [x] import
+- [ ] export
 - [ ] decorators
 - [ ] optional chaining
 - [ ] nullish coalescing
