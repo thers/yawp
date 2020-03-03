@@ -420,6 +420,11 @@ type (
 		HasDefaultClause   bool
 		HasNamedClause     bool
 	}
+
+	ExportDeclaration struct {
+		Start  file.Idx
+		Clause ExportClause
+	}
 )
 
 // _statementNode
@@ -449,6 +454,7 @@ func (*ClassFieldStatement) _statementNode()    {}
 func (*ClassAccessorStatement) _statementNode() {}
 func (*ClassMethodStatement) _statementNode()   {}
 func (*ImportDeclaration) _statementNode()      {}
+func (*ExportDeclaration) _statementNode()      {}
 
 // ================= //
 // FunctionParameter //
@@ -533,6 +539,95 @@ func (*FunctionDeclaration) _declarationNode() {}
 func (*VariableDeclaration) _declarationNode() {}
 func (*ClassDeclaration) _declarationNode()    {}
 
+// =================== //
+// ExportClause        //
+// DefaultExportClause //
+// =================== //
+
+type (
+	ExportClause interface {
+		_exportClauseNode()
+	}
+
+	DefaultExportClause interface {
+		_defaultExportClauseNode()
+	}
+
+	DefaultIdentifierExportClause struct {
+		Identifier *Identifier
+	}
+
+	DefaultFunctionExportClause struct {
+		Async   bool
+		Literal *FunctionLiteral
+	}
+
+	DefaultClassExportClause struct {
+		Expression *ClassExpression
+	}
+
+	// export * from 'module'
+	ExportNamespaceFromClause struct {
+		ModuleIdentifier *Identifier
+		From             string
+	}
+
+	// a as b
+	NamedExportClause struct {
+		ModuleIdentifier *Identifier
+		LocalIdentifier  *Identifier
+	}
+
+	// export { a as b } from 'module'
+	ExportNamedFromClause struct {
+		Exports []*NamedExportClause
+		From    string
+	}
+
+	// export { a as b }
+	ExportNamedClause struct {
+		Exports []*NamedExportClause
+	}
+
+	// export var/const/let aa = ''
+	ExportVarClause struct {
+		Identifier  *Identifier
+		Kind        string
+		Initializer Expression
+	}
+
+	// export function fn() {}
+	ExportFunctionClause struct {
+		FunctionLiteral *FunctionLiteral
+	}
+
+	// export class Test {}
+	ExportClassClause struct {
+		ClassExpression *ClassExpression
+	}
+
+	// export default
+	ExportDefaultClause struct {
+		Declaration DefaultExportClause
+	}
+)
+
+// _exportClauseNode()
+
+func (s *ExportNamespaceFromClause) _exportClauseNode() {}
+func (s *ExportNamedFromClause) _exportClauseNode()     {}
+func (s *ExportNamedClause) _exportClauseNode()         {}
+func (s *ExportVarClause) _exportClauseNode()           {}
+func (s *ExportFunctionClause) _exportClauseNode()      {}
+func (s *ExportClassClause) _exportClauseNode()         {}
+func (s *ExportDefaultClause) _exportClauseNode()       {}
+
+// _defaultExportClauseNode()
+
+func (s *DefaultIdentifierExportClause) _defaultExportClauseNode() {}
+func (s *DefaultFunctionExportClause) _defaultExportClauseNode()   {}
+func (s *DefaultClassExportClause) _defaultExportClauseNode()      {}
+
 // ==== //
 // Node //
 // ==== //
@@ -577,6 +672,7 @@ func (self *ClassExpression) StartAt() file.Idx         { return self.Start }
 func (self *ClassSuperExpression) StartAt() file.Idx    { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
 func (self *ImportClause) StartAt() file.Idx            { return self.Start }
+func (self *ExportDeclaration) StartAt() file.Idx       { return self.Start }
 
 func (self *BadStatement) StartAt() file.Idx           { return self.From }
 func (self *BlockStatement) StartAt() file.Idx         { return self.LeftBrace }
@@ -645,6 +741,7 @@ func (self *ClassExpression) EndAt() file.Idx         { return self.Body.EndAt()
 func (self *ClassSuperExpression) EndAt() file.Idx    { return self.End }
 func (self *AwaitExpression) EndAt() file.Idx         { return self.Expression.EndAt() }
 func (self *ImportClause) EndAt() file.Idx            { return self.Start }
+func (self *ExportDeclaration) EndAt() file.Idx       { return self.Start }
 
 func (self *BadStatement) EndAt() file.Idx        { return self.To }
 func (self *BlockStatement) EndAt() file.Idx      { return self.RightBrace + 1 }

@@ -42,9 +42,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
 			LocalIdentifier:  localIdentifier,
 		})
 
-		if p.is(token.COMMA) {
-			p.next()
-		}
+		p.consumePossible(token.COMMA)
 	}
 
 	p.consumeExpected(token.RIGHT_BRACE)

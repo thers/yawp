@@ -80,6 +80,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseClassStatement()
 	case token.IMPORT:
 		return p.parseImportDeclaration()
+	case token.EXPORT:
+		return p.parseExportDeclaration()
 	}
 
 	expression := p.parseExpression()
