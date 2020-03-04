@@ -6,33 +6,46 @@ import (
 )
 
 func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
-	exp := &ast.OptionalExpression{
-		Left: left,
-	}
-
-	period := p.consumeExpected(token.OPTIONAL_CHAINING)
+	optionalChaining := p.consumeExpected(token.OPTIONAL_CHAINING)
 
 	identifier := p.parseIdentifierIncludingKeywords()
 
 	if identifier == nil {
-		if p.is(token.LEFT_BRACKET) {
+		switch p.token {
+		case token.LEFT_BRACKET:
 			p.consumeExpected(token.LEFT_BRACKET)
 
-			exp.ArrayMember = p.parseAssignmentExpression()
+			index := p.parseAssignmentExpression()
+			end := p.consumeExpected(token.RIGHT_BRACKET)
 
-			p.consumeExpected(token.RIGHT_BRACKET)
+			return &ast.OptionalArrayMemberAccessExpression{
+				Left:  left,
+				Index: index,
+				End:   end,
+			}
+		case token.LEFT_PARENTHESIS:
+			arguments, _, end := p.parseArgumentList()
 
-			return exp
-		} else {
+			return &ast.OptionalCallExpression{
+				Left:      left,
+				Arguments: arguments,
+				End:       end,
+			}
+		default:
 			p.consumeExpected(token.IDENTIFIER)
 			p.nextStatement()
-			return &ast.BadExpression{From: period, To: p.idx}
+
+			return &ast.BadExpression{
+				From: optionalChaining,
+				To:   p.idx,
+			}
 		}
 	}
 
-	exp.Identifier = identifier
-
 	p.next()
 
-	return exp
+	return &ast.OptionalObjectMemberAccessExpression{
+		Left:       left,
+		Identifier: identifier,
+	}
 }
