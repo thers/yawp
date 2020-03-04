@@ -12,7 +12,7 @@
 - [x] object literal property shorthand
 - [x] object literal function shorthand
 - [x] import
-- [ ] export
+- [x] export
 - [ ] decorators
 - [ ] optional chaining
 - [ ] nullish coalescing

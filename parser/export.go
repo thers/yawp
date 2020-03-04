@@ -103,6 +103,16 @@ func (p *Parser) parseExportNamedMaybeFromClause() ast.ExportClause {
 	return exportNamedClause
 }
 
+func (p *Parser) parseExportDefaultClause() *ast.ExportDefaultClause {
+	p.consumeExpected(token.DEFAULT)
+
+	clause := &ast.ExportDefaultClause{
+		Declaration: p.parseAssignmentExpression(),
+	}
+
+	return clause
+}
+
 func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
 	start := p.consumeExpected(token.EXPORT)
 	declaration := &ast.ExportDeclaration{
@@ -116,6 +126,8 @@ func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
 		declaration.Clause = p.parseExportNamespaceFromClause()
 	case token.LEFT_BRACE:
 		declaration.Clause = p.parseExportNamedMaybeFromClause()
+	case token.DEFAULT:
+		declaration.Clause = p.parseExportDefaultClause()
 	}
 
 	return declaration

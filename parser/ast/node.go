@@ -549,23 +549,6 @@ type (
 		_exportClauseNode()
 	}
 
-	DefaultExportClause interface {
-		_defaultExportClauseNode()
-	}
-
-	DefaultIdentifierExportClause struct {
-		Identifier *Identifier
-	}
-
-	DefaultFunctionExportClause struct {
-		Async   bool
-		Literal *FunctionLiteral
-	}
-
-	DefaultClassExportClause struct {
-		Expression *ClassExpression
-	}
-
 	// export * from 'module'
 	ExportNamespaceFromClause struct {
 		ModuleIdentifier *Identifier
@@ -608,7 +591,7 @@ type (
 
 	// export default
 	ExportDefaultClause struct {
-		Declaration DefaultExportClause
+		Declaration Expression
 	}
 )
 
@@ -621,12 +604,6 @@ func (s *ExportVarClause) _exportClauseNode()           {}
 func (s *ExportFunctionClause) _exportClauseNode()      {}
 func (s *ExportClassClause) _exportClauseNode()         {}
 func (s *ExportDefaultClause) _exportClauseNode()       {}
-
-// _defaultExportClauseNode()
-
-func (s *DefaultIdentifierExportClause) _defaultExportClauseNode() {}
-func (s *DefaultFunctionExportClause) _defaultExportClauseNode()   {}
-func (s *DefaultClassExportClause) _defaultExportClauseNode()      {}
 
 // ==== //
 // Node //
