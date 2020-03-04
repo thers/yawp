@@ -36,7 +36,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			p.next()
 		}
 
-		identifier := p.parseObjectOrClassFieldIdentifier()
+		identifier := p.parseIdentifierIncludingKeywords()
 
 		if identifier == nil {
 			p.unexpectedToken()

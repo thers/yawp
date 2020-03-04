@@ -33,6 +33,13 @@ func TestLexerAdditions(t *testing.T) {
 			}
 		}
 
+		test("a?.b",
+			token.IDENTIFIER, "a", 1,
+			token.OPTIONAL_CHAINING, "", 2,
+			token.IDENTIFIER, "b", 4,
+			token.EOF, "", 5,
+		)
+
 		test("function(a=b){}",
 			token.FUNCTION, "function", 1,
 			token.LEFT_PARENTHESIS, "", 9,

@@ -65,11 +65,12 @@ const (
 	GREATER_OR_EQUAL // >=
 	ARROW            // =>
 
-	LEFT_PARENTHESIS // (
-	LEFT_BRACKET     // [
-	LEFT_BRACE       // {
-	COMMA            // ,
-	PERIOD           // .
+	LEFT_PARENTHESIS  // (
+	LEFT_BRACKET      // [
+	LEFT_BRACE        // {
+	COMMA             // ,
+	PERIOD            // .
+	OPTIONAL_CHAINING // ?.
 
 	RIGHT_PARENTHESIS // )
 	RIGHT_BRACKET     // ]
@@ -195,6 +196,7 @@ var token2string = [...]string{
 	LEFT_BRACE:                  "{",
 	COMMA:                       ",",
 	PERIOD:                      ".",
+	OPTIONAL_CHAINING:           "?.",
 	RIGHT_PARENTHESIS:           ")",
 	RIGHT_BRACKET:               "]",
 	RIGHT_BRACE:                 "}",

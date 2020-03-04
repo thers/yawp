@@ -298,7 +298,12 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			case '~':
 				tkn = token.BITWISE_NOT
 			case '?':
-				tkn = token.QUESTION_MARK
+				if p.nextChr == '.' {
+					p.read()
+					tkn = token.OPTIONAL_CHAINING
+				} else {
+					tkn = token.QUESTION_MARK
+				}
 			case '"', '\'', '`':
 				insertSemicolon = true
 				tkn = token.STRING

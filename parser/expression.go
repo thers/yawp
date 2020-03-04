@@ -16,7 +16,7 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	}
 }
 
-func (p *Parser) parseObjectOrClassFieldIdentifier() *ast.Identifier {
+func (p *Parser) parseIdentifierIncludingKeywords() *ast.Identifier {
 	if matchIdentifier.MatchString(p.literal) {
 		literal := p.literal
 		idx := p.idx
@@ -297,6 +297,8 @@ func (p *Parser) parseLeftHandSideExpression() ast.Expression {
 	for {
 		if p.is(token.PERIOD) {
 			left = p.parseDotMember(left)
+		} else if p.is(token.OPTIONAL_CHAINING) {
+			left = p.parseOptionalExpression(left)
 		} else if p.is(token.LEFT_BRACKET) {
 			left = p.parseBracketMember(left)
 		} else {
@@ -325,6 +327,8 @@ func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
 	for {
 		if p.is(token.PERIOD) {
 			left = p.parseDotMember(left)
+		} else if p.is(token.OPTIONAL_CHAINING) {
+			left = p.parseOptionalExpression(left)
 		} else if p.is(token.LEFT_BRACKET) {
 			left = p.parseBracketMember(left)
 		} else if p.is(token.LEFT_PARENTHESIS) {
