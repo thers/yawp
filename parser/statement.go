@@ -11,15 +11,6 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseBlockStatement() *ast.BlockStatement {
-	node := &ast.BlockStatement{}
-	node.LeftBrace = p.consumeExpected(token.LEFT_BRACE)
-	node.List = p.parseStatementList()
-	node.RightBrace = p.consumeExpected(token.RIGHT_BRACE)
-
-	return node
-}
-
 func (p *Parser) parseEmptyStatement() ast.Statement {
 	idx := p.consumeExpected(token.SEMICOLON)
 	return &ast.EmptyStatement{Semicolon: idx}
@@ -43,8 +34,10 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.token {
 	case token.SEMICOLON:
 		return p.parseEmptyStatement()
+	case token.LEFT_BRACKET:
+		return p.parseArrayBindingStatement()
 	case token.LEFT_BRACE:
-		return p.parseBlockStatement()
+		return p.parseBlockStatementOrObjectPatternBinding()
 	case token.IF:
 		return p.parseIfStatement()
 	case token.DO:
@@ -176,28 +169,6 @@ func (p *Parser) parseDebuggerStatement() ast.Statement {
 
 	node := &ast.DebuggerStatement{
 		Debugger: idx,
-	}
-
-	p.semicolon()
-
-	return node
-}
-
-func (p *Parser) parseReturnStatement() ast.Statement {
-	idx := p.consumeExpected(token.RETURN)
-
-	if !p.scope.inFunction {
-		p.error(idx, "Illegal return statement")
-		p.nextStatement()
-		return &ast.BadStatement{From: idx, To: p.idx}
-	}
-
-	node := &ast.ReturnStatement{
-		Return: idx,
-	}
-
-	if !p.implicitSemicolon && !p.is(token.SEMICOLON) && !p.is(token.RIGHT_BRACE) && !p.is(token.EOF) {
-		node.Argument = p.parseExpression()
 	}
 
 	p.semicolon()

@@ -127,7 +127,7 @@ func (p *Parser) parseObjectProperty() *ast.Property {
 	return p.parseObjectPropertyFromShorthand(p.idx, p.literal)
 }
 
-func (p *Parser) parseObjectLiteral() ast.Expression {
+func (p *Parser) parseObjectLiteral() *ast.ObjectLiteral {
 	var value []*ast.Property
 
 	idx0 := p.consumeExpected(token.LEFT_BRACE)
@@ -146,4 +146,36 @@ func (p *Parser) parseObjectLiteral() ast.Expression {
 		RightBrace: idx1,
 		Value:      value,
 	}
+}
+
+func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
+	wasPatternBindingMode := p.patternBindingMode
+	p.patternBindingMode = true
+
+	defer func() {
+		p.patternBindingMode = wasPatternBindingMode
+	}()
+
+	return p.parseObjectBinding(), p.patternBindingMode
+}
+
+func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
+	start := p.idx
+	partialState := p.getPartialState()
+
+	objectBinding, success := p.maybeParseObjectBinding()
+
+	if success && p.is(token.ASSIGN) {
+		p.consumeExpected(token.ASSIGN)
+
+		return &ast.VariableBinding{
+			Start:       start,
+			Binder:      objectBinding,
+			Initializer: p.parseAssignmentExpression(),
+		}
+	}
+
+	p.restorePartialState(partialState)
+
+	return p.parseObjectLiteral()
 }
