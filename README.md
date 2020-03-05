@@ -16,7 +16,8 @@
 - [ ] decorators
 - [x] optional chaining
 - [ ] nullish coalescing
-- [ ] const, let, var object and array destructuring
+- [x] const, let, var object and array destructuring
+- [ ] arbitrary var object and array destructuring
 - [ ] new.target
 - [ ] generator function
 - [x] async function
