@@ -26,6 +26,7 @@ func (p *Parser) parseBinder() ast.PatternBinder {
 	case token.LEFT_BRACE:
 		return p.parseObjectBinding()
 	default:
+		p.patternBindingMode = false
 		p.unexpectedToken()
 		p.next()
 	}
@@ -52,6 +53,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 		propertyName := p.parseIdentifierIncludingKeywords()
 
 		if propertyName == nil {
+			p.patternBindingMode = false
 			p.unexpectedToken()
 			p.next()
 			continue
@@ -67,6 +69,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 			_, isKeyword := token.IsKeyword(propertyName.Name)
 
 			if isKeyword {
+				p.patternBindingMode = false
 				p.error(propertyIdx, "Unexpected token")
 				p.next()
 				continue
