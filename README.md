@@ -15,7 +15,7 @@
 - [x] export
 - [ ] decorators
 - [x] optional chaining
-- [ ] nullish coalescing
+- [x] nullish coalescing
 - [x] const, let, var object and array destructuring
 - [x] arbitrary var object and array destructuring
 - [ ] new.target

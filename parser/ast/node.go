@@ -76,12 +76,6 @@ type (
 		RightParenthesis file.Idx
 	}
 
-	ConditionalExpression struct {
-		Test       Expression
-		Consequent Expression
-		Alternate  Expression
-	}
-
 	DotExpression struct {
 		Left       Expression
 		Identifier Identifier
@@ -214,7 +208,6 @@ func (*BinaryExpression) _expressionNode()        {}
 func (*BooleanLiteral) _expressionNode()          {}
 func (*BracketExpression) _expressionNode()       {}
 func (*CallExpression) _expressionNode()          {}
-func (*ConditionalExpression) _expressionNode()   {}
 func (*DotExpression) _expressionNode()           {}
 func (*Identifier) _expressionNode()              {}
 func (*NewExpression) _expressionNode()           {}
@@ -476,7 +469,6 @@ func (self *BinaryExpression) StartAt() file.Idx        { return self.Left.Start
 func (self *BooleanLiteral) StartAt() file.Idx          { return self.Start }
 func (self *BracketExpression) StartAt() file.Idx       { return self.Left.StartAt() }
 func (self *CallExpression) StartAt() file.Idx          { return self.Callee.StartAt() }
-func (self *ConditionalExpression) StartAt() file.Idx   { return self.Test.StartAt() }
 func (self *DotExpression) StartAt() file.Idx           { return self.Left.StartAt() }
 func (self *Identifier) StartAt() file.Idx              { return self.Start }
 func (self *NewExpression) StartAt() file.Idx           { return self.Start }
@@ -531,7 +523,6 @@ func (self *BinaryExpression) EndAt() file.Idx      { return self.Right.EndAt() 
 func (self *BooleanLiteral) EndAt() file.Idx        { return file.Idx(int(self.Start) + len(self.Literal)) }
 func (self *BracketExpression) EndAt() file.Idx     { return self.RightBracket + 1 }
 func (self *CallExpression) EndAt() file.Idx        { return self.RightParenthesis + 1 }
-func (self *ConditionalExpression) EndAt() file.Idx { return self.Test.EndAt() }
 func (self *DotExpression) EndAt() file.Idx         { return self.Identifier.EndAt() }
 func (self *Identifier) EndAt() file.Idx            { return file.Idx(int(self.Start) + len(self.Name)) }
 func (self *NewExpression) EndAt() file.Idx         { return self.RightParenthesis + 1 }

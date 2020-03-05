@@ -72,13 +72,14 @@ const (
 	PERIOD            // .
 	OPTIONAL_CHAINING // ?.
 
-	RIGHT_PARENTHESIS // )
-	RIGHT_BRACKET     // ]
-	RIGHT_BRACE       // }
-	SEMICOLON         // ;
-	COLON             // :
-	QUESTION_MARK     // ?
-	DOTDOTDOT         // ...
+	RIGHT_PARENTHESIS  // )
+	RIGHT_BRACKET      // ]
+	RIGHT_BRACE        // }
+	SEMICOLON          // ;
+	COLON              // :
+	QUESTION_MARK      // ?
+	NULLISH_COALESCING // ??
+	DOTDOTDOT          // ...
 
 	firstKeyword
 	IF
@@ -203,6 +204,7 @@ var token2string = [...]string{
 	SEMICOLON:                   ";",
 	COLON:                       ":",
 	QUESTION_MARK:               "?",
+	NULLISH_COALESCING:          "??",
 	DOTDOTDOT:                   "...",
 	IF:                          "if",
 	IN:                          "in",

@@ -414,23 +414,6 @@ func (p *Parser) parseLogicalOrExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseConditionalExpression() ast.Expression {
-	left := p.parseLogicalOrExpression()
-
-	if p.is(token.QUESTION_MARK) {
-		p.next()
-		consequent := p.parseAssignmentExpression()
-		p.consumeExpected(token.COLON)
-		return &ast.ConditionalExpression{
-			Test:       left,
-			Consequent: consequent,
-			Alternate:  p.parseAssignmentExpression(),
-		}
-	}
-
-	return left
-}
-
 func (p *Parser) parseExpression() ast.Expression {
 	next := p.parseAssignmentExpression
 	left := next()

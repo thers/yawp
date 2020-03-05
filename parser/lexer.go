@@ -301,6 +301,9 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				if p.nextChr == '.' {
 					p.read()
 					tkn = token.OPTIONAL_CHAINING
+				} else if p.nextChr == '?' {
+					p.read()
+					tkn = token.NULLISH_COALESCING
 				} else {
 					tkn = token.QUESTION_MARK
 				}
