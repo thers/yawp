@@ -83,7 +83,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 		pattern.List = append(pattern.List, property)
 	}
 
-	pattern.End = p.consumeExpected(token.RIGHT_BRACKET)
+	pattern.End = p.consumeExpected(token.RIGHT_BRACE)
 
 	return pattern
 }
