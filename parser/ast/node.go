@@ -87,17 +87,6 @@ type (
 		Identifier Identifier
 	}
 
-	FunctionLiteral struct {
-		Start      file.Idx
-		Async      bool
-		Name       *Identifier
-		Parameters *FunctionParameters
-		Body       Statement
-		Source     string
-
-		DeclarationList []Declaration
-	}
-
 	Identifier struct {
 		Start file.Idx
 		Name  string
@@ -227,7 +216,6 @@ func (*BracketExpression) _expressionNode()       {}
 func (*CallExpression) _expressionNode()          {}
 func (*ConditionalExpression) _expressionNode()   {}
 func (*DotExpression) _expressionNode()           {}
-func (*FunctionLiteral) _expressionNode()         {}
 func (*Identifier) _expressionNode()              {}
 func (*NewExpression) _expressionNode()           {}
 func (*NullLiteral) _expressionNode()             {}
@@ -431,57 +419,6 @@ func (*ClassFieldStatement) _statementNode()    {}
 func (*ClassAccessorStatement) _statementNode() {}
 func (*ClassMethodStatement) _statementNode()   {}
 
-// ================= //
-// FunctionParameter //
-// ================= //
-
-type (
-	FunctionParameter interface {
-		GetDefaultValue() Expression
-		SetDefaultValue(Expression)
-		_parameterNode()
-	}
-
-	IdentifierParameter struct {
-		Name         *Identifier
-		DefaultValue Expression
-	}
-
-	RestParameter struct {
-		Name string
-	}
-
-	ObjectPatternIdentifierParameter struct {
-		Parameter    FunctionParameter
-		PropertyName string
-	}
-
-	ObjectPatternParameter struct {
-		List         []*ObjectPatternIdentifierParameter
-		DefaultValue Expression
-	}
-
-	ArrayPatternParameter struct {
-		List         []FunctionParameter
-		DefaultValue Expression
-	}
-)
-
-// _parameterNode()
-
-func (ip *IdentifierParameter) GetDefaultValue() Expression            { return ip.DefaultValue }
-func (rp *RestParameter) GetDefaultValue() Expression                 { return nil }
-func (odp *ObjectPatternParameter) GetDefaultValue() Expression    { return odp.DefaultValue }
-func (adp *ArrayPatternParameter) GetDefaultValue() Expression     { return adp.DefaultValue }
-func (ip *IdentifierParameter) SetDefaultValue(exp Expression)     { ip.DefaultValue = exp }
-func (rp *RestParameter) SetDefaultValue(_ Expression)                {}
-func (odp *ObjectPatternParameter) SetDefaultValue(exp Expression) { odp.DefaultValue = exp }
-func (adp *ArrayPatternParameter) SetDefaultValue(exp Expression)  { adp.DefaultValue = exp }
-func (*IdentifierParameter) _parameterNode()                       {}
-func (*RestParameter) _parameterNode()                                {}
-func (*ObjectPatternParameter) _parameterNode()                    {}
-func (*ArrayPatternParameter) _parameterNode()                     {}
-
 // =========== //
 // Declaration //
 // =========== //
@@ -541,7 +478,6 @@ func (self *BracketExpression) StartAt() file.Idx       { return self.Left.Start
 func (self *CallExpression) StartAt() file.Idx          { return self.Callee.StartAt() }
 func (self *ConditionalExpression) StartAt() file.Idx   { return self.Test.StartAt() }
 func (self *DotExpression) StartAt() file.Idx           { return self.Left.StartAt() }
-func (self *FunctionLiteral) StartAt() file.Idx         { return self.Start }
 func (self *Identifier) StartAt() file.Idx              { return self.Start }
 func (self *NewExpression) StartAt() file.Idx           { return self.Start }
 func (self *NullLiteral) StartAt() file.Idx             { return self.Start }
@@ -597,7 +533,6 @@ func (self *BracketExpression) EndAt() file.Idx     { return self.RightBracket +
 func (self *CallExpression) EndAt() file.Idx        { return self.RightParenthesis + 1 }
 func (self *ConditionalExpression) EndAt() file.Idx { return self.Test.EndAt() }
 func (self *DotExpression) EndAt() file.Idx         { return self.Identifier.EndAt() }
-func (self *FunctionLiteral) EndAt() file.Idx       { return self.Body.EndAt() }
 func (self *Identifier) EndAt() file.Idx            { return file.Idx(int(self.Start) + len(self.Name)) }
 func (self *NewExpression) EndAt() file.Idx         { return self.RightParenthesis + 1 }
 func (self *NullLiteral) EndAt() file.Idx           { return file.Idx(int(self.Start) + 4) } // "null"

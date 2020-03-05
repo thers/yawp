@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"yawp/parser/ast"
-	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
@@ -65,9 +64,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.VAR, token.CONST, token.LET:
 		return p.parseVariableStatement()
 	case token.FUNCTION:
-		p.parseFunction(true, p.idx, false)
-		// FIXME
-		return &ast.EmptyStatement{}
+		return p.parseFunction(true, p.idx, false)
 	case token.SWITCH:
 		return p.parseSwitchStatement()
 	case token.RETURN:
@@ -164,34 +161,6 @@ func (p *Parser) parseParameterList() (list []string) {
 		}
 	}
 	return
-}
-
-func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.FunctionLiteral {
-	p.consumeExpected(token.FUNCTION)
-
-	node := &ast.FunctionLiteral{
-		Start: idx,
-		Async: async,
-	}
-
-	var name *ast.Identifier
-	if p.is(token.IDENTIFIER) {
-		name = p.parseIdentifier()
-		if declaration {
-			p.scope.declare(&ast.FunctionDeclaration{
-				Function: node,
-			})
-		}
-	} else if declaration {
-		// Use consumeExpected error handling
-		p.consumeExpected(token.IDENTIFIER)
-	}
-	node.Name = name
-	node.Parameters = p.parseFunctionParameterList()
-	p.parseFunctionBlock(node)
-	node.Source = p.slice(idx, node.EndAt())
-
-	return node
 }
 
 func (p *Parser) parseFunctionBlock(node *ast.FunctionLiteral) {

@@ -2,25 +2,20 @@ package parser
 
 import (
 	"yawp/parser/ast"
+	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
 func (p *Parser) parseRestParameterFollowedBy(value token.Token) *ast.RestParameter {
 	p.consumeExpected(token.DOTDOTDOT)
 
-	literal := p.literal
-
-	if p.is(token.IDENTIFIER) {
-		p.next()
-	} else {
-		p.unexpectedToken()
+	restParameter := &ast.RestParameter{
+		Binder: p.parseBinder(),
 	}
 
 	p.shouldBe(value)
 
-	return &ast.RestParameter{
-		Name: literal,
-	}
+	return restParameter
 }
 
 func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternIdentifierParameter {
@@ -178,4 +173,32 @@ func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 		List:    list,
 		Closing: closing,
 	}
+}
+
+func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.FunctionLiteral {
+	p.consumeExpected(token.FUNCTION)
+
+	node := &ast.FunctionLiteral{
+		Start: idx,
+		Async: async,
+	}
+
+	var name *ast.Identifier
+	if p.is(token.IDENTIFIER) {
+		name = p.parseIdentifier()
+		if declaration {
+			p.scope.declare(&ast.FunctionDeclaration{
+				Function: node,
+			})
+		}
+	} else if declaration {
+		// Use consumeExpected error handling
+		p.consumeExpected(token.IDENTIFIER)
+	}
+	node.Name = name
+	node.Parameters = p.parseFunctionParameterList()
+	p.parseFunctionBlock(node)
+	node.Source = p.slice(idx, node.EndAt())
+
+	return node
 }
