@@ -30,9 +30,16 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 }
 
 func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpression, kind token.Token) ast.Expression {
-	if p.is(token.LEFT_BRACKET) {
+	if p.is(token.LEFT_BRACKET) || p.is(token.LEFT_BRACE) {
 		start := p.idx
-		binding := p.parseArrayBinding()
+
+		var binder ast.PatternBinder
+
+		if p.is(token.LEFT_BRACKET) {
+			binder = p.parseArrayBinding()
+		} else {
+			binder = p.parseObjectBinding()
+		}
 
 		p.consumeExpected(token.ASSIGN)
 
@@ -40,7 +47,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 
 		return &ast.VariableBinding{
 			Start:       start,
-			Binder:      binding,
+			Binder:      binder,
 			Initializer: initializer,
 		}
 	}
