@@ -82,3 +82,7 @@ func (p *Parser) parseVariableDeclarationList(var_ file.Idx, kind token.Token) [
 
 	return list
 }
+
+//func (p *Parser) parseArrayAssignmentPatternOrArrayLiteral() ast.Expression {
+//
+//}

@@ -360,18 +360,6 @@ func (p *Parser) parseDoWhileStatement() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseWhileStatement() ast.Statement {
-	p.consumeExpected(token.WHILE)
-	p.consumeExpected(token.LEFT_PARENTHESIS)
-	node := &ast.WhileStatement{
-		Test: p.parseExpression(),
-	}
-	p.consumeExpected(token.RIGHT_PARENTHESIS)
-	node.Body = p.parseIterationStatement()
-
-	return node
-}
-
 func (p *Parser) parseIfStatement() ast.Statement {
 	p.consumeExpected(token.IF)
 	p.consumeExpected(token.LEFT_PARENTHESIS)

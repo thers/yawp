@@ -451,17 +451,17 @@ type (
 		Name string
 	}
 
-	ObjectDestructureIdentifierParameter struct {
+	ObjectPatternIdentifierParameter struct {
 		Parameter    FunctionParameter
 		PropertyName string
 	}
 
-	ObjectDestructureParameter struct {
-		List         []*ObjectDestructureIdentifierParameter
+	ObjectPatternParameter struct {
+		List         []*ObjectPatternIdentifierParameter
 		DefaultValue Expression
 	}
 
-	ArrayDestructureParameter struct {
+	ArrayPatternParameter struct {
 		List         []FunctionParameter
 		DefaultValue Expression
 	}
@@ -470,17 +470,17 @@ type (
 // _parameterNode()
 
 func (ip *IdentifierParameter) GetDefaultValue() Expression            { return ip.DefaultValue }
-func (rp *RestParameter) GetDefaultValue() Expression                  { return nil }
-func (odp *ObjectDestructureParameter) GetDefaultValue() Expression    { return odp.DefaultValue }
-func (adp *ArrayDestructureParameter) GetDefaultValue() Expression     { return adp.DefaultValue }
-func (ip *IdentifierParameter) SetDefaultValue(exp Expression)         { ip.DefaultValue = exp }
-func (rp *RestParameter) SetDefaultValue(_ Expression)                 {}
-func (odp *ObjectDestructureParameter) SetDefaultValue(exp Expression) { odp.DefaultValue = exp }
-func (adp *ArrayDestructureParameter) SetDefaultValue(exp Expression)  { adp.DefaultValue = exp }
-func (*IdentifierParameter) _parameterNode()                           {}
-func (*RestParameter) _parameterNode()                                 {}
-func (*ObjectDestructureParameter) _parameterNode()                    {}
-func (*ArrayDestructureParameter) _parameterNode()                     {}
+func (rp *RestParameter) GetDefaultValue() Expression                 { return nil }
+func (odp *ObjectPatternParameter) GetDefaultValue() Expression    { return odp.DefaultValue }
+func (adp *ArrayPatternParameter) GetDefaultValue() Expression     { return adp.DefaultValue }
+func (ip *IdentifierParameter) SetDefaultValue(exp Expression)     { ip.DefaultValue = exp }
+func (rp *RestParameter) SetDefaultValue(_ Expression)                {}
+func (odp *ObjectPatternParameter) SetDefaultValue(exp Expression) { odp.DefaultValue = exp }
+func (adp *ArrayPatternParameter) SetDefaultValue(exp Expression)  { adp.DefaultValue = exp }
+func (*IdentifierParameter) _parameterNode()                       {}
+func (*RestParameter) _parameterNode()                                {}
+func (*ObjectPatternParameter) _parameterNode()                    {}
+func (*ArrayPatternParameter) _parameterNode()                     {}
 
 // =========== //
 // Declaration //

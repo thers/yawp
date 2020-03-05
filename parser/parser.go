@@ -68,7 +68,9 @@ type Parser struct {
 	scope             *Scope
 	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon bool // An implicit semicolon exists
-	arrowMode         bool // When trying to parse possible arrow fn parameters
+
+	arrowFunctionMode  bool // When trying to parse possible arrow fn parameters
+	patternBindingMode bool // When trying to parse possible binding pattern
 
 	errors ErrorList
 
@@ -230,6 +232,10 @@ func (p *Parser) idxOf(offset int) file.Idx {
 
 func (p *Parser) is(value token.Token) bool {
 	return p.token == value
+}
+
+func (p *Parser) until(value token.Token) bool {
+	return p.token != value && p.token != token.EOF
 }
 
 func (p *Parser) unexpectedToken() {

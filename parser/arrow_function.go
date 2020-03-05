@@ -7,16 +7,16 @@ import (
 )
 
 func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters, bool) {
-	wasArrowMode := p.arrowMode
-	p.arrowMode = true
+	wasArrowMode := p.arrowFunctionMode
+	p.arrowFunctionMode = true
 
 	defer func() {
-		p.arrowMode = wasArrowMode
+		p.arrowFunctionMode = wasArrowMode
 	}()
 
 	params := p.parseFunctionParameterList()
 
-	return params, p.arrowMode
+	return params, p.arrowFunctionMode
 }
 
 func (p *Parser) parseArrowFunctionBody() ast.Statement {

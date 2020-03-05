@@ -23,7 +23,7 @@ func (p *Parser) parseRestParameterFollowedBy(value token.Token) *ast.RestParame
 	}
 }
 
-func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectDestructureIdentifierParameter {
+func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternIdentifierParameter {
 	var parameter ast.FunctionParameter
 	var propertyName string
 
@@ -71,21 +71,21 @@ func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectDestruct
 		p.consumeExpected(token.COMMA)
 	}
 
-	return &ast.ObjectDestructureIdentifierParameter{
+	return &ast.ObjectPatternIdentifierParameter{
 		Parameter: parameter,
 		PropertyName: propertyName,
 	}
 }
 
-func (p *Parser) parseObjectDestructureParameter() *ast.ObjectDestructureParameter {
+func (p *Parser) parseObjectDestructureParameter() *ast.ObjectPatternParameter {
 	p.next()
 
 	if p.is(token.RIGHT_BRACE) {
 		p.unexpectedToken()
 	}
 
-	param := &ast.ObjectDestructureParameter{
-		List:         make([]*ast.ObjectDestructureIdentifierParameter, 0, 1),
+	param := &ast.ObjectPatternParameter{
+		List:         make([]*ast.ObjectPatternIdentifierParameter, 0, 1),
 		DefaultValue: nil,
 	}
 
@@ -101,14 +101,14 @@ func (p *Parser) parseObjectDestructureParameter() *ast.ObjectDestructureParamet
 	return param
 }
 
-func (p *Parser) parseArrayDestructureParameter() *ast.ArrayDestructureParameter {
+func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
 	p.next()
 
 	if p.is(token.RIGHT_BRACKET) {
 		p.unexpectedToken()
 	}
 
-	param := &ast.ArrayDestructureParameter{
+	param := &ast.ArrayPatternParameter{
 		List:         make([]ast.FunctionParameter, 0, 1),
 		DefaultValue: nil,
 	}
@@ -145,7 +145,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 			// object destructure
 			parameter = p.parseObjectDestructureParameter()
 		} else {
-			p.arrowMode = false
+			p.arrowFunctionMode = false
 			p.unexpectedToken()
 		}
 

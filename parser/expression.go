@@ -32,120 +32,6 @@ func (p *Parser) parseIdentifierIncludingKeywords() *ast.Identifier {
 	return nil
 }
 
-func (p *Parser) parsePrimaryExpression() ast.Expression {
-	literal := p.literal
-	idx := p.idx
-
-	switch p.token {
-	case token.SUPER:
-		start := p.idx
-
-		if !p.scope.inClass && !p.scope.inFunction {
-			p.error(start, "illegal use of super keyword")
-
-			return &ast.BadExpression{
-				From: start,
-				To:   start,
-			}
-		}
-
-		p.next()
-		arguments, _, end := p.parseArgumentList()
-		p.semicolon()
-
-		return &ast.ClassSuperExpression{
-			Start:     start,
-			End:       end,
-			Arguments: arguments,
-		}
-	case token.CLASS:
-		return p.parseClassExpression()
-	case token.AWAIT:
-		idx := p.idx
-		p.next()
-
-		return &ast.AwaitExpression{
-			Start:      idx,
-			Expression: p.parseAssignmentExpression(),
-		}
-	case token.ASYNC:
-		idx := p.idx
-		p.next()
-
-		if p.is(token.FUNCTION) {
-			return p.parseFunction(false, idx, true)
-		} else {
-			return p.tryParseAsyncArrowFunction(idx)
-		}
-	case token.IDENTIFIER:
-		return p.parseIdentifierOrSingleArgumentArrowFunction(false)
-	case token.NULL:
-		p.next()
-		return &ast.NullLiteral{
-			Start:   idx,
-			Literal: literal,
-		}
-	case token.BOOLEAN:
-		p.next()
-		value := false
-		switch literal {
-		case "true":
-			value = true
-		case "false":
-			value = false
-		default:
-			p.error(idx, "Illegal boolean literal")
-		}
-		return &ast.BooleanLiteral{
-			Start:   idx,
-			Literal: literal,
-			Value:   value,
-		}
-	case token.STRING:
-		p.next()
-		value, err := parseStringLiteral(literal[1 : len(literal)-1])
-		if err != nil {
-			p.error(idx, err.Error())
-		}
-		return &ast.StringLiteral{
-			Start:   idx,
-			Literal: literal,
-			Value:   value,
-		}
-	case token.NUMBER:
-		p.next()
-		value, err := parseNumberLiteral(literal)
-		if err != nil {
-			p.error(idx, err.Error())
-			value = 0
-		}
-		return &ast.NumberLiteral{
-			Start:   idx,
-			Literal: literal,
-			Value:   value,
-		}
-	case token.SLASH, token.QUOTIENT_ASSIGN:
-		return p.parseRegExpLiteral()
-	case token.LEFT_BRACE:
-		return p.parseObjectLiteral()
-	case token.LEFT_BRACKET:
-		return p.parseArrayLiteral()
-	case token.LEFT_PARENTHESIS:
-		return p.parseArrowFunctionOrSequenceExpression(false)
-	case token.THIS:
-		p.next()
-		return &ast.ThisExpression{
-			Start: idx,
-		}
-	case token.FUNCTION:
-		return p.parseFunction(false, p.idx, false)
-	}
-
-	p.errorUnexpectedToken(p.token)
-	p.nextStatement()
-	return &ast.BadExpression{From: idx, To: p.idx}
-}
-
 func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 
 	offset := p.chrOffset - 1 // Opening slash already gotten
@@ -182,30 +68,6 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 		Literal: literal,
 		Pattern: pattern,
 		Flags:   flags,
-	}
-}
-
-func (p *Parser) parseArrayLiteral() ast.Expression {
-
-	idx0 := p.consumeExpected(token.LEFT_BRACKET)
-	var value []ast.Expression
-	for !p.is(token.RIGHT_BRACKET) && !p.is(token.EOF) {
-		if p.is(token.COMMA) {
-			p.next()
-			value = append(value, nil)
-			continue
-		}
-		value = append(value, p.parseAssignmentExpression())
-		if !p.is(token.RIGHT_BRACKET) {
-			p.consumeExpected(token.COMMA)
-		}
-	}
-	idx1 := p.consumeExpected(token.RIGHT_BRACKET)
-
-	return &ast.ArrayLiteral{
-		Start: idx0,
-		End:   idx1,
-		Value: value,
 	}
 }
 
@@ -283,62 +145,6 @@ func (p *Parser) parseNewExpression() ast.Expression {
 		node.RightParenthesis = idx1
 	}
 	return node
-}
-
-func (p *Parser) parseLeftHandSideExpression() ast.Expression {
-
-	var left ast.Expression
-	if p.is(token.NEW) {
-		left = p.parseNewExpression()
-	} else {
-		left = p.parsePrimaryExpression()
-	}
-
-	for {
-		if p.is(token.PERIOD) {
-			left = p.parseDotMember(left)
-		} else if p.is(token.OPTIONAL_CHAINING) {
-			left = p.parseOptionalExpression(left)
-		} else if p.is(token.LEFT_BRACKET) {
-			left = p.parseBracketMember(left)
-		} else {
-			break
-		}
-	}
-
-	return left
-}
-
-func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
-
-	allowIn := p.scope.allowIn
-	p.scope.allowIn = true
-	defer func() {
-		p.scope.allowIn = allowIn
-	}()
-
-	var left ast.Expression
-	if p.is(token.NEW) {
-		left = p.parseNewExpression()
-	} else {
-		left = p.parsePrimaryExpression()
-	}
-
-	for {
-		if p.is(token.PERIOD) {
-			left = p.parseDotMember(left)
-		} else if p.is(token.OPTIONAL_CHAINING) {
-			left = p.parseOptionalExpression(left)
-		} else if p.is(token.LEFT_BRACKET) {
-			left = p.parseBracketMember(left)
-		} else if p.is(token.LEFT_PARENTHESIS) {
-			left = p.parseCallExpression(left)
-		} else {
-			break
-		}
-	}
-
-	return left
 }
 
 func (p *Parser) parsePostfixExpression() ast.Expression {
@@ -619,60 +425,6 @@ func (p *Parser) parseConditionalExpression() ast.Expression {
 			Test:       left,
 			Consequent: consequent,
 			Alternate:  p.parseAssignmentExpression(),
-		}
-	}
-
-	return left
-}
-
-func (p *Parser) parseAssignmentExpression() ast.Expression {
-	var operator token.Token
-
-	left := p.parseConditionalExpression()
-
-	switch p.token {
-	case token.ASSIGN:
-		operator = p.token
-	case token.ADD_ASSIGN:
-		operator = token.PLUS
-	case token.SUBTRACT_ASSIGN:
-		operator = token.MINUS
-	case token.MULTIPLY_ASSIGN:
-		operator = token.MULTIPLY
-	case token.QUOTIENT_ASSIGN:
-		operator = token.SLASH
-	case token.REMAINDER_ASSIGN:
-		operator = token.REMAINDER
-	case token.AND_ASSIGN:
-		operator = token.AND
-	case token.AND_NOT_ASSIGN:
-		operator = token.AND_NOT
-	case token.OR_ASSIGN:
-		operator = token.OR
-	case token.EXCLUSIVE_OR_ASSIGN:
-		operator = token.EXCLUSIVE_OR
-	case token.SHIFT_LEFT_ASSIGN:
-		operator = token.SHIFT_LEFT
-	case token.SHIFT_RIGHT_ASSIGN:
-		operator = token.SHIFT_RIGHT
-	case token.UNSIGNED_SHIFT_RIGHT_ASSIGN:
-		operator = token.UNSIGNED_SHIFT_RIGHT
-	}
-
-	if operator != 0 {
-		idx := p.idx
-		p.next()
-		switch left.(type) {
-		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
-		default:
-			p.error(left.StartAt(), "Invalid left-hand side in assignment")
-			p.nextStatement()
-			return &ast.BadExpression{From: idx, To: p.idx}
-		}
-		return &ast.AssignExpression{
-			Left:     left,
-			Operator: operator,
-			Right:    p.parseAssignmentExpression(),
 		}
 	}
 
