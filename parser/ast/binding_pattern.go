@@ -11,6 +11,14 @@ type (
 		Name *Identifier
 	}
 
+	ObjectRestBinder struct {
+		Name *Identifier
+	}
+
+	ArrayRestBinder struct {
+		Name *Identifier
+	}
+
 	ObjectPropertyBinder struct {
 		Property     PatternBinder
 		PropertyName *Identifier
@@ -25,13 +33,13 @@ type (
 	ArrayBinding struct {
 		Start file.Idx
 		End   file.Idx
-		List  []*ArrayItemBinder
+		List  []PatternBinder
 	}
 
 	ObjectBinding struct {
 		Start file.Idx
 		End   file.Idx
-		List  []*ObjectPropertyBinder
+		List  []PatternBinder
 	}
 
 	VariableBinding struct {
@@ -44,6 +52,8 @@ type (
 func (*ArrayBinding) _patternBinder()         {}
 func (*ObjectBinding) _patternBinder()        {}
 func (*IdentifierBinder) _patternBinder()     {}
+func (*ObjectRestBinder) _patternBinder()     {}
+func (*ArrayRestBinder) _patternBinder()      {}
 func (*ObjectPropertyBinder) _patternBinder() {}
 func (*ArrayItemBinder) _patternBinder()      {}
 

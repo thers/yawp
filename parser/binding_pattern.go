@@ -39,10 +39,20 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 
 	pattern := &ast.ObjectBinding{
 		Start: start,
-		List:  make([]*ast.ObjectPropertyBinder, 0),
+		List:  make([]ast.PatternBinder, 0),
 	}
 
 	for p.until(token.RIGHT_BRACE) {
+		// { ...a }
+		if p.is(token.DOTDOTDOT) {
+			p.consumeExpected(token.DOTDOTDOT)
+
+			pattern.List = append(pattern.List, &ast.ObjectRestBinder{
+				Name: p.parseIdentifier(),
+			})
+			break
+		}
+
 		property := &ast.ObjectPropertyBinder{
 			Property:     nil,
 			PropertyName: nil,
@@ -96,10 +106,20 @@ func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
 
 	pattern := &ast.ArrayBinding{
 		Start: start,
-		List:  make([]*ast.ArrayItemBinder, 0),
+		List:  make([]ast.PatternBinder, 0),
 	}
 
 	for p.until(token.RIGHT_BRACKET) {
+		// [...a]
+		if p.is(token.DOTDOTDOT) {
+			p.consumeExpected(token.DOTDOTDOT)
+
+			pattern.List = append(pattern.List, &ast.ArrayRestBinder{
+				Name: p.parseIdentifier(),
+			})
+			break
+		}
+
 		item := &ast.ArrayItemBinder{
 			Item:         p.parseBinder(),
 			DefaultValue: p.parseBindingDefaultValue(),
