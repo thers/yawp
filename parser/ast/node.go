@@ -156,7 +156,8 @@ type (
 	}
 
 	ThisExpression struct {
-		Start file.Idx
+		Start   file.Idx
+		Private bool
 	}
 
 	UnaryExpression struct {
@@ -516,23 +517,23 @@ func (self *ClassMethodStatement) StartAt() file.Idx   { return self.Method }
 // EndAt //
 // ==== //
 
-func (self *ArrayLiteral) EndAt() file.Idx          { return self.End }
-func (self *AssignExpression) EndAt() file.Idx      { return self.Right.EndAt() }
-func (self *BadExpression) EndAt() file.Idx         { return self.To }
-func (self *BinaryExpression) EndAt() file.Idx      { return self.Right.EndAt() }
-func (self *BooleanLiteral) EndAt() file.Idx        { return file.Idx(int(self.Start) + len(self.Literal)) }
-func (self *BracketExpression) EndAt() file.Idx     { return self.RightBracket + 1 }
-func (self *CallExpression) EndAt() file.Idx        { return self.RightParenthesis + 1 }
-func (self *DotExpression) EndAt() file.Idx         { return self.Identifier.EndAt() }
-func (self *Identifier) EndAt() file.Idx            { return file.Idx(int(self.Start) + len(self.Name)) }
-func (self *NewExpression) EndAt() file.Idx         { return self.RightParenthesis + 1 }
-func (self *NullLiteral) EndAt() file.Idx           { return file.Idx(int(self.Start) + 4) } // "null"
-func (self *NumberLiteral) EndAt() file.Idx         { return file.Idx(int(self.Start) + len(self.Literal)) }
-func (self *ObjectLiteral) EndAt() file.Idx         { return self.RightBrace }
-func (self *RegExpLiteral) EndAt() file.Idx         { return file.Idx(int(self.Start) + len(self.Literal)) }
-func (self *SequenceExpression) EndAt() file.Idx    { return self.Sequence[0].EndAt() }
-func (self *StringLiteral) EndAt() file.Idx         { return file.Idx(int(self.Start) + len(self.Literal)) }
-func (self *ThisExpression) EndAt() file.Idx        { return self.Start }
+func (self *ArrayLiteral) EndAt() file.Idx       { return self.End }
+func (self *AssignExpression) EndAt() file.Idx   { return self.Right.EndAt() }
+func (self *BadExpression) EndAt() file.Idx      { return self.To }
+func (self *BinaryExpression) EndAt() file.Idx   { return self.Right.EndAt() }
+func (self *BooleanLiteral) EndAt() file.Idx     { return file.Idx(int(self.Start) + len(self.Literal)) }
+func (self *BracketExpression) EndAt() file.Idx  { return self.RightBracket + 1 }
+func (self *CallExpression) EndAt() file.Idx     { return self.RightParenthesis + 1 }
+func (self *DotExpression) EndAt() file.Idx      { return self.Identifier.EndAt() }
+func (self *Identifier) EndAt() file.Idx         { return file.Idx(int(self.Start) + len(self.Name)) }
+func (self *NewExpression) EndAt() file.Idx      { return self.RightParenthesis + 1 }
+func (self *NullLiteral) EndAt() file.Idx        { return file.Idx(int(self.Start) + 4) } // "null"
+func (self *NumberLiteral) EndAt() file.Idx      { return file.Idx(int(self.Start) + len(self.Literal)) }
+func (self *ObjectLiteral) EndAt() file.Idx      { return self.RightBrace }
+func (self *RegExpLiteral) EndAt() file.Idx      { return file.Idx(int(self.Start) + len(self.Literal)) }
+func (self *SequenceExpression) EndAt() file.Idx { return self.Sequence[0].EndAt() }
+func (self *StringLiteral) EndAt() file.Idx      { return file.Idx(int(self.Start) + len(self.Literal)) }
+func (self *ThisExpression) EndAt() file.Idx     { return self.Start }
 func (self *UnaryExpression) EndAt() file.Idx {
 	if self.Postfix {
 		return self.Operand.EndAt() + 2 // ++ --

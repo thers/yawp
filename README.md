@@ -13,7 +13,8 @@
 - [x] object literal function shorthand
 - [x] import
 - [x] export
-- [ ] decorators
+- [x] legacy decorators
+- [ ] modern decorators
 - [x] optional chaining
 - [x] nullish coalescing
 - [x] exponentiation operator

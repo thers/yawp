@@ -102,6 +102,19 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	literal := p.literal
 	idx := p.idx
 
+	// this.#bla
+	if p.is(token.HASH) {
+		if leftThisExp, ok := left.(*ast.ThisExpression); ok {
+			p.consumeExpected(token.HASH)
+
+			literal = p.literal
+			leftThisExp.Private = true
+		} else {
+			p.unexpectedToken()
+			p.next()
+		}
+	}
+
 	if !matchIdentifier.MatchString(literal) {
 		p.consumeExpected(token.IDENTIFIER)
 		p.nextStatement()
