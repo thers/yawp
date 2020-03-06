@@ -17,11 +17,12 @@ const (
 	AT   // @
 	HASH // #
 
-	PLUS      // +
-	MINUS     // -
-	MULTIPLY  // *
-	SLASH     // /
-	REMAINDER // %
+	PLUS           // +
+	MINUS          // -
+	MULTIPLY       // *
+	SLASH          // /
+	REMAINDER      // %
+	EXPONENTIATION // **
 
 	AND                  // &
 	OR                   // |
@@ -205,6 +206,7 @@ var token2string = [...]string{
 	COLON:                       ":",
 	QUESTION_MARK:               "?",
 	NULLISH_COALESCING:          "??",
+	EXPONENTIATION:              "**",
 	DOTDOTDOT:                   "...",
 	IF:                          "if",
 	IN:                          "in",

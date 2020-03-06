@@ -248,7 +248,12 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					insertSemicolon = true
 				}
 			case '*':
-				tkn = p.switch2(token.MULTIPLY, token.MULTIPLY_ASSIGN)
+				if p.nextChr == '*' {
+					p.read()
+					tkn = token.EXPONENTIATION
+				} else {
+					tkn = p.switch2(token.MULTIPLY, token.MULTIPLY_ASSIGN)
+				}
 			case '/':
 				if p.nextChr == '/' {
 					p.skipSingleLineComment()

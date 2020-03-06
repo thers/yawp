@@ -16,6 +16,7 @@
 - [ ] decorators
 - [x] optional chaining
 - [x] nullish coalescing
+- [x] exponentiation operator
 - [x] const, let, var object and array destructuring
 - [x] arbitrary var object and array destructuring
 - [ ] new.target
