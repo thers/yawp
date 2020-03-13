@@ -491,7 +491,9 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			t = { [1+123]() {} }
+			class T {
+    			static set a() {}
+			}
 		`)
 		if err != nil {
 			panic(err)

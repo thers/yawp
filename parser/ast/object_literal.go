@@ -38,14 +38,6 @@ type (
 	ObjectPropertyName interface {
 		_objectPropertyName()
 	}
-
-	ObjectPropertyStringName struct {
-		String string
-	}
-
-	ObjectPropertyComputedName struct {
-		Expression Expression
-	}
 )
 
 func (*ObjectLiteral) _expressionNode() {}
@@ -54,8 +46,8 @@ func (*ObjectPropertySetter) _objectProperty() {}
 func (*ObjectPropertyGetter) _objectProperty() {}
 func (*ObjectPropertyValue) _objectProperty()  {}
 
-func (*ObjectPropertyStringName) _objectPropertyName()     {}
-func (*ObjectPropertyComputedName) _objectPropertyName() {}
+func (*Identifier) _objectPropertyName()     {}
+func (*ComputedName) _objectPropertyName() {}
 
 func (o *ObjectLiteral) StartAt() file.Idx { return o.LeftBrace }
 

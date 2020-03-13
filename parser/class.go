@@ -12,6 +12,31 @@ func (p *Parser) parseClassMethodBody() (*ast.BlockStatement, []ast.Declaration)
 	return p.parseBlockStatement(), p.scope.declarationList
 }
 
+func (p *Parser) parseClassFieldName() ast.ClassFieldName {
+	var identifier ast.ClassFieldName
+
+	if p.is(token.LEFT_BRACKET) {
+		p.consumeExpected(token.LEFT_BRACKET)
+
+		identifier = &ast.ComputedName{
+			Expression: p.parseAssignmentExpression(),
+		}
+
+		p.consumeExpected(token.RIGHT_BRACKET)
+
+		return identifier
+	} else {
+		identifier = p.parseIdentifierIncludingKeywords()
+	}
+
+	if identifier == nil {
+		p.unexpectedToken()
+		p.next()
+	}
+
+	return identifier
+}
+
 func (p *Parser) parseClassBodyStatement() ast.Statement {
 	start := p.idx
 	async := false
@@ -33,35 +58,35 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		p.next()
 	}
 
-	identifier := p.parseIdentifierIncludingKeywords()
-
-	if identifier == nil {
-		p.unexpectedToken()
-		p.next()
-		return nil
-	}
+	identifier := p.parseClassFieldName()
 
 	p.insertSemicolon = true
 
 	// Could be set/get
-	if identifier.Name == "set" || identifier.Name == "get" {
-		kind := identifier.Name
-
-		if p.is(token.IDENTIFIER) {
-			field := p.parseIdentifier()
-			parameterList := p.parseFunctionParameterList()
-
-			node := &ast.FunctionLiteral{
-				Start:      identifier.Start,
-				Parameters: parameterList,
+	if accessor, ok := identifier.(*ast.Identifier); ok {
+		if accessor.Name == "set" || accessor.Name == "get" {
+			if async || private {
+				p.unexpectedToken()
+				return nil
 			}
-			p.parseFunctionBlock(node)
 
-			return &ast.ClassAccessorStatement{
-				Start: identifier.Start,
-				Field: field,
-				Kind:  kind,
-				Body:  node,
+			kind := accessor.Name
+
+			if field := p.parseClassFieldName(); field != nil {
+				parameterList := p.parseFunctionParameterList()
+
+				node := &ast.FunctionLiteral{
+					Start:      start,
+					Parameters: parameterList,
+				}
+				p.parseFunctionBlock(node)
+
+				return &ast.ClassAccessorStatement{
+					Start: start,
+					Field: field,
+					Kind:  kind,
+					Body:  node,
+				}
 			}
 		}
 	}
@@ -98,15 +123,12 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		}
 
 		body, _ := p.parseClassMethodBody()
-		source := p.slice(identifier.Start, body.EndAt())
+		source := p.slice(start, body.EndAt())
 
 		method.Body = body
 		method.Source = source
 
 		return method
-	case token.IDENTIFIER, token.ASYNC, token.STATIC, token.HASH:
-		p.unexpectedToken()
-		p.next()
 	case token.SEMICOLON:
 		p.consumeExpected(token.SEMICOLON)
 		return &ast.ClassFieldStatement{
@@ -151,7 +173,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			case *ast.ClassMethodStatement:
 				subject = refinedStatement
 			default:
-				p.error(0, "Class accessor definition cannot be decorated tho")
+				p.error(0, "Class accessor definition can not be decorated")
 				return nil
 			}
 

@@ -340,65 +340,30 @@ type (
 		Object Expression
 		Body   Statement
 	}
-
-	ClassStatement struct {
-		Expression *ClassExpression
-	}
-
-	ClassFieldStatement struct {
-		Start       file.Idx
-		Name        *Identifier
-		Static      bool
-		Private     bool
-		Initializer Expression
-	}
-
-	ClassAccessorStatement struct {
-		Start file.Idx
-		Field *Identifier
-		Kind  string
-		Body  *FunctionLiteral
-	}
-
-	ClassMethodStatement struct {
-		Method     file.Idx
-		Name       *Identifier
-		Static     bool
-		Private    bool
-		Async      bool
-		Generator  bool
-		Parameters *FunctionParameters
-		Body       Statement
-		Source     string
-	}
 )
 
 // _statementNode
 
-func (*BadStatement) _statementNode()           {}
-func (*BlockStatement) _statementNode()         {}
-func (*BranchStatement) _statementNode()        {}
-func (*CaseStatement) _statementNode()          {}
-func (*CatchStatement) _statementNode()         {}
-func (*DebuggerStatement) _statementNode()      {}
-func (*DoWhileStatement) _statementNode()       {}
-func (*EmptyStatement) _statementNode()         {}
-func (*ExpressionStatement) _statementNode()    {}
-func (*ForInStatement) _statementNode()         {}
-func (*ForStatement) _statementNode()           {}
-func (*IfStatement) _statementNode()            {}
-func (*LabelledStatement) _statementNode()      {}
-func (*ReturnStatement) _statementNode()        {}
-func (*SwitchStatement) _statementNode()        {}
-func (*ThrowStatement) _statementNode()         {}
-func (*TryStatement) _statementNode()           {}
-func (*VariableStatement) _statementNode()      {}
-func (*WhileStatement) _statementNode()         {}
-func (*WithStatement) _statementNode()          {}
-func (*ClassStatement) _statementNode()         {}
-func (*ClassFieldStatement) _statementNode()    {}
-func (*ClassAccessorStatement) _statementNode() {}
-func (*ClassMethodStatement) _statementNode()   {}
+func (*BadStatement) _statementNode()        {}
+func (*BlockStatement) _statementNode()      {}
+func (*BranchStatement) _statementNode()     {}
+func (*CaseStatement) _statementNode()       {}
+func (*CatchStatement) _statementNode()      {}
+func (*DebuggerStatement) _statementNode()   {}
+func (*DoWhileStatement) _statementNode()    {}
+func (*EmptyStatement) _statementNode()      {}
+func (*ExpressionStatement) _statementNode() {}
+func (*ForInStatement) _statementNode()      {}
+func (*ForStatement) _statementNode()        {}
+func (*IfStatement) _statementNode()         {}
+func (*LabelledStatement) _statementNode()   {}
+func (*ReturnStatement) _statementNode()     {}
+func (*SwitchStatement) _statementNode()     {}
+func (*ThrowStatement) _statementNode()      {}
+func (*TryStatement) _statementNode()        {}
+func (*VariableStatement) _statementNode()   {}
+func (*WhileStatement) _statementNode()      {}
+func (*WithStatement) _statementNode()       {}
 
 // =========== //
 // Declaration //
@@ -473,31 +438,27 @@ func (self *ClassExpression) StartAt() file.Idx         { return self.Start }
 func (self *ClassSuperExpression) StartAt() file.Idx    { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
 
-func (self *BadStatement) StartAt() file.Idx           { return self.From }
-func (self *BlockStatement) StartAt() file.Idx         { return self.LeftBrace }
-func (self *BranchStatement) StartAt() file.Idx        { return self.Idx }
-func (self *CaseStatement) StartAt() file.Idx          { return self.Case }
-func (self *CatchStatement) StartAt() file.Idx         { return self.Catch }
-func (self *DebuggerStatement) StartAt() file.Idx      { return self.Debugger }
-func (self *DoWhileStatement) StartAt() file.Idx       { return self.Do }
-func (self *EmptyStatement) StartAt() file.Idx         { return self.Semicolon }
-func (self *ExpressionStatement) StartAt() file.Idx    { return self.Expression.StartAt() }
-func (self *ForInStatement) StartAt() file.Idx         { return self.For }
-func (self *ForStatement) StartAt() file.Idx           { return self.For }
-func (self *IfStatement) StartAt() file.Idx            { return self.If }
-func (self *LabelledStatement) StartAt() file.Idx      { return self.Label.StartAt() }
-func (self *Program) StartAt() file.Idx                { return self.Body[0].StartAt() }
-func (self *ReturnStatement) StartAt() file.Idx        { return self.Return }
-func (self *SwitchStatement) StartAt() file.Idx        { return self.Switch }
-func (self *ThrowStatement) StartAt() file.Idx         { return self.Throw }
-func (self *TryStatement) StartAt() file.Idx           { return self.Try }
-func (self *VariableStatement) StartAt() file.Idx      { return self.Var }
-func (self *WhileStatement) StartAt() file.Idx         { return self.While }
-func (self *WithStatement) StartAt() file.Idx          { return self.With }
-func (self *ClassStatement) StartAt() file.Idx         { return self.Expression.Start }
-func (self *ClassFieldStatement) StartAt() file.Idx    { return self.Start }
-func (self *ClassAccessorStatement) StartAt() file.Idx { return self.Start }
-func (self *ClassMethodStatement) StartAt() file.Idx   { return self.Method }
+func (self *BadStatement) StartAt() file.Idx        { return self.From }
+func (self *BlockStatement) StartAt() file.Idx      { return self.LeftBrace }
+func (self *BranchStatement) StartAt() file.Idx     { return self.Idx }
+func (self *CaseStatement) StartAt() file.Idx       { return self.Case }
+func (self *CatchStatement) StartAt() file.Idx      { return self.Catch }
+func (self *DebuggerStatement) StartAt() file.Idx   { return self.Debugger }
+func (self *DoWhileStatement) StartAt() file.Idx    { return self.Do }
+func (self *EmptyStatement) StartAt() file.Idx      { return self.Semicolon }
+func (self *ExpressionStatement) StartAt() file.Idx { return self.Expression.StartAt() }
+func (self *ForInStatement) StartAt() file.Idx      { return self.For }
+func (self *ForStatement) StartAt() file.Idx        { return self.For }
+func (self *IfStatement) StartAt() file.Idx         { return self.If }
+func (self *LabelledStatement) StartAt() file.Idx   { return self.Label.StartAt() }
+func (self *Program) StartAt() file.Idx             { return self.Body[0].StartAt() }
+func (self *ReturnStatement) StartAt() file.Idx     { return self.Return }
+func (self *SwitchStatement) StartAt() file.Idx     { return self.Switch }
+func (self *ThrowStatement) StartAt() file.Idx      { return self.Throw }
+func (self *TryStatement) StartAt() file.Idx        { return self.Try }
+func (self *VariableStatement) StartAt() file.Idx   { return self.Var }
+func (self *WhileStatement) StartAt() file.Idx      { return self.While }
+func (self *WithStatement) StartAt() file.Idx       { return self.With }
 
 // ==== //
 // EndAt //
@@ -553,16 +514,12 @@ func (self *IfStatement) EndAt() file.Idx {
 	}
 	return self.Consequent.EndAt()
 }
-func (self *LabelledStatement) EndAt() file.Idx      { return self.Colon + 1 }
-func (self *Program) EndAt() file.Idx                { return self.Body[len(self.Body)-1].EndAt() }
-func (self *ReturnStatement) EndAt() file.Idx        { return self.Return }
-func (self *SwitchStatement) EndAt() file.Idx        { return self.Body[len(self.Body)-1].EndAt() }
-func (self *ThrowStatement) EndAt() file.Idx         { return self.Throw }
-func (self *TryStatement) EndAt() file.Idx           { return self.Try }
-func (self *VariableStatement) EndAt() file.Idx      { return self.List[len(self.List)-1].EndAt() }
-func (self *WhileStatement) EndAt() file.Idx         { return self.Body.EndAt() }
-func (self *WithStatement) EndAt() file.Idx          { return self.Body.EndAt() }
-func (self *ClassStatement) EndAt() file.Idx         { return self.Expression.Body.EndAt() }
-func (self *ClassMethodStatement) EndAt() file.Idx   { return self.Body.EndAt() }
-func (self *ClassFieldStatement) EndAt() file.Idx    { return self.Initializer.EndAt() }
-func (self *ClassAccessorStatement) EndAt() file.Idx { return self.Body.EndAt() }
+func (self *LabelledStatement) EndAt() file.Idx { return self.Colon + 1 }
+func (self *Program) EndAt() file.Idx           { return self.Body[len(self.Body)-1].EndAt() }
+func (self *ReturnStatement) EndAt() file.Idx   { return self.Return }
+func (self *SwitchStatement) EndAt() file.Idx   { return self.Body[len(self.Body)-1].EndAt() }
+func (self *ThrowStatement) EndAt() file.Idx    { return self.Throw }
+func (self *TryStatement) EndAt() file.Idx      { return self.Try }
+func (self *VariableStatement) EndAt() file.Idx { return self.List[len(self.List)-1].EndAt() }
+func (self *WhileStatement) EndAt() file.Idx    { return self.Body.EndAt() }
+func (self *WithStatement) EndAt() file.Idx     { return self.Body.EndAt() }

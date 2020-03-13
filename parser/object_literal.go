@@ -6,9 +6,9 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseObjectPropertyFromShorthand(start file.Idx, propertyName ast.ObjectPropertyName) ast.ObjectProperty {
-	if propertyStringName, ok := propertyName.(*ast.ObjectPropertyStringName); ok {
-		if !matchIdentifier.MatchString(propertyStringName.String) {
+func (p *Parser) parseObjectPropertyFromShorthand(propertyName ast.ObjectPropertyName) ast.ObjectProperty {
+	if propertyStringName, ok := propertyName.(*ast.Identifier); ok {
+		if !matchIdentifier.MatchString(propertyStringName.Name) {
 			return nil
 		}
 
@@ -17,10 +17,7 @@ func (p *Parser) parseObjectPropertyFromShorthand(start file.Idx, propertyName a
 
 			return &ast.ObjectPropertyValue{
 				PropertyName: propertyName,
-				Value:        &ast.Identifier{
-					Start: start,
-					Name:  propertyStringName.String,
-				},
+				Value:        propertyStringName,
 			}
 		}
 	}
@@ -67,25 +64,26 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 
 		// Maybe setter or getter
 		if p.literal == "get" || p.literal == "set" {
-			idx, literal := p.idx, p.literal
+			start, name := p.idx, p.literal
 			p.next()
 
 			// Setter or getter
 			if p.is(token.IDENTIFIER) {
-				propertyName = &ast.ObjectPropertyStringName{
-					String: p.literal,
+				propertyName = &ast.Identifier{
+					Start: start,
+					Name:  name,
 				}
 
 				p.next()
 				parameterList := p.parseFunctionParameterList()
 
 				functionLiteral := &ast.FunctionLiteral{
-					Start:      idx,
+					Start:      start,
 					Parameters: parameterList,
 				}
 				p.parseFunctionBlock(functionLiteral)
 
-				if literal == "set" {
+				if name == "set" {
 					return &ast.ObjectPropertySetter{
 						PropertyName: propertyName,
 						Setter:       functionLiteral,
@@ -101,11 +99,12 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 			shouldConsumeNext = false
 		}
 
-		propertyName = &ast.ObjectPropertyStringName{
-			String: p.literal,
-		}
+		name, start := p.literal, p.idx
 
-		start := p.idx
+		propertyName = &ast.Identifier{
+			Start: start,
+			Name:  name,
+		}
 
 		if shouldConsumeNext {
 			p.next()
@@ -114,21 +113,22 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		property := p.parseObjectPropertyValue(start, propertyName)
 
 		if property == nil {
-			return p.parseObjectPropertyFromShorthand(start, propertyName)
+			return p.parseObjectPropertyFromShorthand(propertyName)
 		}
 
 		return property
 	} else if p.is(token.NUMBER) {
-		key := p.literal
+		name, start := p.literal, p.idx
 		_, err := parseNumberLiteral(p.literal)
 
 		if err != nil {
-			key = ""
+			name = ""
 			p.error(p.idx, err.Error())
 		}
 
-		propertyName = &ast.ObjectPropertyStringName{
-			String: key,
+		propertyName = &ast.Identifier{
+			Start: start,
+			Name:  name,
 		}
 
 		p.consumeExpected(token.COLON)
@@ -138,13 +138,15 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 			Value:        p.parseAssignmentExpression(),
 		}
 	} else if p.is(token.STRING) {
-		key, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
+		start := p.idx
+		name, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
 		if err != nil {
 			p.error(p.idx, err.Error())
 		}
 
-		propertyName = &ast.ObjectPropertyStringName{
-			String: key,
+		propertyName = &ast.Identifier{
+			Start: start,
+			Name:  name,
 		}
 
 		p.consumeExpected(token.COLON)
@@ -158,7 +160,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		start := p.idx
 		p.consumeExpected(token.LEFT_BRACKET)
 
-		propertyName = &ast.ObjectPropertyComputedName{
+		propertyName = &ast.ComputedName{
 			Expression: p.parseAssignmentExpression(),
 		}
 

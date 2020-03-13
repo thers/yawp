@@ -30,7 +30,7 @@
 - [ ] for object and array destructuring
 - [ ] object and array literal spread
 - [x] computed object properties
-- [ ] computed class fields
+- [x] computed class fields
 - [ ] modern decorators
 
 #### JSX
