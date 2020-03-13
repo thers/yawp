@@ -491,17 +491,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			@dec
-			class Test {
-    @dec
-    filed = 123
-    
-    @dec
-    method() { return this.#privateField }
-    
-    @dec
-    #privateField;
-			}
+			t = { [1+123]() {} }
 		`)
 		if err != nil {
 			panic(err)

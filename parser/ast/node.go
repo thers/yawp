@@ -120,22 +120,10 @@ type (
 		Value   interface{}
 	}
 
-	ObjectLiteral struct {
-		LeftBrace  file.Idx
-		RightBrace file.Idx
-		Value      []*Property
-	}
-
 	FunctionParameters struct {
 		Opening file.Idx
 		List    []FunctionParameter
 		Closing file.Idx
-	}
-
-	Property struct {
-		Key   string
-		Kind  string
-		Value Expression
 	}
 
 	RegExpLiteral struct {
@@ -214,7 +202,6 @@ func (*Identifier) _expressionNode()              {}
 func (*NewExpression) _expressionNode()           {}
 func (*NullLiteral) _expressionNode()             {}
 func (*NumberLiteral) _expressionNode()           {}
-func (*ObjectLiteral) _expressionNode()           {}
 func (*RegExpLiteral) _expressionNode()           {}
 func (*SequenceExpression) _expressionNode()      {}
 func (*StringLiteral) _expressionNode()           {}
@@ -475,7 +462,6 @@ func (self *Identifier) StartAt() file.Idx              { return self.Start }
 func (self *NewExpression) StartAt() file.Idx           { return self.Start }
 func (self *NullLiteral) StartAt() file.Idx             { return self.Start }
 func (self *NumberLiteral) StartAt() file.Idx           { return self.Start }
-func (self *ObjectLiteral) StartAt() file.Idx           { return self.LeftBrace }
 func (self *RegExpLiteral) StartAt() file.Idx           { return self.Start }
 func (self *SequenceExpression) StartAt() file.Idx      { return self.Sequence[0].StartAt() }
 func (self *StringLiteral) StartAt() file.Idx           { return self.Start }
@@ -529,7 +515,6 @@ func (self *Identifier) EndAt() file.Idx         { return file.Idx(int(self.Star
 func (self *NewExpression) EndAt() file.Idx      { return self.RightParenthesis + 1 }
 func (self *NullLiteral) EndAt() file.Idx        { return file.Idx(int(self.Start) + 4) } // "null"
 func (self *NumberLiteral) EndAt() file.Idx      { return file.Idx(int(self.Start) + len(self.Literal)) }
-func (self *ObjectLiteral) EndAt() file.Idx      { return self.RightBrace }
 func (self *RegExpLiteral) EndAt() file.Idx      { return file.Idx(int(self.Start) + len(self.Literal)) }
 func (self *SequenceExpression) EndAt() file.Idx { return self.Sequence[0].EndAt() }
 func (self *StringLiteral) EndAt() file.Idx      { return file.Idx(int(self.Start) + len(self.Literal)) }

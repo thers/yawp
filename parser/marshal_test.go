@@ -92,7 +92,7 @@ func testMarshalNode(node interface{}) interface{} {
 		return marshal("Literal", node.Value)
 
 	case *ast.ObjectLiteral:
-		return marshal("Object", testMarshalNode(node.Value))
+		return marshal("Object", testMarshalNode(node.Properties))
 
 	case *ast.RegExpLiteral:
 		return marshal("Literal", node.Literal)
@@ -148,7 +148,7 @@ func testMarshalNode(node interface{}) interface{} {
 	case ast.Property:
 		return marshal("",
 			"Key", node.Key,
-			"Value", testMarshalNode(node.Value),
+			"Properties", testMarshalNode(node.Value),
 		)
 
 	case *ast.ReturnStatement:
@@ -362,7 +362,7 @@ func TestParserAST(t *testing.T) {
         "Object": [
           {
             "Key": "abc",
-            "Value": {
+            "Properties": {
               "Literal": true
             }
           }
@@ -595,7 +595,7 @@ func TestParserAST(t *testing.T) {
     "Object": [
       {
         "Key": "abc",
-        "Value": {
+        "Properties": {
           "Literal": "'def'"
         }
       }
@@ -637,7 +637,7 @@ func TestParserAST(t *testing.T) {
     "Object": [
       {
         "Key": "abc",
-        "Value": {
+        "Properties": {
           "Start": {
             "BlockStatement": []
           }
@@ -837,13 +837,13 @@ func TestParserAST(t *testing.T) {
         "Object": [
           {
             "Key": "\"",
-            "Value": {
+            "Properties": {
               "Literal": "\"'\""
             }
           },
           {
             "Key": "'",
-            "Value": {
+            "Properties": {
               "Literal": "'\"'"
             }
           }

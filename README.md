@@ -14,12 +14,12 @@
 - [x] import
 - [x] export
 - [x] legacy decorators
-- [ ] modern decorators
 - [x] optional chaining
 - [x] nullish coalescing
 - [x] exponentiation operator
 - [x] const, let, var object and array destructuring
 - [x] arbitrary var object and array destructuring
+- [ ] template strings
 - [ ] new.target
 - [ ] generator function
 - [x] async function
@@ -29,10 +29,9 @@
 - [ ] for of
 - [ ] for object and array destructuring
 - [ ] object and array literal spread
-- [ ] Symbols
-- [ ] computed object properties
+- [x] computed object properties
 - [ ] computed class fields
-- [ ] template strings
+- [ ] modern decorators
 
 #### JSX
 - [ ] JSX support
