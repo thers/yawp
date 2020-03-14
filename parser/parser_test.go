@@ -43,14 +43,8 @@ func testParse(src string) (parser *Parser, program *ast.Program, err error) {
 
 func TestParseFile(t *testing.T) {
 	tt(t, func() {
-		_, err := ParseFile(nil, "", `/abc/`, 0)
+		_, err := ParseFile(nil, "", `/abc/`)
 		is(err, nil)
-
-		_, err = ParseFile(nil, "", `/(?!def)abc/`, IgnoreRegExpErrors)
-		is(err, nil)
-
-		_, err = ParseFile(nil, "", `/(?!def)abc/; return`, IgnoreRegExpErrors)
-		is(err, "(anonymous): Line 1:15 Illegal return statement")
 	})
 }
 

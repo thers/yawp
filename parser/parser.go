@@ -44,13 +44,6 @@ import (
 	"yawp/parser/token"
 )
 
-// A Mode value is a set of flags (or 0). They control optional parser functionality.
-type Mode uint
-
-const (
-	IgnoreRegExpErrors Mode = 1 << iota // Ignore RegExp compatibility errors (allow backtracking)
-)
-
 type Parser struct {
 	parsedStr string
 	str       string
@@ -66,6 +59,7 @@ type Parser struct {
 	literal string      // The literal of the token, if any
 
 	scope             *Scope
+
 	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon bool // An implicit semicolon exists
 
@@ -79,8 +73,6 @@ type Parser struct {
 		idx   file.Idx
 		count int
 	}
-
-	mode Mode
 
 	file *file.File
 }
@@ -135,7 +127,7 @@ func ReadSource(filename string, src interface{}) ([]byte, error) {
 //      // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
 //      program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
 //
-func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mode) (*ast.Program, error) {
+func ParseFile(fileSet *file.FileSet, filename string, src interface{}) (*ast.Program, error) {
 	str, err := ReadSource(filename, src)
 	if err != nil {
 		return nil, err
@@ -149,7 +141,6 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mod
 		}
 
 		parser := _newParser(filename, str, base)
-		parser.mode = mode
 		return parser.parse()
 	}
 }

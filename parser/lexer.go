@@ -409,7 +409,6 @@ func (p *Parser) _peek() rune {
 
 type ParserPartialState struct {
 	idx               file.Idx
-	mode              Mode
 	token             token.Token
 	errors            ErrorList
 	offset            int
@@ -424,7 +423,6 @@ type ParserPartialState struct {
 func (p *Parser) getPartialState() *ParserPartialState {
 	return &ParserPartialState{
 		idx:               p.idx,
-		mode:              p.mode,
 		token:             p.token,
 		errors:            p.errors,
 		offset:            p.offset,
@@ -439,7 +437,6 @@ func (p *Parser) getPartialState() *ParserPartialState {
 
 func (p *Parser) restorePartialState(state *ParserPartialState) {
 	p.idx = state.idx
-	p.mode = state.mode
 	p.token = state.token
 	p.errors = state.errors
 	p.offset = state.offset
