@@ -58,20 +58,20 @@ func isIdentifierPart(chr rune) bool {
 func (p *Parser) scanIdentifier() (string, error) {
 	offset := p.chrOffset
 	parse := false
-	for isIdentifierPart(p.nextChr) {
-		if p.nextChr == '\\' {
+	for isIdentifierPart(p.chr) {
+		if p.chr == '\\' {
 			distance := p.chrOffset - offset
 			p.read()
-			if p.nextChr != 'u' {
-				return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.nextChr, string(p.nextChr))
+			if p.chr != 'u' {
+				return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
 			}
 			parse = true
 			var value rune
 			for j := 0; j < 4; j++ {
 				p.read()
-				decimal, ok := hex2decimal(byte(p.nextChr))
+				decimal, ok := hex2decimal(byte(p.chr))
 				if !ok {
-					return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.nextChr, string(p.nextChr))
+					return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
 				}
 				value = value<<4 | decimal
 			}
@@ -118,6 +118,8 @@ func isLineTerminator(chr rune) bool {
 	return false
 }
 
+
+
 func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
 	p.implicitSemicolon = false
@@ -128,7 +130,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 		idx = p.idxOf(p.chrOffset)
 		insertSemicolon := false
 
-		switch chr := p.nextChr; {
+		switch chr := p.chr; {
 		case isIdentifierStart(chr):
 			var err error
 			literal, err = p.scanIdentifier()
@@ -204,13 +206,13 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			case ':':
 				tkn = token.COLON
 			case '.':
-				if digitValue(p.nextChr) < 10 {
+				if digitValue(p.chr) < 10 {
 					insertSemicolon = true
 					tkn, literal = p.scanNumericLiteral(true)
 				} else {
-					if p.nextChr == '.' {
+					if p.chr == '.' {
 						p.read()
-						if p.nextChr == '.' {
+						if p.chr == '.' {
 							p.read()
 							tkn = token.DOTDOTDOT
 						}
@@ -248,17 +250,17 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					insertSemicolon = true
 				}
 			case '*':
-				if p.nextChr == '*' {
+				if p.chr == '*' {
 					p.read()
 					tkn = token.EXPONENTIATION
 				} else {
 					tkn = p.switch2(token.MULTIPLY, token.MULTIPLY_ASSIGN)
 				}
 			case '/':
-				if p.nextChr == '/' {
+				if p.chr == '/' {
 					p.skipSingleLineComment()
 					continue
-				} else if p.nextChr == '*' {
+				} else if p.chr == '*' {
 					p.skipMultiLineComment()
 					continue
 				} else {
@@ -275,24 +277,24 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			case '>':
 				tkn = p.switch6(token.GREATER, token.GREATER_OR_EQUAL, '>', token.SHIFT_RIGHT, token.SHIFT_RIGHT_ASSIGN, '>', token.UNSIGNED_SHIFT_RIGHT, token.UNSIGNED_SHIFT_RIGHT_ASSIGN)
 			case '=':
-				if p.nextChr == '>' {
+				if p.chr == '>' {
 					p.read()
 					tkn = token.ARROW
 				} else {
 					tkn = p.switch2(token.ASSIGN, token.EQUAL)
-					if tkn == token.EQUAL && p.nextChr == '=' {
+					if tkn == token.EQUAL && p.chr == '=' {
 						p.read()
 						tkn = token.STRICT_EQUAL
 					}
 				}
 			case '!':
 				tkn = p.switch2(token.NOT, token.NOT_EQUAL)
-				if tkn == token.NOT_EQUAL && p.nextChr == '=' {
+				if tkn == token.NOT_EQUAL && p.chr == '=' {
 					p.read()
 					tkn = token.STRICT_NOT_EQUAL
 				}
 			case '&':
-				if p.nextChr == '^' {
+				if p.chr == '^' {
 					p.read()
 					tkn = p.switch2(token.AND_NOT, token.AND_NOT_ASSIGN)
 				} else {
@@ -303,10 +305,10 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			case '~':
 				tkn = token.BITWISE_NOT
 			case '?':
-				if p.nextChr == '.' {
+				if p.chr == '.' {
 					p.read()
 					tkn = token.OPTIONAL_CHAINING
-				} else if p.nextChr == '?' {
+				} else if p.chr == '?' {
 					p.read()
 					tkn = token.NULLISH_COALESCING
 				} else {
@@ -331,7 +333,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 }
 
 func (p *Parser) switch2(tkn0, tkn1 token.Token) token.Token {
-	if p.nextChr == '=' {
+	if p.chr == '=' {
 		p.read()
 		return tkn1
 	}
@@ -339,11 +341,11 @@ func (p *Parser) switch2(tkn0, tkn1 token.Token) token.Token {
 }
 
 func (p *Parser) switch3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) token.Token {
-	if p.nextChr == '=' {
+	if p.chr == '=' {
 		p.read()
 		return tkn1
 	}
-	if p.nextChr == chr2 {
+	if p.chr == chr2 {
 		p.read()
 		return tkn2
 	}
@@ -351,13 +353,13 @@ func (p *Parser) switch3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) to
 }
 
 func (p *Parser) switch4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token) token.Token {
-	if p.nextChr == '=' {
+	if p.chr == '=' {
 		p.read()
 		return tkn1
 	}
-	if p.nextChr == chr2 {
+	if p.chr == chr2 {
 		p.read()
-		if p.nextChr == '=' {
+		if p.chr == '=' {
 			p.read()
 			return tkn3
 		}
@@ -367,19 +369,19 @@ func (p *Parser) switch4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Tok
 }
 
 func (p *Parser) switch6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token, chr3 rune, tkn4, tkn5 token.Token) token.Token {
-	if p.nextChr == '=' {
+	if p.chr == '=' {
 		p.read()
 		return tkn1
 	}
-	if p.nextChr == chr2 {
+	if p.chr == chr2 {
 		p.read()
-		if p.nextChr == '=' {
+		if p.chr == '=' {
 			p.read()
 			return tkn3
 		}
-		if p.nextChr == chr3 {
+		if p.chr == chr3 {
 			p.read()
-			if p.nextChr == '=' {
+			if p.chr == '=' {
 				p.read()
 				return tkn5
 			}
@@ -427,7 +429,7 @@ func (p *Parser) getPartialState() *ParserPartialState {
 		errors:            p.errors,
 		offset:            p.offset,
 		chrOffset:         p.chrOffset,
-		nextChr:           p.nextChr,
+		nextChr:           p.chr,
 		literal:           p.literal,
 		parsedStr:         p.parsedStr,
 		insertSemicolon:   p.insertSemicolon,
@@ -442,7 +444,7 @@ func (p *Parser) restorePartialState(state *ParserPartialState) {
 	p.errors = state.errors
 	p.offset = state.offset
 	p.chrOffset = state.chrOffset
-	p.nextChr = state.nextChr
+	p.chr = state.nextChr
 	p.literal = state.literal
 	p.parsedStr = state.parsedStr
 	p.insertSemicolon = state.insertSemicolon
@@ -450,7 +452,7 @@ func (p *Parser) restorePartialState(state *ParserPartialState) {
 }
 
 func (p *Parser) read() {
-	p.parsedStr += string(p.nextChr)
+	p.parsedStr += string(p.chr)
 
 	if p.offset < p.length {
 		p.chrOffset = p.offset
@@ -462,10 +464,10 @@ func (p *Parser) read() {
 			}
 		}
 		p.offset += width
-		p.nextChr = chr
+		p.chr = chr
 	} else {
 		p.chrOffset = p.length
-		p.nextChr = -1 // EOF
+		p.chr = -1 // EOF
 	}
 }
 
@@ -489,9 +491,9 @@ func (self *_RegExp_parser) read() {
 }
 
 func (p *Parser) skipSingleLineComment() {
-	for p.nextChr != -1 {
+	for p.chr != -1 {
 		p.read()
-		if isLineTerminator(p.nextChr) {
+		if isLineTerminator(p.chr) {
 			return
 		}
 	}
@@ -499,21 +501,21 @@ func (p *Parser) skipSingleLineComment() {
 
 func (p *Parser) skipMultiLineComment() {
 	p.read()
-	for p.nextChr >= 0 {
-		chr := p.nextChr
+	for p.chr >= 0 {
+		chr := p.chr
 		p.read()
-		if chr == '*' && p.nextChr == '/' {
+		if chr == '*' && p.chr == '/' {
 			p.read()
 			return
 		}
 	}
 
-	p.errorUnexpected(0, p.nextChr)
+	p.errorUnexpected(0, p.chr)
 }
 
 func (p *Parser) skipWhiteSpace() {
 	for {
-		switch p.nextChr {
+		switch p.chr {
 		case ' ', '\t', '\f', '\v', '\u00a0', '\ufeff':
 			p.read()
 			continue
@@ -529,8 +531,8 @@ func (p *Parser) skipWhiteSpace() {
 			p.read()
 			continue
 		}
-		if p.nextChr >= utf8.RuneSelf {
-			if unicode.IsSpace(p.nextChr) {
+		if p.chr >= utf8.RuneSelf {
+			if unicode.IsSpace(p.chr) {
 				p.read()
 				continue
 			}
@@ -540,13 +542,13 @@ func (p *Parser) skipWhiteSpace() {
 }
 
 func (p *Parser) skipLineWhiteSpace() {
-	for isLineWhiteSpace(p.nextChr) {
+	for isLineWhiteSpace(p.chr) {
 		p.read()
 	}
 }
 
 func (p *Parser) scanMantissa(base int) {
-	for digitValue(p.nextChr) < base {
+	for digitValue(p.chr) < base {
 		p.read()
 	}
 }
@@ -554,7 +556,7 @@ func (p *Parser) scanMantissa(base int) {
 func (p *Parser) scanEscape(quote rune) {
 
 	var length, base uint32
-	switch p.nextChr {
+	switch p.chr {
 	//case '0', '1', '2', '3', '4', '5', '6', '7':
 	//    Octal:
 	//    length, base, limit = 3, 8, 255
@@ -576,8 +578,8 @@ func (p *Parser) scanEscape(quote rune) {
 	}
 
 	var value uint32
-	for ; length > 0 && p.nextChr != quote && p.nextChr >= 0; length-- {
-		digit := uint32(digitValue(p.nextChr))
+	for ; length > 0 && p.chr != quote && p.chr >= 0; length-- {
+		digit := uint32(digitValue(p.chr))
 		if digit >= base {
 			break
 		}
@@ -590,15 +592,15 @@ func (p *Parser) scanString(offset int) (string, error) {
 	// " ' ` /
 	quote := rune(p.str[offset])
 
-	for p.nextChr != quote {
-		chr := p.nextChr
+	for p.chr != quote {
+		chr := p.chr
 		if chr == '\n' || chr == '\r' || chr == '\u2028' || chr == '\u2029' || chr < 0 {
 			goto newline
 		}
 		p.read()
 		if chr == '\\' {
 			if quote == '/' {
-				if p.nextChr == '\n' || p.nextChr == '\r' || p.nextChr == '\u2028' || p.nextChr == '\u2029' || p.nextChr < 0 {
+				if p.chr == '\n' || p.chr == '\r' || p.chr == '\u2028' || p.chr == '\u2029' || p.chr < 0 {
 					goto newline
 				}
 				p.read()
@@ -630,9 +632,9 @@ newline:
 }
 
 func (p *Parser) scanNewline() {
-	if p.nextChr == '\r' {
+	if p.chr == '\r' {
 		p.read()
-		if p.nextChr != '\n' {
+		if p.chr != '\n' {
 			return
 		}
 	}
@@ -839,13 +841,13 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 		goto exponent
 	}
 
-	if p.nextChr == '0' {
+	if p.chr == '0' {
 		offset := p.chrOffset
 		p.read()
-		if p.nextChr == 'x' || p.nextChr == 'X' {
+		if p.chr == 'x' || p.chr == 'X' {
 			// Hexadecimal
 			p.read()
-			if isDigit(p.nextChr, 16) {
+			if isDigit(p.chr, 16) {
 				p.read()
 			} else {
 				return token.ILLEGAL, p.str[offset:p.chrOffset]
@@ -858,16 +860,16 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			}
 
 			goto hexadecimal
-		} else if p.nextChr == '.' {
+		} else if p.chr == '.' {
 			// Float
 			goto float
 		} else {
 			// Octal, Float
-			if p.nextChr == 'e' || p.nextChr == 'E' {
+			if p.chr == 'e' || p.chr == 'E' {
 				goto exponent
 			}
 			p.scanMantissa(8)
-			if p.nextChr == '8' || p.nextChr == '9' {
+			if p.chr == '8' || p.chr == '9' {
 				return token.ILLEGAL, p.str[offset:p.chrOffset]
 			}
 			goto octal
@@ -877,18 +879,18 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 	p.scanMantissa(10)
 
 float:
-	if p.nextChr == '.' {
+	if p.chr == '.' {
 		p.read()
 		p.scanMantissa(10)
 	}
 
 exponent:
-	if p.nextChr == 'e' || p.nextChr == 'E' {
+	if p.chr == 'e' || p.chr == 'E' {
 		p.read()
-		if p.nextChr == '-' || p.nextChr == '+' {
+		if p.chr == '-' || p.chr == '+' {
 			p.read()
 		}
-		if isDecimalDigit(p.nextChr) {
+		if isDecimalDigit(p.chr) {
 			p.read()
 			p.scanMantissa(10)
 		} else {
@@ -898,7 +900,7 @@ exponent:
 
 hexadecimal:
 octal:
-	if isIdentifierStart(p.nextChr) || isDecimalDigit(p.nextChr) {
+	if isIdentifierStart(p.chr) || isDecimalDigit(p.chr) {
 		return token.ILLEGAL, p.str[offset:p.chrOffset]
 	}
 

@@ -48,7 +48,7 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	}
 
 	flags := ""
-	if !isLineTerminator(p.nextChr) && !isLineWhiteSpace(p.nextChr) {
+	if !isLineTerminator(p.chr) && !isLineWhiteSpace(p.chr) {
 		p.next()
 
 		if p.is(token.IDENTIFIER) { // gim

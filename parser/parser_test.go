@@ -491,8 +491,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			yield
-			 123
+			yield .123;
 		`)
 		if err != nil {
 			panic(err)

@@ -57,7 +57,7 @@ type Parser struct {
 	length    int
 	base      int
 
-	nextChr   rune // The current character
+	chr       rune // The current character
 	chrOffset int  // The offset of current character
 	offset    int  // The offset after current character (may be greater than 1)
 
@@ -87,11 +87,11 @@ type Parser struct {
 
 func _newParser(filename, src string, base int) *Parser {
 	return &Parser{
-		nextChr: ' ', // This is set so we can start scanning by skipping whitespace
-		str:     src,
-		length:  len(src),
-		base:    base,
-		file:    file.NewFile(filename, src, base),
+		chr:    ' ', // This is set so we can start scanning by skipping whitespace
+		str:    src,
+		length: len(src),
+		base:   base,
+		file:   file.NewFile(filename, src, base),
 	}
 }
 

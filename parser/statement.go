@@ -184,7 +184,7 @@ func (p *Parser) parseThrowStatement() ast.Statement {
 	idx := p.consumeExpected(token.THROW)
 
 	if p.implicitSemicolon {
-		if p.nextChr == -1 { // Hackish
+		if p.chr == -1 { // Hackish
 			p.error(idx, "Unexpected end of input")
 		} else {
 			p.error(idx, "Illegal newline after throw")

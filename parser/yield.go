@@ -10,10 +10,10 @@ func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 		Start: p.idx,
 	}
 
-	wasImplicitSemicolon := p.implicitSemicolon
+	//wasImplicitSemicolon := p.implicitSemicolon
 	p.consumeExpected(token.YIELD)
 
-	if !wasImplicitSemicolon && p.implicitSemicolon {
+	if p.implicitSemicolon {
 		p.error(exp.Start, "No line terminator allowed after yield keyword")
 		return nil
 	}
