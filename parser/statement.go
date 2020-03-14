@@ -74,6 +74,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseExportDeclaration()
 	case token.AT:
 		return p.parseLegacyClassDecoratorStatement()
+	case token.YIELD:
+		return p.parseYieldStatement()
 	}
 
 	expression := p.parseExpression()

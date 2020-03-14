@@ -25,7 +25,7 @@
 - [x] async function
 - [x] async arrow function
 - [x] await
-- [ ] yield
+- [x] yield
 - [ ] for of
 - [ ] for object and array destructuring
 - [ ] object and array literal spread

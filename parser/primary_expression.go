@@ -112,6 +112,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		}
 	case token.FUNCTION:
 		return p.parseFunction(false, p.idx, false)
+	case token.YIELD:
+		return p.parseYieldExpression()
 	}
 
 	p.errorUnexpectedToken(p.token)
