@@ -6,6 +6,7 @@ type (
 	FunctionLiteral struct {
 		Start      file.Idx
 		Async      bool
+		Generator  bool
 		Name       *Identifier
 		Parameters *FunctionParameters
 		Body       Statement
@@ -58,7 +59,7 @@ func (odp *ObjectPatternParameter) GetDefaultValue() Expression { return odp.Def
 func (adp *ArrayPatternParameter) GetDefaultValue() Expression  { return adp.DefaultValue }
 
 func (ip *IdentifierParameter) SetDefaultValue(exp Expression)     { ip.DefaultValue = exp }
-func (rp *RestParameter) SetDefaultValue(_ Expression)           {}
+func (rp *RestParameter) SetDefaultValue(_ Expression)             {}
 func (odp *ObjectPatternParameter) SetDefaultValue(exp Expression) { odp.DefaultValue = exp }
 func (adp *ArrayPatternParameter) SetDefaultValue(exp Expression)  { adp.DefaultValue = exp }
 

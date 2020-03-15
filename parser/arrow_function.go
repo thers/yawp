@@ -20,7 +20,8 @@ func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters
 }
 
 func (p *Parser) parseArrowFunctionBody() ast.Statement {
-	closeFunctionScope := p.openFunctionScope()
+	// arrow function could not be generators
+	closeFunctionScope := p.openFunctionScope(false)
 	defer closeFunctionScope()
 
 	if p.is(token.LEFT_BRACE) {

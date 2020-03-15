@@ -6,11 +6,16 @@ import (
 )
 
 func (p *Parser) parseYieldExpression() *ast.YieldExpression {
+	if !p.scope.inGeneratorFunction {
+		p.error(p.idx, "yield can not be used outside of generator function")
+		p.next()
+		return nil
+	}
+
 	exp := &ast.YieldExpression{
 		Start: p.idx,
 	}
 
-	//wasImplicitSemicolon := p.implicitSemicolon
 	p.consumeExpected(token.YIELD)
 
 	if p.implicitSemicolon {

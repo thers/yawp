@@ -484,7 +484,11 @@ func TestParserErr(t *testing.T) {
 func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
-		_, pr, err := testParse("new.target")
+		_, pr, err := testParse(`
+			class Test {
+    			*test() {yield 1}
+			}
+		`)
 		if err != nil {
 			panic(err)
 		}

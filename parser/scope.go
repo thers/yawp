@@ -5,13 +5,14 @@ import (
 )
 
 type Scope struct {
-	outer           *Scope
-	allowIn         bool
-	inClass			bool
-	inIteration     bool
-	inSwitch        bool
-	inFunction      bool
-	declarationList []ast.Declaration
+	outer               *Scope
+	allowIn             bool
+	inClass             bool
+	inIteration         bool
+	inSwitch            bool
+	inFunction          bool
+	inGeneratorFunction bool
+	declarationList     []ast.Declaration
 
 	labels []string
 }
@@ -27,7 +28,6 @@ func (p *Parser) closeScope() {
 	p.scope = p.scope.outer
 }
 
-
 func (p *Parser) openClassScope() func() {
 	p.openScope()
 	wasInClass := p.scope.inClass
@@ -39,17 +39,21 @@ func (p *Parser) openClassScope() func() {
 	}
 }
 
-func (p *Parser) openFunctionScope() func() {
+func (p *Parser) openFunctionScope(generator bool) func() {
 	p.openScope()
+
 	wasInFunction := p.scope.inFunction
+	wasInGeneratorFunction := p.scope.inGeneratorFunction
+
 	p.scope.inFunction = true
+	p.scope.inGeneratorFunction = generator
 
 	return func() {
 		p.scope.inFunction = wasInFunction
+		p.scope.inGeneratorFunction = wasInGeneratorFunction
 		p.closeScope()
 	}
 }
-
 
 func (self *Scope) declare(declaration ast.Declaration) {
 	self.declarationList = append(self.declarationList, declaration)

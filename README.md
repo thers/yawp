@@ -21,7 +21,7 @@
 - [x] arbitrary var object and array destructuring
 - [x] template strings
 - [x] new.target
-- [ ] generator function
+- [x] generator function
 - [x] async function
 - [x] async arrow function
 - [x] await

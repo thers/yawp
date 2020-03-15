@@ -30,7 +30,7 @@ func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternI
 			identifier := p.parseIdentifier()
 
 			parameter = &ast.IdentifierParameter{
-				Name:         identifier,
+				Name: identifier,
 			}
 			propertyName = identifier.Name
 
@@ -39,7 +39,7 @@ func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternI
 
 				// property rename
 				parameter = &ast.IdentifierParameter{
-					Name:         p.parseIdentifier(),
+					Name: p.parseIdentifier(),
 				}
 			}
 		}
@@ -67,7 +67,7 @@ func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternI
 	}
 
 	return &ast.ObjectPatternIdentifierParameter{
-		Parameter: parameter,
+		Parameter:    parameter,
 		PropertyName: propertyName,
 	}
 }
@@ -178,9 +178,16 @@ func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.FunctionLiteral {
 	p.consumeExpected(token.FUNCTION)
 
+	generator := false
+	if p.is(token.MULTIPLY) {
+		p.consumeExpected(token.MULTIPLY)
+		generator = true
+	}
+
 	node := &ast.FunctionLiteral{
-		Start: idx,
-		Async: async,
+		Start:     idx,
+		Async:     async,
+		Generator: generator,
 	}
 
 	var name *ast.Identifier

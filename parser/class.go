@@ -5,8 +5,8 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseClassMethodBody() (*ast.BlockStatement, []ast.Declaration) {
-	closeFunctionScope := p.openFunctionScope()
+func (p *Parser) parseClassMethodBody(generator bool) (*ast.BlockStatement, []ast.Declaration) {
+	closeFunctionScope := p.openFunctionScope(generator)
 	defer closeFunctionScope()
 
 	return p.parseBlockStatement(), p.scope.declarationList
@@ -42,6 +42,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 	async := false
 	static := false
 	private := false
+	generator := false
 
 	if p.is(token.STATIC) {
 		static = true
@@ -58,6 +59,11 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		p.next()
 	}
 
+	if p.is(token.MULTIPLY) {
+		generator = true
+		p.next()
+	}
+
 	identifier := p.parseClassFieldName()
 
 	p.insertSemicolon = true
@@ -65,7 +71,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 	// Could be set/get
 	if accessor, ok := identifier.(*ast.Identifier); ok {
 		if accessor.Name == "set" || accessor.Name == "get" {
-			if async || private {
+			if async || private || generator {
 				p.unexpectedToken()
 				return nil
 			}
@@ -93,8 +99,8 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 
 	switch p.token {
 	case token.ASSIGN:
-		// Field can not be async, huh
-		if async {
+		// Field can not be async or generator
+		if async || generator {
 			p.unexpectedToken()
 			return nil
 		}
@@ -118,11 +124,11 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 			Static:     static,
 			Private:    private,
 			Async:      async,
-			Generator:  false,
+			Generator:  generator,
 			Parameters: p.parseFunctionParameterList(),
 		}
 
-		body, _ := p.parseClassMethodBody()
+		body, _ := p.parseClassMethodBody(generator)
 		source := p.slice(start, body.EndAt())
 
 		method.Body = body

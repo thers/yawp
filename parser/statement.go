@@ -161,7 +161,7 @@ func (p *Parser) parseParameterList() (list []string) {
 }
 
 func (p *Parser) parseFunctionBlock(node *ast.FunctionLiteral) {
-	closeFunctionScope := p.openFunctionScope()
+	closeFunctionScope := p.openFunctionScope(node.Generator)
 	defer closeFunctionScope()
 
 	node.Body = p.parseBlockStatement()
