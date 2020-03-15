@@ -144,22 +144,6 @@ func (p *Parser) parseBracketMember(left ast.Expression) ast.Expression {
 	}
 }
 
-func (p *Parser) parseNewExpression() ast.Expression {
-	idx := p.consumeExpected(token.NEW)
-	callee := p.parseLeftHandSideExpression()
-	node := &ast.NewExpression{
-		Start:  idx,
-		Callee: callee,
-	}
-	if p.is(token.LEFT_PARENTHESIS) {
-		argumentList, idx0, idx1 := p.parseArgumentList()
-		node.ArgumentList = argumentList
-		node.LeftParenthesis = idx0
-		node.RightParenthesis = idx1
-	}
-	return node
-}
-
 func (p *Parser) parsePostfixExpression() ast.Expression {
 	operand := p.parseLeftHandSideExpressionAllowCall()
 

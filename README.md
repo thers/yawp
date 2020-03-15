@@ -20,7 +20,7 @@
 - [x] const, let, var object and array destructuring
 - [x] arbitrary var object and array destructuring
 - [x] template strings
-- [ ] new.target
+- [x] new.target
 - [ ] generator function
 - [x] async function
 - [x] async arrow function
