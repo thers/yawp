@@ -14,6 +14,8 @@ const (
 	NUMBER
 	IDENTIFIER
 
+	TEMPLATE_QUOTE // `
+
 	AT   // @
 	HASH // #
 
@@ -153,6 +155,7 @@ var token2string = [...]string{
 	NULL:                        "NULL",
 	NUMBER:                      "NUMBER",
 	IDENTIFIER:                  "IDENTIFIER",
+	TEMPLATE_QUOTE: 			 "`",
 	PLUS:                        "+",
 	MINUS:                       "-",
 	MULTIPLY:                    "*",

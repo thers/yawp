@@ -112,7 +112,7 @@ func isLineWhiteSpace(chr rune) bool {
 // 7.3
 func isLineTerminator(chr rune) bool {
 	switch chr {
-	case '\u000a', '\u000d', '\u2028', '\u2029':
+	case '\n', '\r', '\u2028', '\u2029':
 		return true
 	}
 	return false
@@ -314,7 +314,9 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				} else {
 					tkn = token.QUESTION_MARK
 				}
-			case '"', '\'', '`':
+			case '`':
+				tkn = token.TEMPLATE_QUOTE
+			case '"', '\'':
 				insertSemicolon = true
 				tkn = token.STRING
 				var err error
@@ -586,18 +588,18 @@ func (p *Parser) scanEscape(quote rune) {
 }
 
 func (p *Parser) scanString(offset int) (string, error) {
-	// " ' ` /
+	// " '  /
 	quote := rune(p.str[offset])
 
 	for p.chr != quote {
 		chr := p.chr
-		if chr == '\n' || chr == '\r' || chr == '\u2028' || chr == '\u2029' || chr < 0 {
+		if isLineTerminator(chr) || chr < 0 {
 			goto newline
 		}
 		p.read()
 		if chr == '\\' {
 			if quote == '/' {
-				if p.chr == '\n' || p.chr == '\r' || p.chr == '\u2028' || p.chr == '\u2029' || p.chr < 0 {
+				if isLineTerminator(chr) || p.chr < 0 {
 					goto newline
 				}
 				p.read()
@@ -613,10 +615,10 @@ func (p *Parser) scanString(offset int) (string, error) {
 		}
 	}
 
-	// " ' ` /
+	// " '  /
 	p.read()
 
-	return string(p.str[offset:p.chrOffset]), nil
+	return p.str[offset:p.chrOffset], nil
 
 newline:
 	p.scanNewline()

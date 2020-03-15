@@ -19,7 +19,7 @@
 - [x] exponentiation operator
 - [x] const, let, var object and array destructuring
 - [x] arbitrary var object and array destructuring
-- [ ] template strings
+- [x] template strings
 - [ ] new.target
 - [ ] generator function
 - [x] async function

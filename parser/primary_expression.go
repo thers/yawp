@@ -74,6 +74,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			Literal: literal,
 			Value:   value,
 		}
+	case token.TEMPLATE_QUOTE:
+		return p.parseTemplateExpression()
 	case token.STRING:
 		p.next()
 		value, err := parseStringLiteral(literal[1 : len(literal)-1])

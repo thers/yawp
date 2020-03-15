@@ -21,6 +21,8 @@ func (p *Parser) parseLeftHandSideExpression() ast.Expression {
 			left = p.parseOptionalExpression(left)
 		} else if p.is(token.LEFT_BRACKET) {
 			left = p.parseBracketMember(left)
+		} else if p.is(token.TEMPLATE_QUOTE) {
+			left = p.parseTaggedTemplateExpression(left)
 		} else {
 			break
 		}
@@ -53,6 +55,8 @@ func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
 			left = p.parseBracketMember(left)
 		} else if p.is(token.LEFT_PARENTHESIS) {
 			left = p.parseCallExpression(left)
+		} else if p.is(token.TEMPLATE_QUOTE) {
+			left = p.parseTaggedTemplateExpression(left)
 		} else {
 			break
 		}
