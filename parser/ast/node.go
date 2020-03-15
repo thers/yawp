@@ -271,21 +271,6 @@ type (
 		Expression Expression
 	}
 
-	ForInStatement struct {
-		For    file.Idx
-		Into   Expression
-		Source Expression
-		Body   Statement
-	}
-
-	ForStatement struct {
-		For         file.Idx
-		Initializer Expression
-		Update      Expression
-		Test        Expression
-		Body        Statement
-	}
-
 	IfStatement struct {
 		If         file.Idx
 		Test       Expression
@@ -353,8 +338,6 @@ func (*DebuggerStatement) _statementNode()   {}
 func (*DoWhileStatement) _statementNode()    {}
 func (*EmptyStatement) _statementNode()      {}
 func (*ExpressionStatement) _statementNode() {}
-func (*ForInStatement) _statementNode()      {}
-func (*ForStatement) _statementNode()        {}
 func (*IfStatement) _statementNode()         {}
 func (*LabelledStatement) _statementNode()   {}
 func (*ReturnStatement) _statementNode()     {}
@@ -447,8 +430,6 @@ func (self *DebuggerStatement) StartAt() file.Idx   { return self.Debugger }
 func (self *DoWhileStatement) StartAt() file.Idx    { return self.Do }
 func (self *EmptyStatement) StartAt() file.Idx      { return self.Semicolon }
 func (self *ExpressionStatement) StartAt() file.Idx { return self.Expression.StartAt() }
-func (self *ForInStatement) StartAt() file.Idx      { return self.For }
-func (self *ForStatement) StartAt() file.Idx        { return self.For }
 func (self *IfStatement) StartAt() file.Idx         { return self.If }
 func (self *LabelledStatement) StartAt() file.Idx   { return self.Label.StartAt() }
 func (self *Program) StartAt() file.Idx             { return self.Body[0].StartAt() }
@@ -506,8 +487,6 @@ func (self *DebuggerStatement) EndAt() file.Idx   { return self.Debugger + 8 }
 func (self *DoWhileStatement) EndAt() file.Idx    { return self.Test.EndAt() }
 func (self *EmptyStatement) EndAt() file.Idx      { return self.Semicolon + 1 }
 func (self *ExpressionStatement) EndAt() file.Idx { return self.Expression.EndAt() }
-func (self *ForInStatement) EndAt() file.Idx      { return self.Body.EndAt() }
-func (self *ForStatement) EndAt() file.Idx        { return self.Body.EndAt() }
 func (self *IfStatement) EndAt() file.Idx {
 	if self.Alternate != nil {
 		return self.Alternate.EndAt()

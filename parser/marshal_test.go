@@ -119,8 +119,8 @@ func testMarshalNode(node interface{}) interface{} {
 
 	case *ast.ForInStatement:
 		return marshal("ForIn",
-			"Into", marshal("", node.Into),
-			"Source", marshal("", node.Source),
+			"Binder", marshal("", node.Into),
+			"Iterator", marshal("", node.Source),
 			"Body", marshal("", node.Body),
 		)
 
@@ -809,11 +809,11 @@ func TestParserAST(t *testing.T) {
       "Body": {
         "BlockStatement": []
       },
-      "Into": [
+      "Binder": [
         "abc",
         null
       ],
-      "Source": {
+      "Iterator": {
         "Identifier": "def"
       }
     }

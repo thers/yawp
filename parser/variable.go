@@ -41,15 +41,18 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 			binder = p.parseObjectBinding()
 		}
 
-		p.consumeExpected(token.ASSIGN)
-
-		initializer := p.parseAssignmentExpression()
-
-		return &ast.VariableBinding{
+		bnd := &ast.VariableBinding{
 			Start:       start,
 			Binder:      binder,
-			Initializer: initializer,
 		}
+
+		if p.is(token.ASSIGN) {
+			p.consumeExpected(token.ASSIGN)
+
+			bnd.Initializer = p.parseAssignmentExpression()
+		}
+
+		return bnd
 	}
 
 	if !p.is(token.IDENTIFIER) {
@@ -89,10 +92,12 @@ func (p *Parser) parseVariableDeclarationList(var_ file.Idx, kind token.Token) [
 			&declarationList,
 			kind,
 		))
-		if !p.is(token.COMMA) {
+
+		if p.is(token.COMMA) {
+			p.consumeExpected(token.COMMA)
+		} else {
 			break
 		}
-		p.next()
 	}
 
 	p.scope.declare(&ast.VariableDeclaration{

@@ -9,9 +9,9 @@ import (
 type Token int
 
 // String returns the string corresponding to the token.
-// For operators, delimiters, and keywords the string is the actual
+// Start operators, delimiters, and keywords the string is the actual
 // token string (e.g., for the token PLUS, the String() is
-// "+"). For all other tokens the string corresponds to the token
+// "+"). Start all other tokens the string corresponds to the token
 // name (e.g. for the token IDENTIFIER, the string is "IDENTIFIER").
 //
 func (tkn Token) String() string {

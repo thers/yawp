@@ -5,6 +5,7 @@ import "yawp/parser/file"
 type (
 	YieldExpression struct {
 		Start      file.Idx
+		Delegate   bool
 		Expression Expression
 	}
 

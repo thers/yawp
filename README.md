@@ -31,6 +31,8 @@
 - [ ] object and array literal spread
 - [x] computed object properties
 - [x] computed class fields
+
+postponed until...
 - [ ] modern decorators
 
 #### JSX

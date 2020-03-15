@@ -18,6 +18,11 @@ func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 
 	p.consumeExpected(token.YIELD)
 
+	if p.is(token.MULTIPLY) {
+		p.consumeExpected(token.MULTIPLY)
+		exp.Delegate = true
+	}
+
 	if p.implicitSemicolon {
 		p.error(exp.Start, "No line terminator allowed after yield keyword")
 		return nil
