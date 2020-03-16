@@ -118,8 +118,6 @@ func isLineTerminator(chr rune) bool {
 	return false
 }
 
-
-
 func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
 	p.implicitSemicolon = false
@@ -240,12 +238,12 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				tkn = token.RIGHT_BRACE
 				insertSemicolon = true
 			case '+':
-				tkn = p.switch3(token.PLUS, token.ADD_ASSIGN, '+', token.INCREMENT)
+				tkn = p.switchAssignment3(token.PLUS, token.ADD_ASSIGN, '+', token.INCREMENT)
 				if tkn == token.INCREMENT {
 					insertSemicolon = true
 				}
 			case '-':
-				tkn = p.switch3(token.MINUS, token.SUBTRACT_ASSIGN, '-', token.DECREMENT)
+				tkn = p.switchAssignment3(token.MINUS, token.SUBTRACT_ASSIGN, '-', token.DECREMENT)
 				if tkn == token.DECREMENT {
 					insertSemicolon = true
 				}
@@ -254,7 +252,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					p.read()
 					tkn = token.EXPONENTIATION
 				} else {
-					tkn = p.switch2(token.MULTIPLY, token.MULTIPLY_ASSIGN)
+					tkn = p.switchAssignment2(token.MULTIPLY, token.MULTIPLY_ASSIGN)
 				}
 			case '/':
 				if p.chr == '/' {
@@ -263,32 +261,49 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				} else if p.chr == '*' {
 					p.skipMultiLineComment()
 					continue
+				} else if p.chr == '>' {
+					p.read()
+					tkn = token.JSX_TAG_SELF_CLOSE
 				} else {
 					// Could be division, could be RegExp literal
-					tkn = p.switch2(token.SLASH, token.QUOTIENT_ASSIGN)
+					tkn = p.switchAssignment2(token.SLASH, token.QUOTIENT_ASSIGN)
 					insertSemicolon = true
 				}
 			case '%':
-				tkn = p.switch2(token.REMAINDER, token.REMAINDER_ASSIGN)
+				tkn = p.switchAssignment2(token.REMAINDER, token.REMAINDER_ASSIGN)
 			case '^':
-				tkn = p.switch2(token.EXCLUSIVE_OR, token.EXCLUSIVE_OR_ASSIGN)
+				tkn = p.switchAssignment2(token.EXCLUSIVE_OR, token.EXCLUSIVE_OR_ASSIGN)
 			case '<':
-				tkn = p.switch4(token.LESS, token.LESS_OR_EQUAL, '<', token.SHIFT_LEFT, token.SHIFT_LEFT_ASSIGN)
+				if p.chr == '>' {
+					p.read()
+					tkn = token.JSX_FRAGMENT_START
+				} else if p.chr == '/' {
+					p.read()
+
+					if p.chr == '>' {
+						p.read()
+						tkn = token.JSX_FRAGMENT_END
+					} else {
+						tkn = token.JSX_TAG_CLOSE
+					}
+				} else {
+					tkn = p.switchAssignment4(token.LESS, token.LESS_OR_EQUAL, '<', token.SHIFT_LEFT, token.SHIFT_LEFT_ASSIGN)
+				}
 			case '>':
-				tkn = p.switch6(token.GREATER, token.GREATER_OR_EQUAL, '>', token.SHIFT_RIGHT, token.SHIFT_RIGHT_ASSIGN, '>', token.UNSIGNED_SHIFT_RIGHT, token.UNSIGNED_SHIFT_RIGHT_ASSIGN)
+				tkn = p.switchAssignment6(token.GREATER, token.GREATER_OR_EQUAL, '>', token.SHIFT_RIGHT, token.SHIFT_RIGHT_ASSIGN, '>', token.UNSIGNED_SHIFT_RIGHT, token.UNSIGNED_SHIFT_RIGHT_ASSIGN)
 			case '=':
 				if p.chr == '>' {
 					p.read()
 					tkn = token.ARROW
 				} else {
-					tkn = p.switch2(token.ASSIGN, token.EQUAL)
+					tkn = p.switchAssignment2(token.ASSIGN, token.EQUAL)
 					if tkn == token.EQUAL && p.chr == '=' {
 						p.read()
 						tkn = token.STRICT_EQUAL
 					}
 				}
 			case '!':
-				tkn = p.switch2(token.NOT, token.NOT_EQUAL)
+				tkn = p.switchAssignment2(token.NOT, token.NOT_EQUAL)
 				if tkn == token.NOT_EQUAL && p.chr == '=' {
 					p.read()
 					tkn = token.STRICT_NOT_EQUAL
@@ -296,12 +311,12 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			case '&':
 				if p.chr == '^' {
 					p.read()
-					tkn = p.switch2(token.AND_NOT, token.AND_NOT_ASSIGN)
+					tkn = p.switchAssignment2(token.AND_NOT, token.AND_NOT_ASSIGN)
 				} else {
-					tkn = p.switch3(token.AND, token.AND_ASSIGN, '&', token.LOGICAL_AND)
+					tkn = p.switchAssignment3(token.AND, token.AND_ASSIGN, '&', token.LOGICAL_AND)
 				}
 			case '|':
-				tkn = p.switch3(token.OR, token.OR_ASSIGN, '|', token.LOGICAL_OR)
+				tkn = p.switchAssignment3(token.OR, token.OR_ASSIGN, '|', token.LOGICAL_OR)
 			case '~':
 				tkn = token.BITWISE_NOT
 			case '?':
@@ -334,7 +349,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 	}
 }
 
-func (p *Parser) switch2(tkn0, tkn1 token.Token) token.Token {
+func (p *Parser) switchAssignment2(tkn0, tkn1 token.Token) token.Token {
 	if p.chr == '=' {
 		p.read()
 		return tkn1
@@ -342,7 +357,7 @@ func (p *Parser) switch2(tkn0, tkn1 token.Token) token.Token {
 	return tkn0
 }
 
-func (p *Parser) switch3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) token.Token {
+func (p *Parser) switchAssignment3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) token.Token {
 	if p.chr == '=' {
 		p.read()
 		return tkn1
@@ -354,7 +369,7 @@ func (p *Parser) switch3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) to
 	return tkn0
 }
 
-func (p *Parser) switch4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token) token.Token {
+func (p *Parser) switchAssignment4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token) token.Token {
 	if p.chr == '=' {
 		p.read()
 		return tkn1
@@ -370,7 +385,7 @@ func (p *Parser) switch4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Tok
 	return tkn0
 }
 
-func (p *Parser) switch6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token, chr3 rune, tkn4, tkn5 token.Token) token.Token {
+func (p *Parser) switchAssignment6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token, chr3 rune, tkn4, tkn5 token.Token) token.Token {
 	if p.chr == '=' {
 		p.read()
 		return tkn1

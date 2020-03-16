@@ -84,6 +84,11 @@ const (
 	NULLISH_COALESCING // ??
 	DOTDOTDOT          // ...
 
+	JSX_FRAGMENT_START // <>
+	JSX_FRAGMENT_END   // </>
+	JSX_TAG_SELF_CLOSE // />
+	JSX_TAG_CLOSE      // </
+
 	firstKeyword
 	IF
 	IN
@@ -155,7 +160,7 @@ var token2string = [...]string{
 	NULL:                        "NULL",
 	NUMBER:                      "NUMBER",
 	IDENTIFIER:                  "IDENTIFIER",
-	TEMPLATE_QUOTE: 			 "`",
+	TEMPLATE_QUOTE:              "`",
 	PLUS:                        "+",
 	MINUS:                       "-",
 	MULTIPLY:                    "*",
@@ -211,6 +216,9 @@ var token2string = [...]string{
 	NULLISH_COALESCING:          "??",
 	EXPONENTIATION:              "**",
 	DOTDOTDOT:                   "...",
+	JSX_FRAGMENT_START:          "<>",
+	JSX_FRAGMENT_END:            "</>",
+	JSX_TAG_SELF_CLOSE:          "/>",
 	IF:                          "if",
 	IN:                          "in",
 	OF:                          "of",

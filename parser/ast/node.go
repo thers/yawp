@@ -78,7 +78,7 @@ type (
 
 	DotExpression struct {
 		Left       Expression
-		Identifier Identifier
+		Identifier *Identifier
 	}
 
 	Identifier struct {

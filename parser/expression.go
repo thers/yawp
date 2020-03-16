@@ -99,15 +99,11 @@ func (p *Parser) parseCallExpression(left ast.Expression) ast.Expression {
 func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	period := p.consumeExpected(token.PERIOD)
 
-	literal := p.literal
-	idx := p.idx
-
 	// this.#bla
 	if p.is(token.HASH) {
 		if leftThisExp, ok := left.(*ast.ThisExpression); ok {
 			p.consumeExpected(token.HASH)
 
-			literal = p.literal
 			leftThisExp.Private = true
 		} else {
 			p.unexpectedToken()
@@ -115,7 +111,9 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 		}
 	}
 
-	if !matchIdentifier.MatchString(literal) {
+	identifier := p.parseIdentifierIncludingKeywords()
+
+	if identifier == nil {
 		p.consumeExpected(token.IDENTIFIER)
 		p.nextStatement()
 		return &ast.BadExpression{From: period, To: p.idx}
@@ -125,10 +123,7 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 
 	return &ast.DotExpression{
 		Left: left,
-		Identifier: ast.Identifier{
-			Start: idx,
-			Name:  literal,
-		},
+		Identifier: identifier,
 	}
 }
 
