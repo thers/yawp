@@ -26,8 +26,8 @@
 - [x] async arrow function
 - [x] await
 - [x] yield
-- [ ] for of
-- [ ] for object and array destructuring
+- [x] for of
+- [x] for object and array destructuring
 - [ ] object and array literal spread
 - [x] computed object properties
 - [x] computed class fields
