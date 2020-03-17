@@ -17,7 +17,15 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 			continue
 		}
 
-		value = append(value, p.parseAssignmentExpression())
+		if p.is(token.DOTDOTDOT) {
+			p.consumeExpected(token.DOTDOTDOT)
+
+			value = append(value, &ast.ArraySpread{
+				Expression: p.parseAssignmentExpression(),
+			})
+		} else {
+			value = append(value, p.parseAssignmentExpression())
+		}
 
 		p.consumePossible(token.COMMA)
 	}

@@ -32,12 +32,6 @@ type (
 		_expressionNode()
 	}
 
-	ArrayLiteral struct {
-		Start file.Idx
-		End   file.Idx
-		Value []Expression
-	}
-
 	AssignExpression struct {
 		Operator token.Token
 		Left     Expression
@@ -190,7 +184,6 @@ type (
 
 // _expressionNode
 
-func (*ArrayLiteral) _expressionNode()            {}
 func (*AssignExpression) _expressionNode()        {}
 func (*BadExpression) _expressionNode()           {}
 func (*BinaryExpression) _expressionNode()        {}
@@ -398,7 +391,6 @@ type Program struct {
 // StartAt //
 // ==== //
 
-func (self *ArrayLiteral) StartAt() file.Idx            { return self.Start }
 func (self *AssignExpression) StartAt() file.Idx        { return self.Left.StartAt() }
 func (self *BadExpression) StartAt() file.Idx           { return self.From }
 func (self *BinaryExpression) StartAt() file.Idx        { return self.Left.StartAt() }
@@ -445,7 +437,6 @@ func (self *WithStatement) StartAt() file.Idx       { return self.With }
 // EndAt //
 // ==== //
 
-func (self *ArrayLiteral) EndAt() file.Idx       { return self.End }
 func (self *AssignExpression) EndAt() file.Idx   { return self.Right.EndAt() }
 func (self *BadExpression) EndAt() file.Idx      { return self.To }
 func (self *BinaryExpression) EndAt() file.Idx   { return self.Right.EndAt() }

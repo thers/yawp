@@ -28,7 +28,7 @@
 - [x] yield
 - [x] for of
 - [x] for object and array destructuring
-- [ ] object and array literal spread
+- [x] object and array literal spread
 - [x] computed object properties
 - [x] computed class fields
 

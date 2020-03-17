@@ -14,7 +14,6 @@ type (
 		Properties []ObjectProperty
 	}
 
-
 	ObjectProperty interface {
 		_objectProperty()
 	}
@@ -34,6 +33,9 @@ type (
 		Value        Expression
 	}
 
+	ObjectSpread struct {
+		Expression
+	}
 
 	ObjectPropertyName interface {
 		_objectPropertyName()
@@ -45,8 +47,9 @@ func (*ObjectLiteral) _expressionNode() {}
 func (*ObjectPropertySetter) _objectProperty() {}
 func (*ObjectPropertyGetter) _objectProperty() {}
 func (*ObjectPropertyValue) _objectProperty()  {}
+func (*ObjectSpread) _objectProperty()         {}
 
-func (*Identifier) _objectPropertyName()     {}
+func (*Identifier) _objectPropertyName()   {}
 func (*ComputedName) _objectPropertyName() {}
 
 func (o *ObjectLiteral) StartAt() file.Idx { return o.LeftBrace }

@@ -171,6 +171,12 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		if property != nil {
 			return property
 		}
+	} else if p.is(token.DOTDOTDOT) {
+		p.consumeExpected(token.DOTDOTDOT)
+
+		return &ast.ObjectSpread{
+			Expression: p.parseAssignmentExpression(),
+		}
 	}
 
 	p.unexpectedToken()
