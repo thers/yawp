@@ -485,7 +485,9 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			t = (<x:test><t/></x:test>)
+			t = <t>
+			;<></>
+1-1{1+1}</t>
 		`)
 		if err != nil {
 			panic(err)

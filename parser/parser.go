@@ -58,13 +58,15 @@ type Parser struct {
 	token   token.Token // The token
 	literal string      // The literal of the token, if any
 
-	scope             *Scope
+	scope *Scope
 
 	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon bool // An implicit semicolon exists
 
 	arrowFunctionMode  bool // When trying to parse possible arrow fn parameters
 	patternBindingMode bool // When trying to parse possible binding pattern
+
+	jsxTextParseFrom int
 
 	errors ErrorList
 

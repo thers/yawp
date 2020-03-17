@@ -2,11 +2,27 @@ package parser
 
 import (
 	"yawp/parser/ast"
+	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
 func areElementNamesEqual(a, b *ast.JSXElementName) bool {
 	return a.StringName == b.StringName
+}
+
+func (p *Parser) parseString() *ast.StringLiteral {
+	value, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
+	if err != nil {
+		p.error(p.idx, err.Error())
+	}
+
+	p.next()
+
+	return &ast.StringLiteral{
+		Start:   p.idx,
+		Literal: p.literal,
+		Value:   value,
+	}
 }
 
 func (p *Parser) parseJSXElementName() *ast.JSXElementName {
@@ -63,26 +79,105 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 	}
 }
 
-func (p *Parser) parseJSXNode() ast.JSXNode {
+func (p *Parser) parseJSXChild() ast.JSXChild {
 	switch p.token {
 	case token.LESS:
 		return p.parseJSXElement()
 	case token.JSX_FRAGMENT_START:
 		return p.parseJSXFragment()
+	case token.LEFT_BRACE:
+		p.consumeExpected(token.LEFT_BRACE)
+		exp := p.parseAssignmentExpression()
+		p.jsxTextParseFrom = int(p.consumeExpected(token.RIGHT_BRACE))
+
+		return &ast.JSXChildExpression{
+			Expression: exp,
+		}
 	}
 
-	return nil
+	// parsing text
+	start := p.jsxTextParseFrom
+	text := p.str[start : p.chrOffset]
+	for p.chr != '<' && p.chr != '{' && p.chr != -1 {
+		text += string(p.chr)
+		p.read()
+	}
+
+	p.jsxTextParseFrom = p.chrOffset
+
+	p.next()
+
+	return &ast.JSXText{
+		Start: file.Idx(start),
+		End:   p.idx,
+		Text:  text,
+	}
+}
+
+func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
+	attrs := make([]ast.JSXAttribute, 0)
+
+	// until we meet /> or > or EOF
+	for !p.is(token.EOF) && !p.is(token.JSX_TAG_SELF_CLOSE) && !p.is(token.GREATER) {
+		if p.is(token.IDENTIFIER) {
+			attribute := &ast.JSXNamedAttribute{
+				Name:  p.parseIdentifier(),
+			}
+
+			// attribute with initializer
+			if p.is(token.ASSIGN) {
+				p.consumeExpected(token.ASSIGN)
+
+				if p.is(token.LEFT_BRACE) {
+					p.consumeExpected(token.LEFT_BRACE)
+					attribute.Value = p.parseAssignmentExpression()
+					p.consumeExpected(token.RIGHT_BRACE)
+				} else if p.is(token.STRING) {
+					attribute.Value = p.parseString()
+				} else {
+					p.unexpectedToken()
+					p.next()
+				}
+			} else {
+				attribute.Value = &ast.BooleanLiteral{
+					Start:   attribute.Name.Start,
+					Literal: "true",
+					Value:   true,
+				}
+			}
+
+			attrs = append(attrs, attribute)
+		} else if p.is(token.LEFT_BRACE) {
+			// attributes spreading
+			p.consumeExpected(token.LEFT_BRACE)
+			start := p.consumeExpected(token.DOTDOTDOT)
+
+			attrs = append(attrs, &ast.JSXSpreadAttribute{
+				Start:      start,
+				Expression: p.parseAssignmentExpression(),
+			})
+
+			p.consumeExpected(token.RIGHT_BRACE)
+		} else {
+			p.unexpectedToken()
+			p.next()
+		}
+	}
+
+	return attrs
 }
 
 func (p *Parser) parseJSXFragment() *ast.JSXFragment {
 	start := p.consumeExpected(token.JSX_FRAGMENT_START)
-	children := make([]ast.JSXNode, 0)
+	children := make([]ast.JSXChild, 0)
 
 	for p.until(token.JSX_FRAGMENT_END) {
-		children = append(children, p.parseJSXNode())
+		children = append(children, p.parseJSXChild())
 	}
 
 	end := p.consumeExpected(token.JSX_FRAGMENT_END)
+	// it's 3 chars wide token
+	p.jsxTextParseFrom = int(end) + 2
 
 	return &ast.JSXFragment{
 		Start:    start,
@@ -94,24 +189,27 @@ func (p *Parser) parseJSXFragment() *ast.JSXFragment {
 func (p *Parser) parseJSXElement() *ast.JSXElement {
 	elm := &ast.JSXElement{
 		Start:      p.consumeExpected(token.LESS),
-		End:        0,
 		Name:       p.parseJSXElementName(),
-		Attributes: nil,
-		Children:   make([]ast.JSXNode, 0),
+		Children:   make([]ast.JSXChild, 0),
 	}
 
-	// TODO: Attributes parsing
+	elm.Attributes = p.parseJSXElementAttributes()
 
+	// self closing element />
 	if p.is(token.JSX_TAG_SELF_CLOSE) {
 		elm.End = p.consumeExpected(token.JSX_TAG_SELF_CLOSE)
+		// it's a 2 chars wide token
+		p.jsxTextParseFrom = int(elm.End) + 1
 
 		return elm
 	}
 
-	p.consumeExpected(token.GREATER)
+	// end of element >
+	p.jsxTextParseFrom = int(p.consumeExpected(token.GREATER))
 
+	// until </
 	for p.until(token.JSX_TAG_CLOSE) {
-		elm.Children = append(elm.Children, p.parseJSXNode())
+		elm.Children = append(elm.Children, p.parseJSXChild())
 	}
 
 	p.consumeExpected(token.JSX_TAG_CLOSE)
@@ -124,7 +222,8 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 		return nil
 	}
 
-	p.consumeExpected(token.GREATER)
+	elm.End = p.consumeExpected(token.GREATER)
+	p.jsxTextParseFrom = int(elm.End)
 
 	return elm
 }
@@ -136,8 +235,5 @@ func (p *Parser) parseJSX() ast.Expression {
 		return p.parseJSXElement()
 	}
 
-	return &ast.BadExpression{
-		From: p.idx,
-		To:   0,
-	}
+	return nil
 }

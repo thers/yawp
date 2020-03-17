@@ -36,7 +36,7 @@ postponed until...
 - [ ] modern decorators
 
 #### JSX
-- [ ] JSX support
+- [x] JSX support
 
 #### Flow
 - [ ] Flow types support

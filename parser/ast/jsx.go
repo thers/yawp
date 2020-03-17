@@ -3,22 +3,12 @@ package ast
 import "yawp/parser/file"
 
 type (
-	JSXNode interface {
-		_jsxNode()
-	}
-
-	JSXInterpolationNode struct {
-		Start      file.Idx
-		End        file.Idx
-		Expression Expression
-	}
-
 	JSXElement struct {
 		Start      file.Idx
 		End        file.Idx
 		Name       *JSXElementName
 		Attributes []JSXAttribute
-		Children   []JSXNode
+		Children   []JSXChild
 	}
 
 	JSXElementName struct {
@@ -35,7 +25,7 @@ type (
 	JSXFragment struct {
 		Start    file.Idx
 		End      file.Idx
-		Children []JSXNode
+		Children []JSXChild
 	}
 
 	JSXAttribute interface {
@@ -49,14 +39,28 @@ type (
 
 	JSXSpreadAttribute struct {
 		Start      file.Idx
-		End        file.Idx
 		Expression Expression
+	}
+
+	JSXChild interface {
+		_jsxChild()
+	}
+
+	JSXText struct {
+		Start file.Idx
+		End   file.Idx
+		Text  string
+	}
+
+	JSXChildExpression struct {
+		Expression
 	}
 )
 
-func (*JSXInterpolationNode) _jsxNode() {}
-func (*JSXElement) _jsxNode()           {}
-func (*JSXFragment) _jsxNode()          {}
+func (*JSXChildExpression) _jsxChild() {}
+func (*JSXText) _jsxChild()            {}
+func (*JSXElement) _jsxChild()         {}
+func (*JSXFragment) _jsxChild()        {}
 
 func (*JSXNamedAttribute) _jsxAttribute()  {}
 func (*JSXSpreadAttribute) _jsxAttribute() {}
