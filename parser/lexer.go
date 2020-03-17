@@ -561,7 +561,7 @@ func (p *Parser) skipLineWhiteSpace() {
 	}
 }
 
-func (p *Parser) scanMantissa(base int) {
+func (p *Parser) scanNumberRemainder(base int) {
 	for digitValue(p.chr) < base {
 		p.read()
 	}
@@ -851,7 +851,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 
 	if decimalPoint {
 		offset--
-		p.scanMantissa(10)
+		p.scanNumberRemainder(10)
 		goto exponent
 	}
 
@@ -866,7 +866,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			} else {
 				return token.ILLEGAL, p.str[offset:p.chrOffset]
 			}
-			p.scanMantissa(16)
+			p.scanNumberRemainder(16)
 
 			if p.chrOffset-offset <= 2 {
 				// Only "0x" or "0X"
@@ -874,6 +874,22 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			}
 
 			goto hexadecimal
+		} else if p.chr == 'b' || p.chr == 'B' {
+			// Binary
+			p.read()
+			if isDigit(p.chr, 2) {
+				p.read()
+			} else {
+				return token.ILLEGAL, p.str[offset:p.chrOffset]
+			}
+			p.scanNumberRemainder(2)
+
+			if p.chrOffset-offset <= 2 {
+				// Only "0b" or "0B"
+				p.error(0, "Illegal binary number")
+			}
+
+			goto binary
 		} else if p.chr == '.' {
 			// Float
 			goto float
@@ -882,7 +898,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			if p.chr == 'e' || p.chr == 'E' {
 				goto exponent
 			}
-			p.scanMantissa(8)
+			p.scanNumberRemainder(8)
 			if p.chr == '8' || p.chr == '9' {
 				return token.ILLEGAL, p.str[offset:p.chrOffset]
 			}
@@ -890,12 +906,12 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 		}
 	}
 
-	p.scanMantissa(10)
+	p.scanNumberRemainder(10)
 
 float:
 	if p.chr == '.' {
 		p.read()
-		p.scanMantissa(10)
+		p.scanNumberRemainder(10)
 	}
 
 exponent:
@@ -906,12 +922,13 @@ exponent:
 		}
 		if isDecimalDigit(p.chr) {
 			p.read()
-			p.scanMantissa(10)
+			p.scanNumberRemainder(10)
 		} else {
 			return token.ILLEGAL, p.str[offset:p.chrOffset]
 		}
 	}
 
+binary:
 hexadecimal:
 octal:
 	if isIdentifierStart(p.chr) || isDecimalDigit(p.chr) {

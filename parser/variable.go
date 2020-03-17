@@ -74,6 +74,11 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 		*declarationList = append(*declarationList, node)
 	}
 
+	// feat(type)
+	if p.is(token.COLON) {
+		node.FlowType = p.parseFlowTypeAnnotation()
+	}
+
 	if p.is(token.ASSIGN) {
 		p.next()
 		node.Initializer = p.parseAssignmentExpression()

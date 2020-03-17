@@ -46,6 +46,7 @@ type (
 		Start       file.Idx
 		Binder      PatternBinder
 		Initializer Expression
+		FlowType    FlowType
 	}
 )
 

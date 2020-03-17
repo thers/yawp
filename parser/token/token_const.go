@@ -109,11 +109,14 @@ const (
 	EXPORT
 	FROM
 
-	// TS
+	// Type system
 	PUBLIC
 	PROTECTED
 	PRIVATE
-	// /TS
+
+	TYPE_BOOLEAN
+	TYPE_STRING
+	// /Type system
 
 	FOR
 	NEW
@@ -258,6 +261,9 @@ var token2string = [...]string{
 	IMPORT:                      "import",
 	AS:                          "as",
 	EXPORT:                      "export",
+
+	TYPE_STRING: "string",
+	TYPE_BOOLEAN: "boolean",
 }
 
 var keywordTable = map[string]_keyword{
@@ -414,5 +420,11 @@ var keywordTable = map[string]_keyword{
 	},
 	"static": _keyword{
 		token: STATIC,
+	},
+	"string": {
+		token: TYPE_STRING,
+	},
+	"boolean": {
+		token: TYPE_BOOLEAN,
 	},
 }

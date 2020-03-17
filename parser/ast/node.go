@@ -154,6 +154,7 @@ type (
 		Name        string
 		Start       file.Idx
 		Initializer Expression
+		FlowType    FlowType
 	}
 
 	ArrowFunctionExpression struct {
