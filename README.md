@@ -2,7 +2,7 @@
 
 ### Things left to do in parser
 
-#### ES support
+#### ES2020 support
 - [x] Arrow functions
 - [x] Rest function parameters
 - [x] Object and array function parameters destructuring
@@ -31,6 +31,9 @@
 - [x] object and array literal spread
 - [x] computed object properties
 - [x] computed class fields
+- [x] optional catch binding
+- [x] try..catch..finally
+- [ ] dynamic import call
 
 postponed until...
 - [ ] modern decorators
