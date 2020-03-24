@@ -33,7 +33,7 @@
 - [x] computed class fields
 - [x] optional catch binding
 - [x] try..catch..finally
-- [ ] dynamic import call
+- [x] dynamic import call
 
 postponed until...
 - [ ] modern decorators

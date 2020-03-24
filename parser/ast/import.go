@@ -19,13 +19,23 @@ type (
 		HasDefaultClause   bool
 		HasNamedClause     bool
 	}
+
+	ImportCall struct {
+		Start file.Idx
+		End   file.Idx
+		Expression
+	}
 )
 
-func (*ImportClause) _expressionNode()     {}
+func (*ImportClause) _expressionNode() {}
+func (*ImportCall) _expressionNode()   {}
+
 func (*ImportDeclaration) _statementNode() {}
 
-func (self *ImportClause) StartAt() file.Idx      { return self.Start }
-func (self *ImportDeclaration) StartAt() file.Idx { return self.Start }
+func (i *ImportClause) StartAt() file.Idx      { return i.Start }
+func (i *ImportCall) StartAt() file.Idx        { return i.Start }
+func (i *ImportDeclaration) StartAt() file.Idx { return i.Start }
 
-func (self *ImportClause) EndAt() file.Idx      { return self.LocalIdentifier.EndAt() }
-func (self *ImportDeclaration) EndAt() file.Idx { return self.End }
+func (i *ImportClause) EndAt() file.Idx      { return i.LocalIdentifier.EndAt() }
+func (i *ImportCall) EndAt() file.Idx        { return i.End }
+func (i *ImportDeclaration) EndAt() file.Idx { return i.End }

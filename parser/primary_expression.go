@@ -118,6 +118,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		return p.parseYieldExpression()
 	case token.JSX_FRAGMENT_START, token.LESS:
 		return p.parseJSX()
+	case token.IMPORT:
+		return p.parseImportCall()
 	}
 
 	p.errorUnexpectedToken(p.token)

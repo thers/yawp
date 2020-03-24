@@ -129,3 +129,16 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 
 	return stmt
 }
+
+func (p *Parser) parseImportCall() ast.Expression {
+	start := p.consumeExpected(token.IMPORT)
+	p.consumeExpected(token.LEFT_PARENTHESIS)
+
+	call := &ast.ImportCall{
+		Start:      start,
+		Expression: p.parseAssignmentExpression(),
+		End: p.consumeExpected(token.RIGHT_PARENTHESIS),
+	}
+
+	return call
+}
