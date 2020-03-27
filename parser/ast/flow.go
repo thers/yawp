@@ -145,6 +145,12 @@ type (
 		End    file.Idx
 		Number interface{}
 	}
+
+	FlowTupleType struct {
+		Start    file.Idx
+		End      file.Idx
+		Elements []FlowType
+	}
 )
 
 func (*FlowTrueType) _flowType()          {}
@@ -162,6 +168,7 @@ func (*FlowVoidType) _flowType()          {}
 func (*FlowAnyType) _flowType()           {}
 func (*FlowInexactObject) _flowType()     {}
 func (*FlowExactObject) _flowType()       {}
+func (*FlowTupleType) _flowType()         {}
 
 func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
 func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
@@ -190,3 +197,4 @@ func (f *FlowTypeAssertion) EndAt() file.Idx { return f.FlowType.EndAt() }
 func (f *FlowOptionalType) EndAt() file.Idx  { return f.FlowType.EndAt() }
 func (f *FlowInexactObject) EndAt() file.Idx { return f.End }
 func (f *FlowExactObject) EndAt() file.Idx   { return f.End }
+func (f *FlowTupleType) EndAt() file.Idx     { return f.End }
