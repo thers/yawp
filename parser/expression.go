@@ -387,6 +387,13 @@ func (p *Parser) parseExpression() ast.Expression {
 		return &ast.SequenceExpression{
 			Sequence: sequence,
 		}
+	} else if p.is(token.COLON) {
+		typeAssertion := p.parseFlowTypeAnnotation()
+
+		return &ast.FlowTypeAssertion{
+			Left:     left,
+			FlowType: typeAssertion,
+		}
 	}
 
 	return left

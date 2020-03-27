@@ -84,7 +84,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 		}
 	}
 
-	// It's a sequence expression
+	// It's a sequence expression or flow type assertion
 	// restoring parser state like we didn't do shit
 	p.restorePartialState(partialState)
 
