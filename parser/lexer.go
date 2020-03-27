@@ -120,6 +120,7 @@ func isLineTerminator(chr rune) bool {
 
 func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
+	p.isKeyword = false
 	p.implicitSemicolon = false
 
 	for {
@@ -140,6 +141,8 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				// Keywords are longer than 1 character, avoid lookup otherwise
 				var strict bool
 				tkn, strict = token.IsKeyword(literal)
+
+				p.isKeyword = tkn > 0
 
 				switch tkn {
 
@@ -233,7 +236,13 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				tkn = token.RIGHT_BRACKET
 				insertSemicolon = true
 			case '{':
-				tkn = token.LEFT_BRACE
+				if p.chr == '|' {
+					p.read()
+
+					tkn = token.TYPE_EXACT_OBJECT_START
+				} else {
+					tkn = token.LEFT_BRACE
+				}
 			case '}':
 				tkn = token.RIGHT_BRACE
 				insertSemicolon = true
@@ -316,7 +325,13 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					tkn = p.switchAssignment3(token.AND, token.AND_ASSIGN, '&', token.LOGICAL_AND)
 				}
 			case '|':
-				tkn = p.switchAssignment3(token.OR, token.OR_ASSIGN, '|', token.LOGICAL_OR)
+				if p.chr == '}' {
+					p.read()
+
+					tkn = token.TYPE_EXACT_OBJECT_END
+				} else {
+					tkn = p.switchAssignment3(token.OR, token.OR_ASSIGN, '|', token.LOGICAL_OR)
+				}
 			case '~':
 				tkn = token.BITWISE_NOT
 			case '?':

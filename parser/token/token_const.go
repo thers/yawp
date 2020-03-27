@@ -89,6 +89,9 @@ const (
 	JSX_TAG_SELF_CLOSE // />
 	JSX_TAG_CLOSE      // </
 
+	TYPE_EXACT_OBJECT_START // {|
+	TYPE_EXACT_OBJECT_END   // |}
+
 	firstKeyword
 	IF
 	IN
@@ -114,6 +117,7 @@ const (
 	PROTECTED
 	PRIVATE
 
+	TYPE_ANY
 	TYPE_BOOLEAN
 	TYPE_STRING
 	TYPE_NUMBER
@@ -263,8 +267,9 @@ var token2string = [...]string{
 	AS:                          "as",
 	EXPORT:                      "export",
 
-	TYPE_STRING: "string",
-	TYPE_NUMBER: "number",
+	TYPE_ANY:     "any",
+	TYPE_STRING:  "string",
+	TYPE_NUMBER:  "number",
 	TYPE_BOOLEAN: "boolean",
 }
 
@@ -422,6 +427,9 @@ var keywordTable = map[string]_keyword{
 	},
 	"static": _keyword{
 		token: STATIC,
+	},
+	"any": {
+		token: TYPE_ANY,
 	},
 	"string": {
 		token: TYPE_STRING,

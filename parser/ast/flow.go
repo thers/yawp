@@ -38,12 +38,37 @@ type (
 
 	FlowInexactObject struct {
 		Start      file.Idx
+		End        file.Idx
 		Properties []FlowObjectProperty
 	}
 
 	FlowExactObject struct {
 		Start      file.Idx
+		End        file.Idx
 		Properties []FlowObjectProperty
+	}
+
+	FlowNamedObjectProperty struct {
+		Start    file.Idx
+		Optional bool
+		Name     string
+		Value    FlowType
+	}
+
+	FlowIndexerObjectProperty struct {
+		Start   file.Idx
+		KeyName string
+		KeyType FlowType
+		Value   FlowType
+	}
+
+	FlowInexactSpecifierProperty struct {
+		Start file.Idx
+	}
+
+	FlowSpreadObjectProperty struct {
+		Start    file.Idx
+		FlowType FlowType
 	}
 
 	FlowArrayType struct {
@@ -67,12 +92,12 @@ type (
 	}
 
 	FlowTypeAssertion struct {
-		Left Expression
-		FlowType
+		Left     Expression
+		FlowType FlowType
 	}
 
 	FlowOptionalType struct {
-		FlowType
+		FlowType FlowType
 	}
 )
 
@@ -94,6 +119,10 @@ type (
 		Start file.Idx
 	}
 	FlowNullType struct {
+		Start file.Idx
+	}
+
+	FlowAnyType struct {
 		Start file.Idx
 	}
 
@@ -130,6 +159,14 @@ func (*FlowTypeOfType) _flowType()        {}
 func (*FlowOptionalType) _flowType()      {}
 func (*FlowNullType) _flowType()          {}
 func (*FlowVoidType) _flowType()          {}
+func (*FlowAnyType) _flowType()           {}
+func (*FlowInexactObject) _flowType()     {}
+func (*FlowExactObject) _flowType()       {}
+
+func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
+func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
+func (*FlowInexactSpecifierProperty) _flowObjectProperty() {}
+func (*FlowSpreadObjectProperty) _flowObjectProperty()     {}
 
 func (*FlowTypeAssertion) _expressionNode() {}
 
@@ -144,9 +181,12 @@ func (f *FlowStringLiteralType) EndAt() file.Idx { return f.End }
 func (f *FlowNumberLiteralType) EndAt() file.Idx { return f.End }
 func (f *FlowVoidType) EndAt() file.Idx          { return f.Start + 4 }
 func (f *FlowNullType) EndAt() file.Idx          { return f.Start + 4 }
+func (f *FlowAnyType) EndAt() file.Idx           { return f.Start + 3 }
 func (f *FlowIdentifier) EndAt() file.Idx        { return f.Start + file.Idx(len(f.Name)) }
 func (f *FlowTypeOfType) EndAt() file.Idx {
 	return f.Start + f.Identifier.Start + file.Idx(len(f.Identifier.Name))
 }
 func (f *FlowTypeAssertion) EndAt() file.Idx { return f.FlowType.EndAt() }
 func (f *FlowOptionalType) EndAt() file.Idx  { return f.FlowType.EndAt() }
+func (f *FlowInexactObject) EndAt() file.Idx { return f.End }
+func (f *FlowExactObject) EndAt() file.Idx   { return f.End }

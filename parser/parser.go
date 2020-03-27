@@ -54,9 +54,10 @@ type Parser struct {
 	chrOffset int  // The offset of current character
 	offset    int  // The offset after current character (may be greater than 1)
 
-	idx     file.Idx    // The index of token
-	token   token.Token // The token
-	literal string      // The literal of the token, if any
+	idx       file.Idx    // The index of token
+	token     token.Token // The token
+	literal   string      // The literal of the token, if any
+	isKeyword bool
 
 	scope *Scope
 
@@ -188,8 +189,10 @@ func (p *Parser) now() (token.Token, string, file.Idx) {
 	return p.token, p.literal, p.idx
 }
 
-func (p *Parser) next() {
+func (p *Parser) next() (idx file.Idx) {
+	idx = p.idx
 	p.token, p.literal, p.idx = p.scan()
+	return
 }
 
 func (p *Parser) optionalSemicolon() {
@@ -227,6 +230,10 @@ func (p *Parser) is(value token.Token) bool {
 	return p.token == value
 }
 
+func (p *Parser) isIdentifierOrKeyword() bool {
+	return p.is(token.IDENTIFIER) || p.isKeyword
+}
+
 func (p *Parser) until(value token.Token) bool {
 	return p.token != value && p.token != token.EOF
 }
@@ -238,7 +245,7 @@ func (p *Parser) unexpectedToken() {
 func (p *Parser) consumeExpected(value token.Token) file.Idx {
 	idx := p.idx
 	if p.token != value {
-		p.errorUnexpectedToken(p.token)
+		p.unexpectedToken()
 	}
 	p.next()
 	return idx

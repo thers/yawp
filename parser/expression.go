@@ -122,7 +122,7 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	p.next()
 
 	return &ast.DotExpression{
-		Left: left,
+		Left:       left,
 		Identifier: identifier,
 	}
 }
