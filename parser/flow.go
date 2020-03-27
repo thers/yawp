@@ -84,6 +84,18 @@ func (p *Parser) parseFlowType() ast.FlowType {
 		return &ast.FlowOptionalType{
 			FlowType: p.parseFlowType(),
 		}
+	case token.VOID:
+		start := p.consumeExpected(token.VOID)
+
+		return &ast.FlowVoidType{
+			Start: start,
+		}
+	case token.NULL:
+		start := p.consumeExpected(token.NULL)
+
+		return &ast.FlowNullType{
+			Start: start,
+		}
 	}
 
 	return nil

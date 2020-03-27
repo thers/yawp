@@ -92,11 +92,9 @@ type (
 	}
 	FlowVoidType struct {
 		Start file.Idx
-		End   file.Idx
 	}
 	FlowNullType struct {
 		Start file.Idx
-		End   file.Idx
 	}
 
 	FlowStringType struct {
@@ -130,6 +128,8 @@ func (*FlowNumberLiteralType) _flowType() {}
 func (*FlowIdentifier) _flowType()        {}
 func (*FlowTypeOfType) _flowType()        {}
 func (*FlowOptionalType) _flowType()      {}
+func (*FlowNullType) _flowType()          {}
+func (*FlowVoidType) _flowType()          {}
 
 func (*FlowTypeAssertion) _expressionNode() {}
 
@@ -142,6 +142,8 @@ func (f *FlowStringType) EndAt() file.Idx        { return f.Start + 6 }
 func (f *FlowNumberType) EndAt() file.Idx        { return f.Start + 6 }
 func (f *FlowStringLiteralType) EndAt() file.Idx { return f.End }
 func (f *FlowNumberLiteralType) EndAt() file.Idx { return f.End }
+func (f *FlowVoidType) EndAt() file.Idx          { return f.Start + 4 }
+func (f *FlowNullType) EndAt() file.Idx          { return f.Start + 4 }
 func (f *FlowIdentifier) EndAt() file.Idx        { return f.Start + file.Idx(len(f.Name)) }
 func (f *FlowTypeOfType) EndAt() file.Idx {
 	return f.Start + f.Identifier.Start + file.Idx(len(f.Identifier.Name))
