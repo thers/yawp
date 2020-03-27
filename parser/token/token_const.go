@@ -121,6 +121,7 @@ const (
 	TYPE_BOOLEAN
 	TYPE_STRING
 	TYPE_NUMBER
+	TYPE_TYPE
 	// /Type system
 
 	FOR
@@ -271,6 +272,7 @@ var token2string = [...]string{
 	TYPE_STRING:  "string",
 	TYPE_NUMBER:  "number",
 	TYPE_BOOLEAN: "boolean",
+	TYPE_TYPE:    "type",
 }
 
 var keywordTable = map[string]_keyword{
@@ -439,5 +441,8 @@ var keywordTable = map[string]_keyword{
 	},
 	"boolean": {
 		token: TYPE_BOOLEAN,
+	},
+	"type": {
+		token: TYPE_TYPE,
 	},
 }

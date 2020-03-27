@@ -4,13 +4,15 @@ import "yawp/parser/file"
 
 type (
 	FlowTypeStatement struct {
-		Name FlowIdentifier
-		Type FlowType
+		Start file.Idx
+		Name  *FlowIdentifier
+		Type  FlowType
 	}
 
 	FlowInterfaceStatement struct {
-		Name FlowIdentifier
-		Body []FlowInterfaceBodyStatement
+		Start file.Idx
+		Name  *FlowIdentifier
+		Body  []FlowInterfaceBodyStatement
 	}
 
 	FlowType interface {
@@ -177,7 +179,12 @@ func (*FlowSpreadObjectProperty) _flowObjectProperty()     {}
 
 func (*FlowTypeAssertion) _expressionNode() {}
 
+func (*FlowTypeStatement) _statementNode() {}
+
 func (f *FlowTypeAssertion) StartAt() file.Idx { return f.Left.StartAt() }
+func (f *FlowTypeStatement) StartAt() file.Idx { return f.Start }
+
+func (f *FlowTypeStatement) EndAt() file.Idx { return f.Type.EndAt() }
 
 func (f *FlowTrueType) EndAt() file.Idx          { return f.End }
 func (f *FlowFalseType) EndAt() file.Idx         { return f.End }
