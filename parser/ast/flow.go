@@ -4,15 +4,18 @@ import "yawp/parser/file"
 
 type (
 	FlowTypeStatement struct {
-		Start file.Idx
-		Name  *FlowIdentifier
-		Type  FlowType
+		Start          file.Idx
+		Name           *FlowIdentifier
+		Type           FlowType
+		TypeParameters []*FlowTypeParameter
 	}
 
 	FlowInterfaceStatement struct {
-		Start file.Idx
-		Name  *FlowIdentifier
-		Body  []FlowInterfaceBodyStatement
+		Start          file.Idx
+		End            file.Idx
+		Name           *FlowIdentifier
+		TypeParameters []*FlowTypeParameter
+		Body           []FlowInterfaceBodyStatement
 	}
 
 	FlowType interface {
@@ -26,6 +29,23 @@ type (
 
 	FlowObjectProperty interface {
 		_flowObjectProperty()
+	}
+
+	FlowTypeParameter struct {
+		Start         file.Idx
+		Name          *FlowIdentifier
+		Covariant     bool
+		Contravariant bool
+		Boundary      FlowType
+		DefaultValue  FlowType
+	}
+
+	FlowInterfaceMethod struct {
+		Start          file.Idx
+		Name           *FlowIdentifier
+		TypeParameters []*FlowTypeParameter
+		Parameters     []interface{}
+		ReturnType     FlowType
 	}
 
 	FlowIdentifier struct {
@@ -51,10 +71,12 @@ type (
 	}
 
 	FlowNamedObjectProperty struct {
-		Start    file.Idx
-		Optional bool
-		Name     string
-		Value    FlowType
+		Start         file.Idx
+		Optional      bool
+		Covariant     bool
+		Contravariant bool
+		Name          string
+		Value         FlowType
 	}
 
 	FlowIndexerObjectProperty struct {
@@ -177,14 +199,21 @@ func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
 func (*FlowInexactSpecifierProperty) _flowObjectProperty() {}
 func (*FlowSpreadObjectProperty) _flowObjectProperty()     {}
 
+func (*FlowNamedObjectProperty) _flowInterfaceBodyStatement()   {}
+func (*FlowIndexerObjectProperty) _flowInterfaceBodyStatement() {}
+func (*FlowInterfaceMethod) _flowInterfaceBodyStatement()       {}
+
 func (*FlowTypeAssertion) _expressionNode() {}
 
-func (*FlowTypeStatement) _statementNode() {}
+func (*FlowTypeStatement) _statementNode()      {}
+func (*FlowInterfaceStatement) _statementNode() {}
 
-func (f *FlowTypeAssertion) StartAt() file.Idx { return f.Left.StartAt() }
-func (f *FlowTypeStatement) StartAt() file.Idx { return f.Start }
+func (f *FlowTypeAssertion) StartAt() file.Idx      { return f.Left.StartAt() }
+func (f *FlowTypeStatement) StartAt() file.Idx      { return f.Start }
+func (f *FlowInterfaceStatement) StartAt() file.Idx { return f.Start }
 
-func (f *FlowTypeStatement) EndAt() file.Idx { return f.Type.EndAt() }
+func (f *FlowTypeStatement) EndAt() file.Idx      { return f.Type.EndAt() }
+func (f *FlowInterfaceStatement) EndAt() file.Idx { return f.End }
 
 func (f *FlowTrueType) EndAt() file.Idx          { return f.End }
 func (f *FlowFalseType) EndAt() file.Idx         { return f.End }

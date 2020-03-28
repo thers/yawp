@@ -34,7 +34,11 @@ func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 }
 
 func (p *Parser) parseYieldStatement() *ast.YieldStatement {
-	return &ast.YieldStatement{
+	exp := &ast.YieldStatement{
 		Expression: p.parseYieldExpression(),
 	}
+
+	p.semicolon()
+
+	return exp
 }

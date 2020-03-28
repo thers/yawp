@@ -35,7 +35,7 @@ func digitValue(chr rune) int {
 	case 'A' <= chr && chr <= 'F':
 		return int(chr - 'A' + 10)
 	}
-	return 16 // Larger than any legal digit value
+	return 16 // Larger than isAny legal digit value
 }
 
 func isDigit(chr rune, base int) bool {

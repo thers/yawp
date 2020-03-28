@@ -56,7 +56,7 @@ type Parser struct {
 
 	idx       file.Idx    // The index of token
 	token     token.Token // The token
-	literal   string      // The literal of the token, if any
+	literal   string      // The literal of the token, if isAny
 	isKeyword bool
 
 	scope *Scope
@@ -151,7 +151,7 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}) (*ast.Pr
 // ParseFunction parses a given parameter list and body as a function and returns the
 // corresponding ast.FunctionLiteral node.
 //
-// The parameter list, if any, should be a comma-separated list of identifiers.
+// The parameter list, if isAny, should be a comma-separated list of identifiers.
 //
 func ParseFunction(parameterList, body string) (*ast.FunctionLiteral, error) {
 
@@ -228,6 +228,16 @@ func (p *Parser) idxOf(offset int) file.Idx {
 
 func (p *Parser) is(value token.Token) bool {
 	return p.token == value
+}
+
+func (p *Parser) isAny(values... token.Token) bool {
+	for _, value := range values {
+		if value == p.token {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *Parser) isIdentifierOrKeyword() bool {

@@ -6,17 +6,25 @@ import (
 )
 
 func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
-	start := p.consumeExpected(token.TYPE_TYPE)
+	var typeParameters []*ast.FlowTypeParameter
 
+	start := p.consumeExpected(token.TYPE_TYPE)
 	name := p.parseFlowTypeIdentifier()
+
+	if p.is(token.LESS) {
+		typeParameters = p.parseFlowTypeParameters()
+	}
+
 	p.consumeExpected(token.ASSIGN)
 	value := p.parseFlowType()
 
-	p.semicolon()
+	p.implicitSemicolon = true
+	p.optionalSemicolon()
 
 	return &ast.FlowTypeStatement{
-		Start: start,
-		Name:  name,
-		Type:  value,
+		Start:          start,
+		Name:           name,
+		Type:           value,
+		TypeParameters: typeParameters,
 	}
 }

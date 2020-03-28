@@ -14,6 +14,19 @@ func (p *Parser) parseFlowTypeIdentifier() *ast.FlowIdentifier {
 	}
 }
 
+func (p *Parser) parseFlowTypeIdentifierIncludingKeywords() *ast.FlowIdentifier {
+	identifier := p.parseIdentifierIncludingKeywords()
+
+	if identifier == nil {
+		return nil
+	}
+
+	return &ast.FlowIdentifier{
+		Start: identifier.Start,
+		Name:  identifier.Name,
+	}
+}
+
 func (p *Parser) parseFlowType() ast.FlowType {
 	start := p.idx
 

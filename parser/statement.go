@@ -78,6 +78,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseYieldStatement()
 	case token.TYPE_TYPE:
 		return p.parseFlowTypeStatement()
+	case token.INTERFACE:
+		return p.parseFlowInterfaceStatement()
 	}
 
 	expression := p.parseExpression()

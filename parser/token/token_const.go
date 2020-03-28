@@ -156,6 +156,7 @@ const (
 	DEBUGGER
 
 	INSTANCEOF
+	INTERFACE
 	lastKeyword
 )
 
@@ -267,6 +268,7 @@ var token2string = [...]string{
 	IMPORT:                      "import",
 	AS:                          "as",
 	EXPORT:                      "export",
+	INTERFACE:                   "interface",
 
 	TYPE_ANY:     "any",
 	TYPE_STRING:  "string",
@@ -400,9 +402,7 @@ var keywordTable = map[string]_keyword{
 		strict:        true,
 	},
 	"interface": _keyword{
-		token:         KEYWORD,
-		futureKeyword: true,
-		strict:        true,
+		token:  INTERFACE,
 	},
 	"let": _keyword{
 		token: LET,

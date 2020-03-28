@@ -5,6 +5,42 @@ import (
 	"yawp/parser/token"
 )
 
+func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
+	prop := &ast.FlowNamedObjectProperty{
+		Start:         p.idx,
+		Optional:      false,
+		Covariant:     false,
+		Contravariant: false,
+	}
+
+	if p.isAny(token.MINUS, token.PLUS) {
+		prop.Covariant = p.token == token.PLUS
+		prop.Contravariant = p.token == token.MINUS
+
+		p.next()
+	}
+
+	identifier := p.parseIdentifierIncludingKeywords()
+
+	if identifier == nil {
+		p.unexpectedToken()
+		p.next()
+
+		return nil
+	}
+
+	prop.Name = identifier.Name
+
+	if p.is(token.QUESTION_MARK) {
+		p.next()
+		prop.Optional = true
+	}
+
+	prop.Value = p.parseFlowTypeAnnotation()
+
+	return prop
+}
+
 func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty {
 	var terminator token.Token
 
@@ -19,29 +55,12 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 	for p.until(terminator) {
 		start := p.idx
 
-		if p.isIdentifierOrKeyword() {
-			identifier := p.parseIdentifierIncludingKeywords()
+		if p.isIdentifierOrKeyword() || p.isAny(token.PLUS, token.MINUS) {
+			prop := p.parseFlowNamedObjectProperty()
 
-			if identifier == nil {
-				p.unexpectedToken()
-				p.next()
-
+			if prop == nil {
 				goto Next
 			}
-
-			prop := &ast.FlowNamedObjectProperty{
-				Start:    start,
-				Optional: false,
-				Name:     identifier.Name,
-				Value:    nil,
-			}
-
-			if p.is(token.QUESTION_MARK) {
-				p.next()
-				prop.Optional = true
-			}
-
-			prop.Value = p.parseFlowTypeAnnotation()
 
 			props = append(props, prop)
 		} else if p.is(token.DOTDOTDOT) {
