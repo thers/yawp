@@ -2,34 +2,23 @@ package parser
 
 import (
 	"yawp/parser/ast"
+	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
+func (p *Parser) parseFlowNamedObjectPropertyRemainder(
+	start file.Idx,
+	covariant,
+	contravariant bool,
+	name string,
+) *ast.FlowNamedObjectProperty {
 	prop := &ast.FlowNamedObjectProperty{
-		Start:         p.idx,
+		Start:         start,
+		Name:          name,
 		Optional:      false,
-		Covariant:     false,
-		Contravariant: false,
+		Covariant:     covariant,
+		Contravariant: contravariant,
 	}
-
-	if p.isAny(token.MINUS, token.PLUS) {
-		prop.Covariant = p.token == token.PLUS
-		prop.Contravariant = p.token == token.MINUS
-
-		p.next()
-	}
-
-	identifier := p.parseIdentifierIncludingKeywords()
-
-	if identifier == nil {
-		p.unexpectedToken()
-		p.next()
-
-		return nil
-	}
-
-	prop.Name = identifier.Name
 
 	if p.is(token.QUESTION_MARK) {
 		p.next()
@@ -39,6 +28,38 @@ func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
 	prop.Value = p.parseFlowTypeAnnotation()
 
 	return prop
+}
+
+func (p *Parser) parseFlowTypeVariance() (covariant, contravariant bool) {
+	if p.isAny(token.MINUS, token.PLUS) {
+		covariant = p.token == token.PLUS
+		contravariant = p.token == token.MINUS
+
+		p.next()
+	}
+
+	return
+}
+
+func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
+	start := p.idx
+
+	covariant, contravariant := p.parseFlowTypeVariance()
+	identifier := p.parseIdentifierIncludingKeywords()
+
+	if identifier == nil {
+		p.unexpectedToken()
+		p.next()
+
+		return nil
+	}
+
+	return p.parseFlowNamedObjectPropertyRemainder(
+		start,
+		covariant,
+		contravariant,
+		identifier.Name,
+	)
 }
 
 func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty {

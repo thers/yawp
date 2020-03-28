@@ -485,9 +485,10 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			type Test<T> = string
-
 			interface Test<T> {
+    			+b: null;
+    			(): void;
+				class<T: T>(): number,
     			<T: {} = void>(): number,
 			}
 		`)

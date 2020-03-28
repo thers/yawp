@@ -15,27 +15,58 @@ func (p *Parser) parseFlowInterfaceMethodParts() ([]interface{}, ast.FlowType) {
 	return params, retType
 }
 
-func (p *Parser) parseFlowInterfaceBodyStatement() ast.FlowInterfaceBodyStatement {
-	isVariance := p.isAny(token.MINUS, token.PLUS)
-	isTypeParameters := p.is(token.LESS)
-
-	if isVariance || p.isIdentifierOrKeyword() {
-		return p.parseFlowNamedObjectProperty()
+func (p *Parser) parseFlowInterfaceMethod() *ast.FlowInterfaceMethod {
+	method := &ast.FlowInterfaceMethod{
+		Start: p.idx,
 	}
+
+	if p.is(token.LESS) {
+		method.TypeParameters = p.parseFlowTypeParameters()
+	}
+
+	method.Parameters, method.ReturnType = p.parseFlowInterfaceMethodParts()
+
+	return method
+}
+
+func (p *Parser) parseFlowInterfaceBodyStatement() ast.FlowInterfaceBodyStatement {
+	start := p.idx
+	covariant, contravariant := p.parseFlowTypeVariance()
+	isTypeParameters := p.token == token.LESS
 
 	if isTypeParameters || p.is(token.LEFT_PARENTHESIS) {
-		method := &ast.FlowInterfaceMethod{
-			Start: p.idx,
-		}
-
-		if isTypeParameters {
-			method.TypeParameters = p.parseFlowTypeParameters()
-		}
-
-		method.Parameters, method.ReturnType = p.parseFlowInterfaceMethodParts()
-
-		return method
+		// only [[call]] can start right with type parameters
+		return p.parseFlowInterfaceMethod()
 	}
+
+	if p.isIdentifierOrKeyword() {
+		identifier := p.parseFlowTypeIdentifierIncludingKeywords()
+
+		if identifier == nil {
+			p.unexpectedToken()
+			p.next()
+			return nil
+		}
+
+		if p.isAny(token.LEFT_PARENTHESIS, token.LESS) {
+			// it's a method
+			method := p.parseFlowInterfaceMethod()
+			method.Start = identifier.Start
+			method.Name = identifier
+
+			return method
+		}
+
+		return p.parseFlowNamedObjectPropertyRemainder(
+			start,
+			covariant,
+			contravariant,
+			identifier.Name,
+		)
+	}
+
+	p.unexpectedToken()
+	p.next()
 
 	return nil
 }
