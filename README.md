@@ -42,7 +42,25 @@ postponed until...
 - [x] JSX support
 
 #### Flow
-- [ ] Flow types support
+- [x] string, number, null, void, any
+- [ ] mixed
+- [x] string and number literals
+- [x] type alias statement
+- [x] interface statement
+- [x] type assertion
+- [x] var/let/const type annotation
+- [ ] function type annotations
+- [ ] class type annotations
+- [ ] call expression type parameters
+- [ ] new expression type parameters
+- [ ] existential type
+- [ ] intersection type
+- [ ] union type
+- [ ] opaque type alias
+- [ ] declare type/interface/var/function/class
+- [ ] declare module
+- [ ] type of function
+- [ ] typeof
 
 ## TypeScript
 - [ ] TypeScript parser
