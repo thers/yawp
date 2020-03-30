@@ -122,6 +122,7 @@ const (
 	TYPE_STRING
 	TYPE_NUMBER
 	TYPE_TYPE
+	TYPE_MIXED
 	// /Type system
 
 	FOR
@@ -275,6 +276,7 @@ var token2string = [...]string{
 	TYPE_NUMBER:  "number",
 	TYPE_BOOLEAN: "boolean",
 	TYPE_TYPE:    "type",
+	TYPE_MIXED:   "mixed",
 }
 
 var keywordTable = map[string]_keyword{
@@ -402,7 +404,7 @@ var keywordTable = map[string]_keyword{
 		strict:        true,
 	},
 	"interface": _keyword{
-		token:  INTERFACE,
+		token: INTERFACE,
 	},
 	"let": _keyword{
 		token: LET,
@@ -444,5 +446,8 @@ var keywordTable = map[string]_keyword{
 	},
 	"type": {
 		token: TYPE_TYPE,
+	},
+	"mixed": {
+		token: TYPE_MIXED,
 	},
 }

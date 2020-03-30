@@ -115,6 +115,18 @@ func (p *Parser) parseFlowType() ast.FlowType {
 		return &ast.FlowNullType{
 			Start: start,
 		}
+	case token.MULTIPLY:
+		p.next()
+
+		return &ast.FlowExistentialType{
+			Start:start,
+		}
+	case token.TYPE_MIXED:
+		p.next()
+
+		return &ast.FlowMixedType{
+			Start: start,
+		}
 	case token.LEFT_BRACE:
 		return p.parseFlowInexactObjectType()
 	case token.TYPE_EXACT_OBJECT_START:

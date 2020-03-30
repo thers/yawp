@@ -95,11 +95,6 @@ type (
 		FlowType FlowType
 	}
 
-	FlowArrayType struct {
-		Start    file.Idx
-		Elements []FlowType
-	}
-
 	FlowUnionType struct {
 		Start file.Idx
 		Types []FlowType
@@ -150,6 +145,14 @@ type (
 		Start file.Idx
 	}
 
+	FlowMixedType struct {
+		Start file.Idx
+	}
+
+	FlowExistentialType struct {
+		Start file.Idx
+	}
+
 	FlowStringType struct {
 		Start file.Idx
 	}
@@ -193,6 +196,8 @@ func (*FlowAnyType) _flowType()           {}
 func (*FlowInexactObject) _flowType()     {}
 func (*FlowExactObject) _flowType()       {}
 func (*FlowTupleType) _flowType()         {}
+func (*FlowMixedType) _flowType()         {}
+func (*FlowExistentialType) _flowType()   {}
 
 func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
 func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
@@ -227,10 +232,12 @@ func (f *FlowNullType) EndAt() file.Idx          { return f.Start + 4 }
 func (f *FlowAnyType) EndAt() file.Idx           { return f.Start + 3 }
 func (f *FlowIdentifier) EndAt() file.Idx        { return f.Start + file.Idx(len(f.Name)) }
 func (f *FlowTypeOfType) EndAt() file.Idx {
-	return f.Start + f.Identifier.Start + file.Idx(len(f.Identifier.Name))
+	return f.Identifier.Start + file.Idx(len(f.Identifier.Name))
 }
-func (f *FlowTypeAssertion) EndAt() file.Idx { return f.FlowType.EndAt() }
-func (f *FlowOptionalType) EndAt() file.Idx  { return f.FlowType.EndAt() }
-func (f *FlowInexactObject) EndAt() file.Idx { return f.End }
-func (f *FlowExactObject) EndAt() file.Idx   { return f.End }
-func (f *FlowTupleType) EndAt() file.Idx     { return f.End }
+func (f *FlowTypeAssertion) EndAt() file.Idx   { return f.FlowType.EndAt() }
+func (f *FlowOptionalType) EndAt() file.Idx    { return f.FlowType.EndAt() }
+func (f *FlowInexactObject) EndAt() file.Idx   { return f.End }
+func (f *FlowExactObject) EndAt() file.Idx     { return f.End }
+func (f *FlowTupleType) EndAt() file.Idx       { return f.End }
+func (f *FlowMixedType) EndAt() file.Idx       { return f.Start + 5 }
+func (f *FlowExistentialType) EndAt() file.Idx { return f.Start + 1 }

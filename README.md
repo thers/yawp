@@ -43,7 +43,7 @@ postponed until...
 
 #### Flow
 - [x] string, number, null, void, any
-- [ ] mixed
+- [x] mixed
 - [x] string and number literals
 - [x] type alias statement
 - [x] interface statement
@@ -53,7 +53,7 @@ postponed until...
 - [ ] class type annotations
 - [ ] call expression type parameters
 - [ ] new expression type parameters
-- [ ] existential type
+- [x] existential type
 - [ ] intersection type
 - [ ] union type
 - [ ] opaque type alias
