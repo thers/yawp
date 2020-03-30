@@ -122,6 +122,7 @@ func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
 
 func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.FunctionParameter {
 	var parameter ast.FunctionParameter
+	start := p.idx
 
 	// Rest parameter
 	if p.is(token.DOTDOTDOT) {
@@ -152,8 +153,17 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 		}
 	}
 
+	if parameter == nil {
+		p.error(start, "Unable to parse function argument")
+		return nil
+	}
+
+	if p.is(token.COLON) {
+		parameter.SetTypeAnnotation(p.parseFlowTypeAnnotation())
+	}
+
 	if !p.is(ending) {
-		p.consumeExpected(token.COMMA)
+		p.consumePossible(token.COMMA)
 	}
 
 	return parameter
@@ -202,8 +212,19 @@ func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.
 		// Use consumeExpected error handling
 		p.consumeExpected(token.IDENTIFIER)
 	}
+
+	// type parameters
+	if p.is(token.LESS) {
+		node.TypeParameters = p.parseFlowTypeParameters()
+	}
+
 	node.Name = name
 	node.Parameters = p.parseFunctionParameterList()
+
+	if p.is(token.COLON) {
+		node.ReturnType = p.parseFlowTypeAnnotation()
+	}
+
 	p.parseFunctionBlock(node)
 	node.Source = p.slice(idx, node.EndAt())
 

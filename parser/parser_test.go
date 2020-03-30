@@ -485,12 +485,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			interface Test<T> {
-    			+b: *;
-    			(): mixed;
-				class<T: T>(): number,
-    			<T: {} = void>(): number,
-			}
+			var t = function <T>({ a }: T): T {}
 		`)
 		if err != nil {
 			panic(err)

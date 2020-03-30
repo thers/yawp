@@ -47,7 +47,7 @@ postponed until...
 - [x] string and number literals
 - [x] type alias statement
 - [x] interface statement
-- [x] type assertion
+- [ ] type assertion
 - [x] var/let/const type annotation
 - [ ] function type annotations
 - [ ] class type annotations
@@ -60,7 +60,7 @@ postponed until...
 - [ ] declare type/interface/var/function/class
 - [ ] declare module
 - [ ] type of function
-- [ ] typeof
+- [x] typeof
 
 ## TypeScript
 - [ ] TypeScript parser

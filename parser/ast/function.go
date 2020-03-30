@@ -4,13 +4,15 @@ import "yawp/parser/file"
 
 type (
 	FunctionLiteral struct {
-		Start      file.Idx
-		Async      bool
-		Generator  bool
-		Name       *Identifier
-		Parameters *FunctionParameters
-		Body       Statement
-		Source     string
+		Start          file.Idx
+		Async          bool
+		Generator      bool
+		Name           *Identifier
+		TypeParameters []*FlowTypeParameter
+		ReturnType     FlowType
+		Parameters     *FunctionParameters
+		Body           Statement
+		Source         string
 
 		DeclarationList []Declaration
 	}
@@ -18,16 +20,19 @@ type (
 	FunctionParameter interface {
 		GetDefaultValue() Expression
 		SetDefaultValue(Expression)
+		SetTypeAnnotation(FlowType)
 		_parameterNode()
 	}
 
 	IdentifierParameter struct {
 		Name         *Identifier
 		DefaultValue Expression
+		FlowType     FlowType
 	}
 
 	RestParameter struct {
-		Binder PatternBinder
+		Binder   PatternBinder
+		FlowType FlowType
 	}
 
 	ObjectPatternIdentifierParameter struct {
@@ -38,11 +43,13 @@ type (
 	ObjectPatternParameter struct {
 		List         []*ObjectPatternIdentifierParameter
 		DefaultValue Expression
+		FlowType     FlowType
 	}
 
 	ArrayPatternParameter struct {
 		List         []FunctionParameter
 		DefaultValue Expression
+		FlowType     FlowType
 	}
 )
 
@@ -62,6 +69,11 @@ func (ip *IdentifierParameter) SetDefaultValue(exp Expression)     { ip.DefaultV
 func (rp *RestParameter) SetDefaultValue(_ Expression)             {}
 func (odp *ObjectPatternParameter) SetDefaultValue(exp Expression) { odp.DefaultValue = exp }
 func (adp *ArrayPatternParameter) SetDefaultValue(exp Expression)  { adp.DefaultValue = exp }
+
+func (ip *IdentifierParameter) SetTypeAnnotation(flowType FlowType)     { ip.FlowType = flowType }
+func (rp *RestParameter) SetTypeAnnotation(flowType FlowType)           { rp.FlowType = flowType }
+func (odp *ObjectPatternParameter) SetTypeAnnotation(flowType FlowType) { odp.FlowType = flowType }
+func (adp *ArrayPatternParameter) SetTypeAnnotation(flowType FlowType)  { adp.FlowType = flowType }
 
 func (*IdentifierParameter) _parameterNode()    {}
 func (*RestParameter) _parameterNode()          {}
