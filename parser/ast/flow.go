@@ -1,6 +1,9 @@
 package ast
 
-import "yawp/parser/file"
+import (
+	"yawp/parser/file"
+	"yawp/parser/token"
+)
 
 type (
 	FlowTypeStatement struct {
@@ -122,6 +125,12 @@ type (
 
 type (
 	// Primitives
+	FlowPrimitiveType struct {
+		Start file.Idx
+		End   file.Idx
+		Kind  token.Token
+	}
+
 	FlowTrueType struct {
 		Start file.Idx
 		End   file.Idx
@@ -130,34 +139,8 @@ type (
 		Start file.Idx
 		End   file.Idx
 	}
-	FlowBooleanType struct {
-		Start file.Idx
-		End   file.Idx
-	}
-	FlowVoidType struct {
-		Start file.Idx
-	}
-	FlowNullType struct {
-		Start file.Idx
-	}
-
-	FlowAnyType struct {
-		Start file.Idx
-	}
-
-	FlowMixedType struct {
-		Start file.Idx
-	}
 
 	FlowExistentialType struct {
-		Start file.Idx
-	}
-
-	FlowStringType struct {
-		Start file.Idx
-	}
-
-	FlowNumberType struct {
 		Start file.Idx
 	}
 
@@ -180,23 +163,17 @@ type (
 	}
 )
 
+func (*FlowPrimitiveType) _flowType()     {}
 func (*FlowTrueType) _flowType()          {}
 func (*FlowFalseType) _flowType()         {}
-func (*FlowBooleanType) _flowType()       {}
-func (*FlowStringType) _flowType()        {}
-func (*FlowNumberType) _flowType()        {}
 func (*FlowStringLiteralType) _flowType() {}
 func (*FlowNumberLiteralType) _flowType() {}
 func (*FlowIdentifier) _flowType()        {}
 func (*FlowTypeOfType) _flowType()        {}
 func (*FlowOptionalType) _flowType()      {}
-func (*FlowNullType) _flowType()          {}
-func (*FlowVoidType) _flowType()          {}
-func (*FlowAnyType) _flowType()           {}
 func (*FlowInexactObject) _flowType()     {}
 func (*FlowExactObject) _flowType()       {}
 func (*FlowTupleType) _flowType()         {}
-func (*FlowMixedType) _flowType()         {}
 func (*FlowExistentialType) _flowType()   {}
 
 func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
@@ -220,16 +197,11 @@ func (f *FlowInterfaceStatement) StartAt() file.Idx { return f.Start }
 func (f *FlowTypeStatement) EndAt() file.Idx      { return f.Type.EndAt() }
 func (f *FlowInterfaceStatement) EndAt() file.Idx { return f.End }
 
+func (f *FlowPrimitiveType) EndAt() file.Idx     { return f.End }
 func (f *FlowTrueType) EndAt() file.Idx          { return f.End }
 func (f *FlowFalseType) EndAt() file.Idx         { return f.End }
-func (f *FlowBooleanType) EndAt() file.Idx       { return f.End }
-func (f *FlowStringType) EndAt() file.Idx        { return f.Start + 6 }
-func (f *FlowNumberType) EndAt() file.Idx        { return f.Start + 6 }
 func (f *FlowStringLiteralType) EndAt() file.Idx { return f.End }
 func (f *FlowNumberLiteralType) EndAt() file.Idx { return f.End }
-func (f *FlowVoidType) EndAt() file.Idx          { return f.Start + 4 }
-func (f *FlowNullType) EndAt() file.Idx          { return f.Start + 4 }
-func (f *FlowAnyType) EndAt() file.Idx           { return f.Start + 3 }
 func (f *FlowIdentifier) EndAt() file.Idx        { return f.Start + file.Idx(len(f.Name)) }
 func (f *FlowTypeOfType) EndAt() file.Idx {
 	return f.Identifier.Start + file.Idx(len(f.Identifier.Name))
@@ -239,5 +211,4 @@ func (f *FlowOptionalType) EndAt() file.Idx    { return f.FlowType.EndAt() }
 func (f *FlowInexactObject) EndAt() file.Idx   { return f.End }
 func (f *FlowExactObject) EndAt() file.Idx     { return f.End }
 func (f *FlowTupleType) EndAt() file.Idx       { return f.End }
-func (f *FlowMixedType) EndAt() file.Idx       { return f.Start + 5 }
 func (f *FlowExistentialType) EndAt() file.Idx { return f.Start + 1 }

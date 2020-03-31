@@ -2,6 +2,7 @@ package parser
 
 import (
 	"yawp/parser/ast"
+	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
@@ -31,12 +32,6 @@ func (p *Parser) parseFlowType() ast.FlowType {
 	start := p.idx
 
 	switch p.token {
-	case token.TYPE_BOOLEAN:
-		p.next()
-
-		return &ast.FlowBooleanType{
-			Start: start,
-		}
 	case token.BOOLEAN:
 		kind := p.literal
 		p.next()
@@ -49,6 +44,16 @@ func (p *Parser) parseFlowType() ast.FlowType {
 			return &ast.FlowFalseType{
 				Start: start,
 			}
+		}
+	case token.TYPE_BOOLEAN, token.TYPE_ANY, token.TYPE_STRING, token.TYPE_NUMBER, token.VOID, token.NULL, token.TYPE_MIXED:
+		kind := p.token
+		end := start + file.Idx(len(p.literal))
+		p.next()
+
+		return &ast.FlowPrimitiveType{
+			Start: start,
+			End:   end,
+			Kind:  kind,
 		}
 	case token.STRING:
 		str := p.literal[1 : len(p.literal)-1]
@@ -72,12 +77,6 @@ func (p *Parser) parseFlowType() ast.FlowType {
 		}
 	case token.IDENTIFIER:
 		return p.parseFlowTypeIdentifier()
-	case token.TYPE_ANY:
-		p.next()
-
-		return &ast.FlowAnyType{
-			Start: start,
-		}
 	case token.TYPEOF:
 		p.next()
 
@@ -85,46 +84,16 @@ func (p *Parser) parseFlowType() ast.FlowType {
 			Start:      start,
 			Identifier: p.parseFlowTypeIdentifier(),
 		}
-	case token.TYPE_STRING:
-		p.next()
-
-		return &ast.FlowStringType{
-			Start: start,
-		}
-	case token.TYPE_NUMBER:
-		p.next()
-
-		return &ast.FlowNumberType{
-			Start: start,
-		}
 	case token.QUESTION_MARK:
 		p.next()
 
 		return &ast.FlowOptionalType{
 			FlowType: p.parseFlowType(),
 		}
-	case token.VOID:
-		p.next()
-
-		return &ast.FlowVoidType{
-			Start: start,
-		}
-	case token.NULL:
-		p.next()
-
-		return &ast.FlowNullType{
-			Start: start,
-		}
 	case token.MULTIPLY:
 		p.next()
 
 		return &ast.FlowExistentialType{
-			Start:start,
-		}
-	case token.TYPE_MIXED:
-		p.next()
-
-		return &ast.FlowMixedType{
 			Start: start,
 		}
 	case token.LEFT_BRACE:
