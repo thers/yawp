@@ -47,9 +47,9 @@ postponed until...
 - [x] string and number literals
 - [x] type alias statement
 - [x] interface statement
-- [ ] type assertion
+- [x] type assertion
 - [x] var/let/const type annotation
-- [ ] function type annotations
+- [x] function type annotations
 - [ ] class type annotations
 - [ ] call expression type parameters
 - [ ] new expression type parameters
