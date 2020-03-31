@@ -95,13 +95,25 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 }
 
 func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
+	var typeParameters []*ast.FlowTypeParameter
+
+	if p.is(token.LESS) {
+		typeParameters = p.parseFlowTypeParameters()
+	}
+
 	if p.is(token.IDENTIFIER) {
+		if typeParameters != nil {
+			p.error(p.idx, "Parenthesis required around generic arrow function parameters")
+			goto End
+		}
+
 		identifier := p.parseIdentifier()
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Start: identifier.Start,
-			Async: true,
+			Start:          identifier.Start,
+			Async:          true,
+			TypeParameters: typeParameters,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
 					Name:         identifier,
@@ -117,13 +129,15 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Start:      parameters.Opening,
-			Async:      true,
-			Parameters: parameters.List,
-			Body:       p.parseArrowFunctionBody(),
+			Start:          parameters.Opening,
+			Async:          true,
+			TypeParameters: typeParameters,
+			Parameters:     parameters.List,
+			Body:           p.parseArrowFunctionBody(),
 		}
 	}
 
+End:
 	return &ast.BadExpression{
 		From: idx,
 		To:   p.idx,

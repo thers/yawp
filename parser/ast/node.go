@@ -158,10 +158,12 @@ type (
 	}
 
 	ArrowFunctionExpression struct {
-		Start      file.Idx
-		Parameters []FunctionParameter
-		Body       Statement
-		Async      bool
+		Start          file.Idx
+		TypeParameters []*FlowTypeParameter
+		ReturnType     FlowType
+		Parameters     []FunctionParameter
+		Body           Statement
+		Async          bool
 	}
 
 	ClassExpression struct {

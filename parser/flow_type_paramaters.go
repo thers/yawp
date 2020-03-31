@@ -27,7 +27,14 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 			p.next()
 		}
 
+		parameterNameStart := p.idx
 		parameter.Name = p.parseFlowTypeIdentifierIncludingKeywords()
+
+		if parameter.Name == nil {
+			p.error(parameterNameStart, "Type parameter name is required")
+			p.next()
+			continue
+		}
 
 		if p.is(token.COLON) {
 			p.next()
@@ -47,7 +54,6 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 		p.consumePossible(token.COMMA)
 
 		parameters = append(parameters, parameter)
-
 	}
 	p.consumeExpected(token.GREATER)
 

@@ -116,8 +116,10 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		return p.parseFunction(false, p.idx, false)
 	case token.YIELD:
 		return p.parseYieldExpression()
-	case token.JSX_FRAGMENT_START, token.LESS:
-		return p.parseJSX()
+	case token.JSX_FRAGMENT_START:
+		return p.parseJSXFragment()
+	case token.LESS:
+		return p.parseJSXElementOrGenericArrowFunction()
 	case token.IMPORT:
 		return p.parseImportCall()
 	}

@@ -228,12 +228,28 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	return elm
 }
 
-func (p *Parser) parseJSX() ast.Expression {
-	if p.is(token.JSX_FRAGMENT_START) {
-		return p.parseJSXFragment()
-	} else if p.is(token.LESS) {
-		return p.parseJSXElement()
+func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
+	partialState := p.getPartialState()
+	errorsCount := len(p.errors)
+
+	// first try to parse as flow type parameters
+	typeParameters := p.parseFlowTypeParameters()
+
+	if len(p.errors) == errorsCount && p.is(token.LEFT_PARENTHESIS) {
+		parameters := p.parseFunctionParameterList()
+		p.consumeExpected(token.ARROW)
+
+		return &ast.ArrowFunctionExpression{
+			Start:          parameters.Opening,
+			Async:          true,
+			TypeParameters: typeParameters,
+			Parameters:     parameters.List,
+			Body:           p.parseArrowFunctionBody(),
+		}
 	}
 
-	return nil
+	// this isn't arrow function, so continue with jsx element
+	p.restorePartialState(partialState)
+
+	return p.parseJSXElement()
 }
