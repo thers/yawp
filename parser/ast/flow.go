@@ -123,9 +123,10 @@ type (
 	}
 
 	FlowFunctionType struct {
-		Start      file.Idx
-		Parameters []FlowType
-		ReturnType FlowType
+		Start          file.Idx
+		Parameters     []FlowType
+		TypeParameters []*FlowTypeParameter
+		ReturnType     FlowType
 	}
 )
 

@@ -59,7 +59,7 @@ postponed until...
 - [ ] opaque type alias
 - [ ] declare type/interface/var/function/class
 - [ ] declare module
-- [ ] type of function
+- [x] type of function
 - [x] typeof
 
 ## TypeScript

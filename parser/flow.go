@@ -102,12 +102,22 @@ func (p *Parser) parseSimpleFlowType() ast.FlowType {
 		return p.parseFlowExactObjectType()
 	case token.LEFT_BRACKET:
 		return p.parseFlowTupleType()
+	case token.LESS:
+		typeParameters := p.parseFlowTypeParameters()
+		start := p.consumeExpected(token.LEFT_PARENTHESIS)
+		parameters := p.parseFlowFunctionParameters()
+		p.consumeExpected(token.RIGHT_PARENTHESIS)
+
+		functionType := p.parseFlowFunctionRemainder(start, parameters)
+		functionType.TypeParameters = typeParameters
+
+		return functionType
 	}
 
 	return nil
 }
 
-func (p *Parser) parseFlowFunctionRemainder(start file.Idx, params []ast.FlowType) ast.FlowType {
+func (p *Parser) parseFlowFunctionRemainder(start file.Idx, params []ast.FlowType) *ast.FlowFunctionType {
 	p.consumeExpected(token.ARROW)
 
 	return &ast.FlowFunctionType{
@@ -115,6 +125,18 @@ func (p *Parser) parseFlowFunctionRemainder(start file.Idx, params []ast.FlowTyp
 		Parameters: params,
 		ReturnType: p.parseFlowType(),
 	}
+}
+
+func (p *Parser) parseFlowFunctionParameters() []ast.FlowType {
+	parameters := make([]ast.FlowType, 0)
+
+	for p.until(token.RIGHT_PARENTHESIS) {
+		parameters = append(parameters, p.parseFlowType())
+
+		p.consumePossible(token.COMMA)
+	}
+
+	return parameters
 }
 
 func (p *Parser) parseFlowExpressionOrFunction() ast.FlowType {
@@ -134,11 +156,7 @@ func (p *Parser) parseFlowExpressionOrFunction() ast.FlowType {
 			flowType,
 		}
 
-		for p.until(token.RIGHT_PARENTHESIS) {
-			parameters = append(parameters, p.parseFlowType())
-
-			p.consumePossible(token.COMMA)
-		}
+		parameters = append(parameters, p.parseFlowFunctionParameters()...)
 
 		p.consumeExpected(token.RIGHT_PARENTHESIS)
 
