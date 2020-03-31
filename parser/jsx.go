@@ -32,7 +32,6 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 	stringName := rootIdentifier.Name
 	left = rootIdentifier
 
-
 	if p.is(token.COLON) {
 		// x:tag
 		p.consumeExpected(token.COLON)
@@ -87,7 +86,13 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 		return p.parseJSXFragment()
 	case token.LEFT_BRACE:
 		p.consumeExpected(token.LEFT_BRACE)
-		exp := p.parseAssignmentExpression()
+
+		var exp ast.Expression
+
+		if !p.is(token.RIGHT_BRACE) {
+			exp = p.parseAssignmentExpression()
+		}
+
 		p.jsxTextParseFrom = int(p.consumeExpected(token.RIGHT_BRACE))
 
 		return &ast.JSXChildExpression{
@@ -97,7 +102,7 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 
 	// parsing text
 	start := p.jsxTextParseFrom
-	text := p.str[start : p.chrOffset]
+	text := p.str[start:p.chrOffset]
 	for p.chr != '<' && p.chr != '{' && p.chr != -1 {
 		text += string(p.chr)
 		p.read()
@@ -121,7 +126,7 @@ func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
 	for !p.is(token.EOF) && !p.is(token.JSX_TAG_SELF_CLOSE) && !p.is(token.GREATER) {
 		if p.is(token.IDENTIFIER) {
 			attribute := &ast.JSXNamedAttribute{
-				Name:  p.parseIdentifier(),
+				Name: p.parseIdentifier(),
 			}
 
 			// attribute with initializer
@@ -188,9 +193,9 @@ func (p *Parser) parseJSXFragment() *ast.JSXFragment {
 
 func (p *Parser) parseJSXElement() *ast.JSXElement {
 	elm := &ast.JSXElement{
-		Start:      p.consumeExpected(token.LESS),
-		Name:       p.parseJSXElementName(),
-		Children:   make([]ast.JSXChild, 0),
+		Start:    p.consumeExpected(token.LESS),
+		Name:     p.parseJSXElementName(),
+		Children: make([]ast.JSXChild, 0),
 	}
 
 	elm.Attributes = p.parseJSXElementAttributes()
@@ -232,24 +237,40 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	partialState := p.getPartialState()
 	errorsCount := len(p.errors)
 
-	// first try to parse as flow type parameters
+	// first try to parse as jsx
+	jsx := p.parseJSXElement()
+
+	if len(p.errors) == errorsCount {
+		return jsx
+	}
+
+	// now we can safely assume we're in arrow function
+	p.restorePartialState(partialState)
+
 	typeParameters := p.parseFlowTypeParameters()
 
-	if len(p.errors) == errorsCount && p.is(token.LEFT_PARENTHESIS) {
+	if p.is(token.LEFT_PARENTHESIS) {
+		var returnType ast.FlowType
 		parameters := p.parseFunctionParameterList()
+
+		if p.is(token.COLON) {
+			returnType = p.parseFlowTypeAnnotation()
+		}
+
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
 			Start:          parameters.Opening,
 			Async:          true,
 			TypeParameters: typeParameters,
+			ReturnType:     returnType,
 			Parameters:     parameters.List,
 			Body:           p.parseArrowFunctionBody(),
 		}
 	}
 
-	// this isn't arrow function, so continue with jsx element
-	p.restorePartialState(partialState)
+	p.unexpectedToken()
+	p.next()
 
-	return p.parseJSXElement()
+	return nil
 }

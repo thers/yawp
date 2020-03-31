@@ -143,6 +143,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 		} else {
 			p.arrowFunctionMode = false
 			p.unexpectedToken()
+			p.next()
 		}
 
 		// Parsing default value

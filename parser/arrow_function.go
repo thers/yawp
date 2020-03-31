@@ -71,6 +71,12 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 
 	// First try to parse as arrow function parameters list
 	parameters, success := p.maybeParseArrowFunctionParameterList()
+	var returnType ast.FlowType
+
+	// may be also arrow fn return type or type assertion
+	if success && p.is(token.COLON) {
+		returnType = p.parseFlowTypeAnnotation()
+	}
 
 	// If no errors occurred while parsing parameters
 	// And next token is => then it's an arrow function
@@ -79,6 +85,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 		return &ast.ArrowFunctionExpression{
 			Start:      parameters.Opening,
 			Async:      async,
+			ReturnType: returnType,
 			Parameters: parameters.List,
 			Body:       p.parseArrowFunctionBody(),
 		}
@@ -125,13 +132,20 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 	}
 
 	if p.is(token.LEFT_PARENTHESIS) {
+		var returnType ast.FlowType
 		parameters := p.parseFunctionParameterList()
+
+		if p.is(token.COLON) {
+			returnType = p.parseFlowTypeAnnotation()
+		}
+
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
 			Start:          parameters.Opening,
 			Async:          true,
 			TypeParameters: typeParameters,
+			ReturnType:     returnType,
 			Parameters:     parameters.List,
 			Body:           p.parseArrowFunctionBody(),
 		}
