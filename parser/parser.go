@@ -67,6 +67,8 @@ type Parser struct {
 	arrowFunctionMode  bool // When trying to parse possible arrow fn parameters
 	patternBindingMode bool // When trying to parse possible binding pattern
 
+	forbidUnparenthesizedFunctionType bool
+
 	jsxTextParseFrom int
 
 	errors ErrorList
@@ -230,7 +232,7 @@ func (p *Parser) is(value token.Token) bool {
 	return p.token == value
 }
 
-func (p *Parser) isAny(values... token.Token) bool {
+func (p *Parser) isAny(values ...token.Token) bool {
 	for _, value := range values {
 		if value == p.token {
 			return true

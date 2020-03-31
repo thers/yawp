@@ -136,7 +136,9 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 		parameters := p.parseFunctionParameterList()
 
 		if p.is(token.COLON) {
+			p.forbidUnparenthesizedFunctionType = true
 			returnType = p.parseFlowTypeAnnotation()
+			p.forbidUnparenthesizedFunctionType = false
 		}
 
 		p.consumeExpected(token.ARROW)

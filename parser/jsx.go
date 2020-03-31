@@ -236,6 +236,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	partialState := p.getPartialState()
 	errorsCount := len(p.errors)
+	start := p.idx
 
 	// first try to parse as jsx
 	jsx := p.parseJSXElement()
@@ -254,14 +255,16 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 		parameters := p.parseFunctionParameterList()
 
 		if p.is(token.COLON) {
+			p.forbidUnparenthesizedFunctionType = true
 			returnType = p.parseFlowTypeAnnotation()
+			p.forbidUnparenthesizedFunctionType = false
 		}
 
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Start:          parameters.Opening,
-			Async:          true,
+			Start:          start,
+			Async:          false,
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,
 			Parameters:     parameters.List,

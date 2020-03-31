@@ -121,6 +121,12 @@ type (
 	FlowOptionalType struct {
 		FlowType FlowType
 	}
+
+	FlowFunctionType struct {
+		Start      file.Idx
+		Parameters []FlowType
+		ReturnType FlowType
+	}
 )
 
 type (
@@ -175,6 +181,7 @@ func (*FlowInexactObject) _flowType()     {}
 func (*FlowExactObject) _flowType()       {}
 func (*FlowTupleType) _flowType()         {}
 func (*FlowExistentialType) _flowType()   {}
+func (*FlowFunctionType) _flowType()      {}
 
 func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
 func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
@@ -212,3 +219,4 @@ func (f *FlowInexactObject) EndAt() file.Idx   { return f.End }
 func (f *FlowExactObject) EndAt() file.Idx     { return f.End }
 func (f *FlowTupleType) EndAt() file.Idx       { return f.End }
 func (f *FlowExistentialType) EndAt() file.Idx { return f.Start + 1 }
+func (f *FlowFunctionType) EndAt() file.Idx    { return f.ReturnType.EndAt() }

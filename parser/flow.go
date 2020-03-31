@@ -28,7 +28,7 @@ func (p *Parser) parseFlowTypeIdentifierIncludingKeywords() *ast.FlowIdentifier 
 	}
 }
 
-func (p *Parser) parseFlowType() ast.FlowType {
+func (p *Parser) parseSimpleFlowType() ast.FlowType {
 	start := p.idx
 
 	switch p.token {
@@ -105,6 +105,87 @@ func (p *Parser) parseFlowType() ast.FlowType {
 	}
 
 	return nil
+}
+
+func (p *Parser) parseFlowFunctionRemainder(start file.Idx, params []ast.FlowType) ast.FlowType {
+	p.consumeExpected(token.ARROW)
+
+	return &ast.FlowFunctionType{
+		Start:      start,
+		Parameters: params,
+		ReturnType: p.parseFlowType(),
+	}
+}
+
+func (p *Parser) parseFlowExpressionOrFunction() ast.FlowType {
+	start := p.consumeExpected(token.LEFT_PARENTHESIS)
+
+	var flowType ast.FlowType
+
+	if !p.is(token.RIGHT_PARENTHESIS) {
+		flowType = p.parseFlowType()
+	}
+
+	if p.is(token.COMMA) {
+		p.next()
+		// it's functions params
+
+		parameters := []ast.FlowType{
+			flowType,
+		}
+
+		for p.until(token.RIGHT_PARENTHESIS) {
+			parameters = append(parameters, p.parseFlowType())
+
+			p.consumePossible(token.COMMA)
+		}
+
+		p.consumeExpected(token.RIGHT_PARENTHESIS)
+
+		return p.parseFlowFunctionRemainder(start, parameters)
+	}
+
+	if p.is(token.RIGHT_PARENTHESIS) {
+		// exp or 0-1 params fn
+		p.next()
+
+		if p.is(token.ARROW) {
+			return p.parseFlowFunctionRemainder(start, []ast.FlowType{
+				flowType,
+			})
+		}
+
+		return flowType
+	}
+
+	return nil
+}
+
+func (p *Parser) parseFlowType() ast.FlowType {
+	start := p.idx
+
+	if p.is(token.LEFT_PARENTHESIS) {
+		// could be type expression enclosure or function args
+		return p.parseFlowExpressionOrFunction()
+	}
+
+	flowType := p.parseSimpleFlowType()
+
+	if !p.forbidUnparenthesizedFunctionType && p.is(token.ARROW) {
+		p.next()
+
+		returnType := p.parseFlowType()
+
+		return &ast.FlowFunctionType{
+			Start:      start,
+			Parameters: []ast.FlowType{
+				flowType,
+			},
+			ReturnType: returnType,
+		}
+	}
+
+	return flowType
 }
 
 func (p *Parser) parseFlowTypeAnnotation() ast.FlowType {
