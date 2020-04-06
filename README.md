@@ -54,8 +54,8 @@ postponed until...
 - [ ] call expression type parameters
 - [ ] new expression type parameters
 - [x] existential type
-- [ ] intersection type
-- [ ] union type
+- [x] intersection type
+- [x] union type
 - [ ] opaque type alias
 - [ ] declare type/interface/var/function/class
 - [ ] declare module

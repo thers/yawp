@@ -145,7 +145,9 @@ func (p *Parser) parseFlowExpressionOrFunction() ast.FlowType {
 	var flowType ast.FlowType
 
 	if !p.is(token.RIGHT_PARENTHESIS) {
+		closeScope := p.openTypeScope()
 		flowType = p.parseFlowType()
+		closeScope()
 	}
 
 	if p.is(token.COMMA) {
@@ -179,15 +181,84 @@ func (p *Parser) parseFlowExpressionOrFunction() ast.FlowType {
 	return nil
 }
 
+func (p *Parser) parseFlowUnionType(beginning ast.FlowType) *ast.FlowUnionType {
+	p.scope.allowUnionType = false
+
+	defer func() {
+		p.scope.allowUnionType = true
+	}()
+
+	// already parsed `type`
+	p.consumeExpected(token.OR)
+
+	union := &ast.FlowUnionType{
+		Types: make([]ast.FlowType, 0),
+	}
+
+	if beginning == nil {
+		union.Start = p.idx
+	} else {
+		// FIXME: add StartAt() to ast.FlowType
+		union.Start = -1
+		union.Types = append(union.Types, beginning)
+	}
+
+	// second element
+	union.Types = append(union.Types, p.parseFlowType())
+
+	for !p.is(token.EOF) && p.is(token.OR) {
+		p.next()
+
+		union.Types = append(union.Types, p.parseFlowType())
+	}
+
+	return union
+}
+
+func (p *Parser) parseFlowIntersectionType(beginning ast.FlowType) *ast.FlowIntersectionType {
+	p.scope.allowIntersectionType = false
+
+	defer func() {
+		p.scope.allowIntersectionType = true
+	}()
+
+	// already parsed `type`
+	p.consumeExpected(token.AND)
+
+	intersection := &ast.FlowIntersectionType{
+		Types: make([]ast.FlowType, 0),
+	}
+
+	if beginning == nil {
+		intersection.Start = p.idx
+	} else {
+		// FIXME: add StartAt() to ast.FlowType
+		intersection.Start = -1
+		intersection.Types = append(intersection.Types, beginning)
+	}
+
+	// second element
+	intersection.Types = append(intersection.Types, p.parseFlowType())
+
+	for !p.is(token.EOF) && p.is(token.AND) {
+		p.next()
+
+		intersection.Types = append(intersection.Types, p.parseFlowType())
+	}
+
+	return intersection
+}
+
 func (p *Parser) parseFlowType() ast.FlowType {
 	start := p.idx
+	var flowType ast.FlowType
 
 	if p.is(token.LEFT_PARENTHESIS) {
 		// could be type expression enclosure or function args
-		return p.parseFlowExpressionOrFunction()
+		flowType = p.parseFlowExpressionOrFunction()
+	} else {
+		flowType = p.parseSimpleFlowType()
 	}
-
-	flowType := p.parseSimpleFlowType()
 
 	if !p.forbidUnparenthesizedFunctionType && p.is(token.ARROW) {
 		p.next()
@@ -201,6 +272,14 @@ func (p *Parser) parseFlowType() ast.FlowType {
 			},
 			ReturnType: returnType,
 		}
+	}
+
+	if p.is(token.OR) && p.scope.allowUnionType {
+		return p.parseFlowUnionType(flowType)
+	}
+
+	if p.is(token.AND) && p.scope.allowIntersectionType {
+		return p.parseFlowIntersectionType(flowType)
 	}
 
 	return flowType

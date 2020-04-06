@@ -183,6 +183,8 @@ func (*FlowExactObject) _flowType()       {}
 func (*FlowTupleType) _flowType()         {}
 func (*FlowExistentialType) _flowType()   {}
 func (*FlowFunctionType) _flowType()      {}
+func (*FlowUnionType) _flowType()         {}
+func (*FlowIntersectionType) _flowType()  {}
 
 func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
 func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
@@ -214,10 +216,12 @@ func (f *FlowIdentifier) EndAt() file.Idx        { return f.Start + file.Idx(len
 func (f *FlowTypeOfType) EndAt() file.Idx {
 	return f.Identifier.Start + file.Idx(len(f.Identifier.Name))
 }
-func (f *FlowTypeAssertion) EndAt() file.Idx   { return f.FlowType.EndAt() }
-func (f *FlowOptionalType) EndAt() file.Idx    { return f.FlowType.EndAt() }
-func (f *FlowInexactObject) EndAt() file.Idx   { return f.End }
-func (f *FlowExactObject) EndAt() file.Idx     { return f.End }
-func (f *FlowTupleType) EndAt() file.Idx       { return f.End }
-func (f *FlowExistentialType) EndAt() file.Idx { return f.Start + 1 }
-func (f *FlowFunctionType) EndAt() file.Idx    { return f.ReturnType.EndAt() }
+func (f *FlowTypeAssertion) EndAt() file.Idx    { return f.FlowType.EndAt() }
+func (f *FlowOptionalType) EndAt() file.Idx     { return f.FlowType.EndAt() }
+func (f *FlowInexactObject) EndAt() file.Idx    { return f.End }
+func (f *FlowExactObject) EndAt() file.Idx      { return f.End }
+func (f *FlowTupleType) EndAt() file.Idx        { return f.End }
+func (f *FlowExistentialType) EndAt() file.Idx  { return f.Start + 1 }
+func (f *FlowFunctionType) EndAt() file.Idx     { return f.ReturnType.EndAt() }
+func (f *FlowUnionType) EndAt() file.Idx        { return f.Types[len(f.Types)-1].EndAt() }
+func (f *FlowIntersectionType) EndAt() file.Idx { return f.Types[len(f.Types)-1].EndAt() }

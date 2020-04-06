@@ -12,15 +12,21 @@ type Scope struct {
 	inSwitch            bool
 	inFunction          bool
 	inGeneratorFunction bool
+	inType              bool
 	declarationList     []ast.Declaration
+
+	allowUnionType        bool
+	allowIntersectionType bool
 
 	labels []string
 }
 
 func (p *Parser) openScope() {
 	p.scope = &Scope{
-		outer:   p.scope,
-		allowIn: true,
+		outer:                 p.scope,
+		allowIn:               true,
+		allowUnionType:        true,
+		allowIntersectionType: true,
 	}
 }
 
@@ -51,6 +57,16 @@ func (p *Parser) openFunctionScope(generator bool) func() {
 	return func() {
 		p.scope.inFunction = wasInFunction
 		p.scope.inGeneratorFunction = wasInGeneratorFunction
+		p.closeScope()
+	}
+}
+
+func (p *Parser) openTypeScope() func() {
+	p.openScope()
+	p.scope.inType = true
+
+	return func() {
+		p.scope.inType = false
 		p.closeScope()
 	}
 }
