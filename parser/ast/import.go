@@ -1,6 +1,9 @@
 package ast
 
-import "yawp/parser/file"
+import (
+	"yawp/parser/file"
+	"yawp/parser/importKind"
+)
 
 type (
 	ImportClause struct {
@@ -12,6 +15,7 @@ type (
 
 	ImportDeclaration struct {
 		Start              file.Idx
+		Kind               importKind.ImportKind
 		Imports            []*ImportClause
 		From               string
 		End                file.Idx

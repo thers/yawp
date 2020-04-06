@@ -60,7 +60,7 @@ postponed until...
 - [ ] declare type/interface/var/function/class
 - [ ] declare module
 - [x] exports
-- [ ] imports
+- [x] imports
 - [x] type of function
 - [x] typeof
 

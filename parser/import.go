@@ -2,6 +2,7 @@ package parser
 
 import (
 	"yawp/parser/ast"
+	"yawp/parser/importKind"
 	"yawp/parser/token"
 )
 
@@ -87,6 +88,16 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 		End:     0,
 	}
 
+	if p.is(token.TYPE_TYPE) {
+		stmt.Kind = importKind.TYPE
+		p.next()
+	} else if p.is(token.TYPEOF) {
+		stmt.Kind = importKind.TYPEOF
+		p.next()
+	} else {
+		stmt.Kind = importKind.VALUE
+	}
+
 	switch p.token {
 	case token.MULTIPLY:
 		// import * as identifier
@@ -137,7 +148,7 @@ func (p *Parser) parseImportCall() ast.Expression {
 	call := &ast.ImportCall{
 		Start:      start,
 		Expression: p.parseAssignmentExpression(),
-		End: p.consumeExpected(token.RIGHT_PARENTHESIS),
+		End:        p.consumeExpected(token.RIGHT_PARENTHESIS),
 	}
 
 	return call
