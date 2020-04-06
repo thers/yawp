@@ -75,7 +75,15 @@ func (p *Parser) parseArgumentList() (argumentList []ast.Expression, idx0, idx1 
 	idx0 = p.consumeExpected(token.LEFT_PARENTHESIS)
 	if !p.is(token.RIGHT_PARENTHESIS) {
 		for {
-			argumentList = append(argumentList, p.parseAssignmentExpression())
+			if p.is(token.DOTDOTDOT) {
+				argumentList = append(argumentList, &ast.SpreadExpression{
+					Start: p.consumeExpected(token.DOTDOTDOT),
+					Value: p.parseAssignmentExpression(),
+				})
+			} else {
+				argumentList = append(argumentList, p.parseAssignmentExpression())
+			}
+
 			if !p.is(token.COMMA) {
 				break
 			}

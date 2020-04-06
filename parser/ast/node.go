@@ -91,7 +91,7 @@ type (
 		Name  string
 	}
 
-	Spread struct {
+	SpreadExpression struct {
 		Start file.Idx
 		Value Expression
 	}
@@ -195,6 +195,7 @@ func (*UnaryExpression) _expressionNode()         {}
 func (*VariableExpression) _expressionNode()      {}
 func (*ArrowFunctionExpression) _expressionNode() {}
 func (*AwaitExpression) _expressionNode()         {}
+func (*SpreadExpression) _expressionNode()        {}
 
 // ========= //
 // Statement //
@@ -400,6 +401,7 @@ func (self *UnaryExpression) StartAt() file.Idx         { return self.Start }
 func (self *VariableExpression) StartAt() file.Idx      { return self.Start }
 func (self *ArrowFunctionExpression) StartAt() file.Idx { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
+func (self *SpreadExpression) StartAt() file.Idx        { return self.Start }
 
 func (self *BadStatement) StartAt() file.Idx        { return self.From }
 func (self *BlockStatement) StartAt() file.Idx      { return self.LeftBrace }
@@ -454,6 +456,7 @@ func (self *VariableExpression) EndAt() file.Idx {
 }
 func (self *ArrowFunctionExpression) EndAt() file.Idx { return self.Body.EndAt() }
 func (self *AwaitExpression) EndAt() file.Idx         { return self.Expression.EndAt() }
+func (self *SpreadExpression) EndAt() file.Idx        { return self.Value.EndAt() }
 
 func (self *BadStatement) EndAt() file.Idx        { return self.To }
 func (self *BlockStatement) EndAt() file.Idx      { return self.RightBrace + 1 }

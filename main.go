@@ -2,27 +2,29 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"yawp/parser"
 )
 
 func main() {
 	filename := "" // A filename is optional
-	src := `
-    // Sample xyzzy example
-    (function(){
-        if (3.14159 > 0) {
-            console.log(..."Hello, World.");
-            return;
-        }
-
-        var xyzzy = NaN;
-        console.log("Nothing happens.");
-        return xyzzy;
-    })();
-`
+//	src := `
+//    // Sample xyzzy example
+//    (function(){
+//        if (3.14159 > 0) {
+//            console.log(..."Hello, World.");
+//            return;
+//        }
+//
+//        var xyzzy = NaN;
+//        console.log("Nothing happens.");
+//        return xyzzy;
+//    })();
+//`
+	src, _ := ioutil.ReadFile("test/short.js")
 
 	// Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
-	program, err := parser.ParseFile(nil, filename, src, 0)
+	program, err := parser.ParseFile(nil, filename, src)
 	if err != nil {
 		panic(err)
 	}
