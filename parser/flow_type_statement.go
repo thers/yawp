@@ -6,6 +6,12 @@ import (
 )
 
 func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
+	opaque := p.is(token.TYPE_OPAQUE)
+
+	if opaque {
+		p.next()
+	}
+
 	var typeParameters []*ast.FlowTypeParameter
 
 	start := p.consumeExpected(token.TYPE_TYPE)
@@ -24,6 +30,7 @@ func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
 	return &ast.FlowTypeStatement{
 		Start:          start,
 		Name:           name,
+		Opaque:         opaque,
 		Type:           value,
 		TypeParameters: typeParameters,
 	}

@@ -56,7 +56,7 @@ postponed until...
 - [x] existential type
 - [x] intersection type
 - [x] union type
-- [ ] opaque type alias
+- [x] opaque type alias
 - [ ] declare type/interface/var/function/class
 - [ ] declare module
 - [x] type of function

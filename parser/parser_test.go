@@ -485,10 +485,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			class Test<T> extends T<T> {
-    			test<T>() {}
-    			test = <T>() => t;
-			}
+			opaque type Test = string
 		`)
 		if err != nil {
 			panic(err)

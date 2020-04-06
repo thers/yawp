@@ -9,6 +9,7 @@ type (
 	FlowTypeStatement struct {
 		Start          file.Idx
 		Name           *FlowIdentifier
+		Opaque         bool
 		Type           FlowType
 		TypeParameters []*FlowTypeParameter
 	}
