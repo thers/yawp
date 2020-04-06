@@ -201,6 +201,9 @@ func (*FlowTypeAssertion) _expressionNode() {}
 func (*FlowTypeStatement) _statementNode()      {}
 func (*FlowInterfaceStatement) _statementNode() {}
 
+func (*FlowTypeStatement) _exportClauseNode()      {}
+func (*FlowInterfaceStatement) _exportClauseNode() {}
+
 func (f *FlowTypeAssertion) StartAt() file.Idx      { return f.Left.StartAt() }
 func (f *FlowTypeStatement) StartAt() file.Idx      { return f.Start }
 func (f *FlowInterfaceStatement) StartAt() file.Idx { return f.Start }

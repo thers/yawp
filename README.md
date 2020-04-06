@@ -59,6 +59,8 @@ postponed until...
 - [x] opaque type alias
 - [ ] declare type/interface/var/function/class
 - [ ] declare module
+- [x] exports
+- [ ] imports
 - [x] type of function
 - [x] typeof
 

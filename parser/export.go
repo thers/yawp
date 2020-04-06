@@ -128,6 +128,10 @@ func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
 		declaration.Clause = p.parseExportNamedMaybeFromClause()
 	case token.DEFAULT:
 		declaration.Clause = p.parseExportDefaultClause()
+	case token.TYPE_TYPE:
+		declaration.Clause = p.parseFlowTypeStatement()
+	case token.INTERFACE:
+		declaration.Clause = p.parseFlowInterfaceStatement()
 	}
 
 	return declaration
