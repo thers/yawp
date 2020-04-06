@@ -30,11 +30,17 @@ func (p *Parser) parseNewExpression() ast.Expression {
 		Start:  start,
 		Callee: callee,
 	}
+
+	if p.isFlowTypeArgumentsStart() {
+		node.TypeArguments = p.parseFlowTypeArguments()
+	}
+
 	if p.is(token.LEFT_PARENTHESIS) {
 		argumentList, idx0, idx1 := p.parseArgumentList()
 		node.ArgumentList = argumentList
 		node.LeftParenthesis = idx0
 		node.RightParenthesis = idx1
 	}
+
 	return node
 }

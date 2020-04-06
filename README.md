@@ -51,8 +51,8 @@ postponed until...
 - [x] var/let/const type annotation
 - [x] function type annotations
 - [ ] class type annotations
-- [ ] call expression type parameters
-- [ ] new expression type parameters
+- [x] call expression type parameters
+- [x] new expression type parameters
 - [x] existential type
 - [x] intersection type
 - [x] union type

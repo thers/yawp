@@ -65,6 +65,7 @@ type (
 
 	CallExpression struct {
 		Callee           Expression
+		TypeArguments    []FlowType
 		LeftParenthesis  file.Idx
 		ArgumentList     []Expression
 		RightParenthesis file.Idx
@@ -98,6 +99,7 @@ type (
 	NewExpression struct {
 		Start            file.Idx
 		Callee           Expression
+		TypeArguments    []FlowType
 		LeftParenthesis  file.Idx
 		ArgumentList     []Expression
 		RightParenthesis file.Idx

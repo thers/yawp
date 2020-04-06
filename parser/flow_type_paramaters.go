@@ -59,3 +59,27 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 
 	return parameters
 }
+
+func (p *Parser) isFlowTypeArgumentsStart() bool {
+	return p.isAny(token.JSX_FRAGMENT_START, token.LESS)
+}
+
+func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
+	// nice
+	if p.is(token.JSX_FRAGMENT_START) {
+		p.next()
+		return nil
+	}
+
+	p.consumeExpected(token.LESS)
+	args := make([]ast.FlowType, 0)
+
+
+	for p.until(token.GREATER) {
+		args = append(args, p.parseFlowType())
+		p.consumePossible(token.COMMA)
+	}
+
+	p.consumeExpected(token.GREATER)
+	return args
+}

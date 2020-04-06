@@ -485,10 +485,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-			type T =
-			  | (() => void | any)
-			  & (() => any) & false
-			  | true
+			const r = new ({}: any)<>;
 		`)
 		if err != nil {
 			panic(err)

@@ -86,10 +86,11 @@ func (p *Parser) parseArgumentList() (argumentList []ast.Expression, idx0, idx1 
 	return
 }
 
-func (p *Parser) parseCallExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseCallExpression(left ast.Expression, typeArguments []ast.FlowType) ast.Expression {
 	argumentList, idx0, idx1 := p.parseArgumentList()
 	return &ast.CallExpression{
 		Callee:           left,
+		TypeArguments:    typeArguments,
 		LeftParenthesis:  idx0,
 		ArgumentList:     argumentList,
 		RightParenthesis: idx1,
@@ -118,8 +119,6 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 		p.nextStatement()
 		return &ast.BadExpression{From: period, To: p.idx}
 	}
-
-	p.next()
 
 	return &ast.DotExpression{
 		Left:       left,

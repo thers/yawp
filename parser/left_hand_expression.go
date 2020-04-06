@@ -6,7 +6,6 @@ import (
 )
 
 func (p *Parser) parseLeftHandSideExpression() ast.Expression {
-
 	var left ast.Expression
 	if p.is(token.NEW) {
 		left = p.parseNewExpression()
@@ -32,7 +31,6 @@ func (p *Parser) parseLeftHandSideExpression() ast.Expression {
 }
 
 func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
-
 	allowIn := p.scope.allowIn
 	p.scope.allowIn = true
 	defer func() {
@@ -53,8 +51,14 @@ func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
 			left = p.parseOptionalExpression(left)
 		} else if p.is(token.LEFT_BRACKET) {
 			left = p.parseBracketMember(left)
+		} else if p.isFlowTypeArgumentsStart() {
+			typeArguments := p.parseFlowTypeArguments()
+			if !p.is(token.LEFT_PARENTHESIS) {
+				p.unexpectedToken()
+			}
+			left = p.parseCallExpression(left, typeArguments)
 		} else if p.is(token.LEFT_PARENTHESIS) {
-			left = p.parseCallExpression(left)
+			left = p.parseCallExpression(left, nil)
 		} else if p.is(token.TEMPLATE_QUOTE) {
 			left = p.parseTaggedTemplateExpression(left)
 		} else {
