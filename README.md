@@ -50,7 +50,7 @@ postponed until...
 - [x] type assertion
 - [x] var/let/const type annotation
 - [x] function type annotations
-- [ ] class type annotations
+- [x] class type annotations
 - [x] call expression type parameters
 - [x] new expression type parameters
 - [x] existential type

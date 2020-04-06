@@ -60,6 +60,10 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 	return parameters
 }
 
+func (p *Parser) isFlowTypeParametersStart() bool {
+	return p.is(token.LESS)
+}
+
 func (p *Parser) isFlowTypeArgumentsStart() bool {
 	return p.isAny(token.JSX_FRAGMENT_START, token.LESS)
 }

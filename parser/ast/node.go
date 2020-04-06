@@ -168,19 +168,6 @@ type (
 		Async          bool
 	}
 
-	ClassExpression struct {
-		Start   file.Idx
-		Name    *Identifier
-		Extends *Identifier
-		Body    Statement
-	}
-
-	ClassSuperExpression struct {
-		Start     file.Idx
-		End       file.Idx
-		Arguments []Expression
-	}
-
 	AwaitExpression struct {
 		Start      file.Idx
 		Expression Expression
@@ -207,8 +194,6 @@ func (*ThisExpression) _expressionNode()          {}
 func (*UnaryExpression) _expressionNode()         {}
 func (*VariableExpression) _expressionNode()      {}
 func (*ArrowFunctionExpression) _expressionNode() {}
-func (*ClassExpression) _expressionNode()         {}
-func (*ClassSuperExpression) _expressionNode()    {}
 func (*AwaitExpression) _expressionNode()         {}
 
 // ========= //
@@ -414,8 +399,6 @@ func (self *ThisExpression) StartAt() file.Idx          { return self.Start }
 func (self *UnaryExpression) StartAt() file.Idx         { return self.Start }
 func (self *VariableExpression) StartAt() file.Idx      { return self.Start }
 func (self *ArrowFunctionExpression) StartAt() file.Idx { return self.Start }
-func (self *ClassExpression) StartAt() file.Idx         { return self.Start }
-func (self *ClassSuperExpression) StartAt() file.Idx    { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
 
 func (self *BadStatement) StartAt() file.Idx        { return self.From }
@@ -470,8 +453,6 @@ func (self *VariableExpression) EndAt() file.Idx {
 	return self.Initializer.EndAt()
 }
 func (self *ArrowFunctionExpression) EndAt() file.Idx { return self.Body.EndAt() }
-func (self *ClassExpression) EndAt() file.Idx         { return self.Body.EndAt() }
-func (self *ClassSuperExpression) EndAt() file.Idx    { return self.End }
 func (self *AwaitExpression) EndAt() file.Idx         { return self.Expression.EndAt() }
 
 func (self *BadStatement) EndAt() file.Idx        { return self.To }

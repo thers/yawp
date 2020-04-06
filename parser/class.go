@@ -79,12 +79,11 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 			kind := accessor.Name
 
 			if field := p.parseClassFieldName(); field != nil {
-				parameterList := p.parseFunctionParameterList()
-
 				node := &ast.FunctionLiteral{
 					Start:      start,
-					Parameters: parameterList,
+					Parameters: p.parseFunctionParameterList(),
 				}
+
 				p.parseFunctionBlock(node)
 
 				return &ast.ClassAccessorStatement{
@@ -116,7 +115,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		p.semicolon()
 
 		return stmt
-	case token.LEFT_PARENTHESIS:
+	case token.LESS, token.LEFT_PARENTHESIS:
 		// Method declaration
 		method := &ast.ClassMethodStatement{
 			Method:     start,
@@ -125,9 +124,13 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 			Private:    private,
 			Async:      async,
 			Generator:  generator,
-			Parameters: p.parseFunctionParameterList(),
 		}
 
+		if p.is(token.LESS) {
+			method.TypeParameters = p.parseFlowTypeParameters()
+		}
+
+		method.Parameters = p.parseFunctionParameterList()
 		body, _ := p.parseClassMethodBody(generator)
 		source := p.slice(start, body.EndAt())
 
@@ -218,16 +221,24 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 		exp.Name = p.parseIdentifier()
 	}
 
+	if p.isFlowTypeParametersStart() {
+		exp.TypeParameters = p.parseFlowTypeParameters()
+	}
+
 	if p.is(token.EXTENDS) {
 		p.next()
 		p.shouldBe(token.IDENTIFIER)
 
-		exp.Extends = p.parseIdentifier()
+		exp.SuperClass = p.parseIdentifier()
+
+		if p.isFlowTypeArgumentsStart() {
+			exp.SuperTypeArguments = p.parseFlowTypeArguments()
+		}
 	}
 
 	p.scope.declare(&ast.ClassDeclaration{
 		Name:    exp.Name,
-		Extends: exp.Extends,
+		Extends: exp.SuperClass,
 	})
 
 	exp.Body = p.parseClassBody()
