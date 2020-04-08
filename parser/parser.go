@@ -67,6 +67,8 @@ type Parser struct {
 	arrowFunctionMode  bool // When trying to parse possible arrow fn parameters
 	patternBindingMode bool // When trying to parse possible binding pattern
 
+	genericTypeParametersMode bool
+
 	forbidUnparenthesizedFunctionType bool
 
 	jsxTextParseFrom int
@@ -230,6 +232,16 @@ func (p *Parser) idxOf(offset int) file.Idx {
 
 func (p *Parser) is(value token.Token) bool {
 	return p.token == value
+}
+
+func (p *Parser) allowNext(value token.Token) {
+	if p.isKeyword {
+		tkn, _ := token.IsKeyword(p.literal)
+
+		if value == tkn {
+			p.token = value
+		}
+	}
 }
 
 func (p *Parser) isAny(values ...token.Token) bool {

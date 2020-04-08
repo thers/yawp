@@ -198,6 +198,12 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 		Children: make([]ast.JSXChild, 0),
 	}
 
+	// if we're looking for generic arrow fn
+	if p.is(token.COMMA) && p.genericTypeParametersMode {
+		p.unexpectedToken()
+		return nil
+	}
+
 	elm.Attributes = p.parseJSXElementAttributes()
 
 	// self closing element />
@@ -239,7 +245,9 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	start := p.idx
 
 	// first try to parse as jsx
+	p.genericTypeParametersMode = true
 	jsx := p.parseJSXElement()
+	p.genericTypeParametersMode = false
 
 	if len(p.errors) == errorsCount {
 		return jsx

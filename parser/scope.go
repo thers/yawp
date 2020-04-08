@@ -5,8 +5,11 @@ import (
 )
 
 type Scope struct {
-	outer               *Scope
-	allowIn             bool
+	outer *Scope
+
+	allowIn            bool
+	allowTypeAssertion bool
+
 	inClass             bool
 	inIteration         bool
 	inSwitch            bool
@@ -25,6 +28,7 @@ func (p *Parser) openScope() {
 	p.scope = &Scope{
 		outer:                 p.scope,
 		allowIn:               true,
+		allowTypeAssertion:    false,
 		allowUnionType:        true,
 		allowIntersectionType: true,
 	}

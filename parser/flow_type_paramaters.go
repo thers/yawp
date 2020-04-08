@@ -6,6 +6,9 @@ import (
 )
 
 func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
+	closeTypeScope := p.openTypeScope()
+	defer closeTypeScope()
+
 	parameters := make([]*ast.FlowTypeParameter, 0)
 	defaultValueRequired := false
 
@@ -69,6 +72,9 @@ func (p *Parser) isFlowTypeArgumentsStart() bool {
 }
 
 func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
+	closeTypeScope := p.openTypeScope()
+	defer closeTypeScope()
+
 	// nice
 	if p.is(token.JSX_FRAGMENT_START) {
 		p.next()

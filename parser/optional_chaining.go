@@ -42,8 +42,6 @@ func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
 		}
 	}
 
-	p.next()
-
 	return &ast.OptionalObjectMemberAccessExpression{
 		Left:       left,
 		Identifier: identifier,

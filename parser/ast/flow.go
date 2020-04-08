@@ -53,8 +53,9 @@ type (
 	}
 
 	FlowIdentifier struct {
-		Start file.Idx
-		Name  string
+		Start         file.Idx
+		Name          string
+		Qualification *FlowIdentifier
 	}
 
 	FlowObjectIndexer struct {
@@ -125,9 +126,19 @@ type (
 
 	FlowFunctionType struct {
 		Start          file.Idx
-		Parameters     []FlowType
+		Parameters     []*FlowFunctionParameter
 		TypeParameters []*FlowTypeParameter
 		ReturnType     FlowType
+	}
+
+	FlowFunctionParameter struct {
+		Identifier *Identifier
+		Type       FlowType
+	}
+
+	FlowGenericType struct {
+		Name          *FlowIdentifier
+		TypeArguments []FlowType
 	}
 )
 
@@ -169,6 +180,11 @@ type (
 		End      file.Idx
 		Elements []FlowType
 	}
+
+	FlowArrayType struct {
+		End         file.Idx
+		ElementType FlowType
+	}
 )
 
 func (*FlowPrimitiveType) _flowType()     {}
@@ -186,6 +202,8 @@ func (*FlowExistentialType) _flowType()   {}
 func (*FlowFunctionType) _flowType()      {}
 func (*FlowUnionType) _flowType()         {}
 func (*FlowIntersectionType) _flowType()  {}
+func (*FlowGenericType) _flowType()       {}
+func (*FlowArrayType) _flowType()         {}
 
 func (*FlowNamedObjectProperty) _flowObjectProperty()      {}
 func (*FlowIndexerObjectProperty) _flowObjectProperty()    {}
@@ -225,7 +243,18 @@ func (f *FlowOptionalType) EndAt() file.Idx     { return f.FlowType.EndAt() }
 func (f *FlowInexactObject) EndAt() file.Idx    { return f.End }
 func (f *FlowExactObject) EndAt() file.Idx      { return f.End }
 func (f *FlowTupleType) EndAt() file.Idx        { return f.End }
+func (f *FlowArrayType) EndAt() file.Idx        { return f.End }
 func (f *FlowExistentialType) EndAt() file.Idx  { return f.Start + 1 }
 func (f *FlowFunctionType) EndAt() file.Idx     { return f.ReturnType.EndAt() }
 func (f *FlowUnionType) EndAt() file.Idx        { return f.Types[len(f.Types)-1].EndAt() }
 func (f *FlowIntersectionType) EndAt() file.Idx { return f.Types[len(f.Types)-1].EndAt() }
+func (f *FlowGenericType) EndAt() file.Idx {
+	return f.TypeArguments[len(f.TypeArguments)-1].EndAt() + 1
+}
+
+func (fi *FlowIdentifier) Identifier() *Identifier {
+	return &Identifier{
+		Start: fi.Start,
+		Name:  fi.Name,
+	}
+}

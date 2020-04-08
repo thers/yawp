@@ -6,25 +6,8 @@ import (
 )
 
 func (p *Parser) parseExportVarClause() *ast.ExportVarClause {
-	var kind string
-
-	switch p.token {
-	case token.CONST:
-		kind = "const"
-	case token.LET:
-		kind = "let"
-	case token.VAR:
-		kind = "var"
-	}
-
-	p.next()
-	identifier := p.parseIdentifier()
-	p.consumeExpected(token.ASSIGN)
-
 	return &ast.ExportVarClause{
-		Identifier:  identifier,
-		Kind:        kind,
-		Initializer: p.parseAssignmentExpression(),
+		Declaration: p.parseVariableStatement(),
 	}
 }
 
@@ -59,6 +42,7 @@ func (p *Parser) parseExportNamedClause() *ast.ExportNamedClause {
 	}
 
 	p.consumeExpected(token.LEFT_BRACE)
+	p.allowNext(token.AS)
 
 	for !p.is(token.RIGHT_BRACE) {
 		localIdentifier := p.parseIdentifier()
@@ -115,6 +99,8 @@ func (p *Parser) parseExportDefaultClause() *ast.ExportDefaultClause {
 
 func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
 	start := p.consumeExpected(token.EXPORT)
+	p.allowNext(token.TYPE_TYPE)
+
 	declaration := &ast.ExportDeclaration{
 		Start: start,
 	}

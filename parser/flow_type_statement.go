@@ -14,7 +14,9 @@ func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
 
 	var typeParameters []*ast.FlowTypeParameter
 
+	p.allowNext(token.TYPE_TYPE)
 	start := p.consumeExpected(token.TYPE_TYPE)
+
 	name := p.parseFlowTypeIdentifier()
 
 	if p.is(token.LESS) {

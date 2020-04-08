@@ -127,9 +127,6 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 				}
 
 				if p.is(token.COLON) {
-					prop.KeyName = identifier.Name
-					prop.KeyType = p.parseFlowTypeAnnotation()
-				} else if p.is(token.RIGHT_BRACKET) {
 					if isKeyword {
 						// keywords aren't legal identifiers
 						p.error(identifier.Start, "Cannot use keyword as type identifier")
@@ -137,6 +134,9 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 						goto Next
 					}
 
+					prop.KeyName = identifier.Name
+					prop.KeyType = p.parseFlowTypeAnnotation()
+				} else if p.is(token.RIGHT_BRACKET) {
 					prop.KeyType = &ast.FlowIdentifier{
 						Start: identifier.Start,
 						Name:  identifier.Name,
@@ -163,7 +163,11 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 
 	Next:
 		if !p.is(terminator) {
-			p.consumeExpected(token.COMMA)
+			if p.is(token.SEMICOLON) {
+				p.next()
+			} else {
+				p.consumeExpected(token.COMMA)
+			}
 		}
 	}
 

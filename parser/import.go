@@ -31,6 +31,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
 		localIdentifier := p.parseIdentifier()
 		moduleIdentifier := localIdentifier
 
+		p.allowNext(token.AS)
 		if p.is(token.AS) {
 			p.consumeExpected(token.AS)
 			localIdentifier = p.parseIdentifier()
@@ -60,6 +61,7 @@ func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportDeclaration) {
 	}
 
 	p.consumeExpected(token.MULTIPLY)
+	p.allowNext(token.AS)
 	p.consumeExpected(token.AS)
 
 	exp.LocalIdentifier = p.parseIdentifier()
@@ -88,6 +90,7 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 		End:     0,
 	}
 
+	p.allowNext(token.TYPE_TYPE)
 	if p.is(token.TYPE_TYPE) {
 		stmt.Kind = importKind.TYPE
 		p.next()

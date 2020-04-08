@@ -37,9 +37,7 @@ type (
 
 	// export var/const/let aa = ''
 	ExportVarClause struct {
-		Identifier  *Identifier
-		Kind        string
-		Initializer Expression
+		Declaration *VariableStatement
 	}
 
 	// export function fn() {}

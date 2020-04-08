@@ -97,33 +97,44 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 	}
 
 	switch p.token {
-	case token.ASSIGN:
+	case token.ASSIGN, token.COLON:
 		// Field can not be async or generator
 		if async || generator {
 			p.unexpectedToken()
 			return nil
 		}
 
-		p.next()
+		defer p.semicolon()
+
 		stmt := &ast.ClassFieldStatement{
 			Start:       start,
 			Name:        identifier,
 			Static:      static,
 			Private:     private,
-			Initializer: p.parseAssignmentExpression(),
 		}
-		p.semicolon()
+
+		if p.is(token.COLON) {
+			stmt.Type = p.parseFlowTypeAnnotation()
+
+			if !p.is(token.ASSIGN) {
+				return stmt
+			}
+		}
+
+		p.consumeExpected(token.ASSIGN)
+
+		stmt.Initializer = p.parseAssignmentExpression()
 
 		return stmt
 	case token.LESS, token.LEFT_PARENTHESIS:
 		// Method declaration
 		method := &ast.ClassMethodStatement{
-			Method:     start,
-			Name:       identifier,
-			Static:     static,
-			Private:    private,
-			Async:      async,
-			Generator:  generator,
+			Method:    start,
+			Name:      identifier,
+			Static:    static,
+			Private:   private,
+			Async:     async,
+			Generator: generator,
 		}
 
 		if p.is(token.LESS) {
@@ -131,6 +142,11 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		}
 
 		method.Parameters = p.parseFunctionParameterList()
+
+		if p.is(token.COLON) {
+			method.ReturnType = p.parseFlowTypeAnnotation()
+		}
+
 		body, _ := p.parseClassMethodBody(generator)
 		source := p.slice(start, body.EndAt())
 
@@ -227,9 +243,8 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 
 	if p.is(token.EXTENDS) {
 		p.next()
-		p.shouldBe(token.IDENTIFIER)
 
-		exp.SuperClass = p.parseIdentifier()
+		exp.SuperClass = p.parseMemberExpression()
 
 		if p.isFlowTypeArgumentsStart() {
 			exp.SuperTypeArguments = p.parseFlowTypeArguments()

@@ -354,7 +354,7 @@ type (
 
 	ClassDeclaration struct {
 		Name    *Identifier
-		Extends *Identifier
+		Extends MemberExpression
 	}
 )
 

@@ -31,6 +31,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		return &ast.BadStatement{From: p.idx, To: p.idx + 1}
 	}
 
+	p.allowNext(token.TYPE_TYPE)
+
 	switch p.token {
 	case token.SEMICOLON:
 		return p.parseEmptyStatement()
@@ -296,18 +298,27 @@ func (p *Parser) parseSourceElement() ast.Statement {
 }
 
 func (p *Parser) parseSourceElements() []ast.Statement {
-	body := []ast.Statement(nil)
+	body := make([]ast.Statement, 0)
 
+	// trying to find 'use strict'
 	for {
 		if !p.is(token.STRING) {
 			break
 		}
 
-		body = append(body, p.parseSourceElement())
+		stmt := p.parseStatement()
+
+		if _, ok := stmt.(*ast.EmptyStatement); !ok {
+			body = append(body, stmt)
+		}
 	}
 
 	for !p.is(token.EOF) {
-		body = append(body, p.parseSourceElement())
+		stmt := p.parseStatement()
+
+		if _, ok := stmt.(*ast.EmptyStatement); !ok {
+			body = append(body, stmt)
+		}
 	}
 
 	return body

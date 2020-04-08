@@ -20,7 +20,6 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 
 	p.next()
 	list := p.parseVariableDeclarationList(idx, kind)
-	p.semicolon()
 
 	return &ast.VariableStatement{
 		Kind: kind,
@@ -113,7 +112,3 @@ func (p *Parser) parseVariableDeclarationList(var_ file.Idx, kind token.Token) [
 
 	return list
 }
-
-//func (p *Parser) parseArrayAssignmentPatternOrArrayLiteral() ast.Expression {
-//
-//}

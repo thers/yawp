@@ -71,26 +71,23 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	}
 }
 
-func (p *Parser) parseArgumentList() (argumentList []ast.Expression, idx0, idx1 file.Idx) {
-	idx0 = p.consumeExpected(token.LEFT_PARENTHESIS)
-	if !p.is(token.RIGHT_PARENTHESIS) {
-		for {
-			if p.is(token.DOTDOTDOT) {
-				argumentList = append(argumentList, &ast.SpreadExpression{
-					Start: p.consumeExpected(token.DOTDOTDOT),
-					Value: p.parseAssignmentExpression(),
-				})
-			} else {
-				argumentList = append(argumentList, p.parseAssignmentExpression())
-			}
+func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end file.Idx) {
+	start = p.consumeExpected(token.LEFT_PARENTHESIS)
 
-			if !p.is(token.COMMA) {
-				break
-			}
-			p.next()
+	for p.until(token.RIGHT_PARENTHESIS) {
+		if p.is(token.DOTDOTDOT) {
+			argumentList = append(argumentList, &ast.SpreadExpression{
+				Start: p.consumeExpected(token.DOTDOTDOT),
+				Value: p.parseAssignmentExpression(),
+			})
+		} else {
+			argumentList = append(argumentList, p.parseAssignmentExpression())
 		}
+
+		p.consumePossible(token.COMMA)
 	}
-	idx1 = p.consumeExpected(token.RIGHT_PARENTHESIS)
+
+	end = p.consumeExpected(token.RIGHT_PARENTHESIS)
 	return
 }
 
@@ -109,7 +106,7 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	period := p.consumeExpected(token.PERIOD)
 
 	// this.#bla
-	if p.is(token.HASH) {
+	if p.is(token.HASH) && p.scope.inClass {
 		if leftThisExp, ok := left.(*ast.ThisExpression); ok {
 			p.consumeExpected(token.HASH)
 
@@ -394,7 +391,7 @@ func (p *Parser) parseExpression() ast.Expression {
 		return &ast.SequenceExpression{
 			Sequence: sequence,
 		}
-	} else if p.is(token.COLON) {
+	} else if p.is(token.COLON) && p.scope.allowTypeAssertion {
 		typeAssertion := p.parseFlowTypeAnnotation()
 
 		return &ast.FlowTypeAssertion{

@@ -24,7 +24,6 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 
 		p.next()
 		arguments, _, end := p.parseArgumentList()
-		p.semicolon()
 
 		return &ast.ClassSuperExpression{
 			Start:     start,

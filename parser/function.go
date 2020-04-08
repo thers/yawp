@@ -145,13 +145,6 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 			p.unexpectedToken()
 			p.next()
 		}
-
-		// Parsing default value
-		if p.is(token.ASSIGN) && parameter != nil {
-			p.next()
-
-			parameter.SetDefaultValue(p.parseAssignmentExpression())
-		}
 	}
 
 	if parameter == nil {
@@ -159,8 +152,22 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 		return nil
 	}
 
+	// optional
+	if p.is(token.QUESTION_MARK) {
+		p.next()
+		parameter.SetOptional(true)
+	}
+
+	// type annotation
 	if p.is(token.COLON) {
 		parameter.SetTypeAnnotation(p.parseFlowTypeAnnotation())
+	}
+
+	// Parsing default value
+	if p.is(token.ASSIGN) && parameter != nil {
+		p.next()
+
+		parameter.SetDefaultValue(p.parseAssignmentExpression())
 	}
 
 	if !p.is(ending) {

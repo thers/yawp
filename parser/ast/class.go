@@ -11,7 +11,7 @@ type (
 		Start              file.Idx
 		Name               *Identifier
 		TypeParameters     []*FlowTypeParameter
-		SuperClass         *Identifier
+		SuperClass         MemberExpression
 		SuperTypeArguments []FlowType
 		Body               Statement
 	}
@@ -31,6 +31,7 @@ type (
 		Name        ClassFieldName
 		Static      bool
 		Private     bool
+		Type        FlowType
 		Initializer Expression
 	}
 
@@ -49,6 +50,7 @@ type (
 		Async          bool
 		Generator      bool
 		TypeParameters []*FlowTypeParameter
+		ReturnType     FlowType
 		Parameters     *FunctionParameters
 		Body           Statement
 		Source         string

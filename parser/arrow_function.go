@@ -73,9 +73,14 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	parameters, success := p.maybeParseArrowFunctionParameterList()
 	var returnType ast.FlowType
 
+	success = success && len(partialState.errors) == len(p.errors)
+
 	// may be also arrow fn return type or type assertion
 	if success && p.is(token.COLON) {
+		wasForbidden := p.forbidUnparenthesizedFunctionType
+		p.forbidUnparenthesizedFunctionType = true
 		returnType = p.parseFlowTypeAnnotation()
+		p.forbidUnparenthesizedFunctionType = wasForbidden
 	}
 
 	// If no errors occurred while parsing parameters
@@ -96,7 +101,10 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	p.restorePartialState(partialState)
 
 	p.consumeExpected(token.LEFT_PARENTHESIS)
+	wasAllowTypeAssertion := p.scope.allowTypeAssertion
+	p.scope.allowTypeAssertion = true
 	expression := p.parseExpression()
+	p.scope.allowTypeAssertion = wasAllowTypeAssertion
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 	return expression
 }

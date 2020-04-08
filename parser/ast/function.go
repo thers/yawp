@@ -21,6 +21,7 @@ type (
 		GetDefaultValue() Expression
 		SetDefaultValue(Expression)
 		SetTypeAnnotation(FlowType)
+		SetOptional(bool)
 		_parameterNode()
 	}
 
@@ -28,11 +29,13 @@ type (
 		Name         *Identifier
 		DefaultValue Expression
 		FlowType     FlowType
+		Optional     bool
 	}
 
 	RestParameter struct {
 		Binder   PatternBinder
 		FlowType FlowType
+		Optional bool
 	}
 
 	ObjectPatternIdentifierParameter struct {
@@ -44,12 +47,14 @@ type (
 		List         []*ObjectPatternIdentifierParameter
 		DefaultValue Expression
 		FlowType     FlowType
+		Optional     bool
 	}
 
 	ArrayPatternParameter struct {
 		List         []FunctionParameter
 		DefaultValue Expression
 		FlowType     FlowType
+		Optional     bool
 	}
 )
 
@@ -74,6 +79,11 @@ func (ip *IdentifierParameter) SetTypeAnnotation(flowType FlowType)     { ip.Flo
 func (rp *RestParameter) SetTypeAnnotation(flowType FlowType)           { rp.FlowType = flowType }
 func (odp *ObjectPatternParameter) SetTypeAnnotation(flowType FlowType) { odp.FlowType = flowType }
 func (adp *ArrayPatternParameter) SetTypeAnnotation(flowType FlowType)  { adp.FlowType = flowType }
+
+func (ip *IdentifierParameter) SetOptional(opt bool)     { ip.Optional = opt }
+func (rp *RestParameter) SetOptional(opt bool)           { rp.Optional = opt }
+func (odp *ObjectPatternParameter) SetOptional(opt bool) { odp.Optional = opt }
+func (adp *ArrayPatternParameter) SetOptional(opt bool)  { adp.Optional = opt }
 
 func (*IdentifierParameter) _parameterNode()    {}
 func (*RestParameter) _parameterNode()          {}

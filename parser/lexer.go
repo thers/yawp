@@ -175,6 +175,14 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					p.insertSemicolon = true
 					return
 
+				// some special keywords can only be used as keywords in known context
+				case
+					token.AS,
+					token.TYPE_TYPE:
+					p.insertSemicolon = true
+					tkn = token.IDENTIFIER
+					return
+
 				default:
 					return
 
@@ -299,7 +307,21 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					tkn = p.switchAssignment4(token.LESS, token.LESS_OR_EQUAL, '<', token.SHIFT_LEFT, token.SHIFT_LEFT_ASSIGN)
 				}
 			case '>':
-				tkn = p.switchAssignment6(token.GREATER, token.GREATER_OR_EQUAL, '>', token.SHIFT_RIGHT, token.SHIFT_RIGHT_ASSIGN, '>', token.UNSIGNED_SHIFT_RIGHT, token.UNSIGNED_SHIFT_RIGHT_ASSIGN)
+				// shifts are not allowed inside of type
+				if p.scope.inType {
+					tkn = token.GREATER
+				} else {
+					tkn = p.switchAssignment6(
+						token.GREATER,
+						token.GREATER_OR_EQUAL,
+						'>',
+						token.SHIFT_RIGHT,
+						token.SHIFT_RIGHT_ASSIGN,
+						'>',
+						token.UNSIGNED_SHIFT_RIGHT,
+						token.UNSIGNED_SHIFT_RIGHT_ASSIGN,
+					)
+				}
 			case '=':
 				if p.chr == '>' {
 					p.read()
@@ -498,6 +520,8 @@ func (p *Parser) read() {
 		p.chrOffset = p.length
 		p.chr = -1 // EOF
 	}
+
+	return
 }
 
 // This is here since the functions are so similar
