@@ -42,12 +42,13 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		}
 	case token.ASYNC:
 		idx := p.idx
+		st := p.captureState()
 		p.next()
 
 		if p.is(token.FUNCTION) {
 			return p.parseFunction(false, idx, true)
 		} else {
-			return p.tryParseAsyncArrowFunction(idx)
+			return p.tryParseAsyncArrowFunction(idx, st)
 		}
 	case token.IDENTIFIER:
 		return p.parseIdentifierOrSingleArgumentArrowFunction(false)

@@ -137,6 +137,7 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 		}
 	}
 
+	p.allowNext(token.FROM)
 	p.consumeExpected(token.FROM)
 
 	p.parseImportFromClause(stmt)

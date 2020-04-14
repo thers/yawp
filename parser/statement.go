@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/go-sourcemap/sourcemap"
 	"io/ioutil"
 	"net/url"
@@ -31,13 +32,15 @@ func (p *Parser) parseStatement() ast.Statement {
 		return &ast.BadStatement{From: p.idx, To: p.idx + 1}
 	}
 
-	p.allowNext(token.TYPE_TYPE)
+	if p.scope.inModuleRoot() {
+		p.allowNext(token.TYPE_TYPE)
+	}
 
 	switch p.token {
 	case token.SEMICOLON:
 		return p.parseEmptyStatement()
 	case token.LEFT_BRACKET:
-		return p.parseArrayBindingStatement()
+		return p.parseArrayBindingStatementOrArrayLiteral()
 	case token.LEFT_BRACE:
 		return p.parseBlockStatementOrObjectPatternBinding()
 	case token.IF:
@@ -79,7 +82,9 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.YIELD:
 		return p.parseYieldStatement()
 	case token.TYPE_TYPE, token.TYPE_OPAQUE:
-		return p.parseFlowTypeStatement()
+		if p.scope.inModuleRoot() {
+			return p.parseFlowTypeStatement()
+		}
 	case token.INTERFACE:
 		return p.parseFlowInterfaceStatement()
 	}
@@ -128,7 +133,7 @@ func (p *Parser) parseParameterList() (list []string) {
 }
 
 func (p *Parser) parseFunctionBlock(node *ast.FunctionLiteral) {
-	closeFunctionScope := p.openFunctionScope(node.Generator)
+	closeFunctionScope := p.openFunctionScope(node.Generator, node.Async)
 	defer closeFunctionScope()
 
 	node.Body = p.parseBlockStatement()
@@ -300,21 +305,20 @@ func (p *Parser) parseSourceElement() ast.Statement {
 func (p *Parser) parseSourceElements() []ast.Statement {
 	body := make([]ast.Statement, 0)
 
-	// trying to find 'use strict'
-	for {
-		if !p.is(token.STRING) {
-			break
-		}
+	defer func() {
+		err := recover()
 
-		stmt := p.parseStatement()
-
-		if _, ok := stmt.(*ast.EmptyStatement); !ok {
-			body = append(body, stmt)
+		if err != nil {
+			fmt.Errorf("%s", err)
 		}
-	}
+	}()
 
 	for !p.is(token.EOF) {
 		stmt := p.parseStatement()
+
+		if len(p.errors) > 0 {
+			return body
+		}
 
 		if _, ok := stmt.(*ast.EmptyStatement); !ok {
 			body = append(body, stmt)

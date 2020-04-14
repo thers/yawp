@@ -71,6 +71,31 @@ func (p *Parser) isFlowTypeArgumentsStart() bool {
 	return p.isAny(token.JSX_FRAGMENT_START, token.LESS)
 }
 
+func (p *Parser) isFlowTypeStart() bool {
+	switch p.token {
+	case
+		token.IDENTIFIER,
+		token.LESS,
+		token.LEFT_BRACE,
+		token.TYPE_EXACT_OBJECT_START,
+		token.LEFT_PARENTHESIS,
+		token.TYPE_ANY,
+		token.TYPE_BOOLEAN,
+		token.TYPE_MIXED,
+		token.TYPE_NUMBER,
+		token.TYPE_STRING,
+		token.TYPE_TYPE,
+		token.VOID,
+		token.TYPEOF,
+		token.BOOLEAN,
+		token.STRING,
+		token.NUMBER:
+			return true
+	default:
+		return false
+	}
+}
+
 func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
 	closeTypeScope := p.openTypeScope()
 	defer closeTypeScope()
@@ -86,10 +111,34 @@ func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
 
 
 	for p.until(token.GREATER) {
-		args = append(args, p.parseFlowType())
+		//if !p.isFlowTypeStart() {
+		//	p.unexpectedToken()
+		//	return nil
+		//}
+
+		argStart := p.idx
+		arg := p.parseFlowType()
+
+		if arg == nil {
+			p.error(argStart, "Unexpected token")
+			return nil
+		}
+		args = append(args, arg)
 		p.consumePossible(token.COMMA)
 	}
 
 	p.consumeExpected(token.GREATER)
 	return args
+}
+
+func (p *Parser) tryParseFlowTypeArguments() []ast.FlowType {
+	defer func() {
+		err := recover()
+
+		if err != nil {
+			return
+		}
+	}()
+
+	return p.parseFlowTypeArguments()
 }

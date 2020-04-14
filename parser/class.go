@@ -5,8 +5,8 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseClassMethodBody(generator bool) (*ast.BlockStatement, []ast.Declaration) {
-	closeFunctionScope := p.openFunctionScope(generator)
+func (p *Parser) parseClassMethodBody(generator bool, async bool) (*ast.BlockStatement, []ast.Declaration) {
+	closeFunctionScope := p.openFunctionScope(generator, async)
 	defer closeFunctionScope()
 
 	return p.parseBlockStatement(), p.scope.declarationList
@@ -147,7 +147,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 			method.ReturnType = p.parseFlowTypeAnnotation()
 		}
 
-		body, _ := p.parseClassMethodBody(generator)
+		body, _ := p.parseClassMethodBody(generator, async)
 		source := p.slice(start, body.EndAt())
 
 		method.Body = body

@@ -21,6 +21,8 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	p.next()
 	list := p.parseVariableDeclarationList(idx, kind)
 
+	p.optionalSemicolon()
+
 	return &ast.VariableStatement{
 		Kind: kind,
 		Var:  idx,

@@ -6,6 +6,18 @@ import (
 	"yawp/parser/token"
 )
 
+func (p *Parser) parseObjectPropertyComputedName() ast.ObjectPropertyName {
+	p.consumeExpected(token.LEFT_BRACKET)
+
+	propertyName := &ast.ComputedName{
+		Expression: p.parseAssignmentExpression(),
+	}
+
+	p.consumeExpected(token.RIGHT_BRACKET)
+
+	return propertyName
+}
+
 func (p *Parser) parseObjectPropertyFromShorthand(propertyName ast.ObjectPropertyName) ast.ObjectProperty {
 	if propertyStringName, ok := propertyName.(*ast.Identifier); ok {
 		if !matchIdentifier.MatchString(propertyStringName.Name) {
@@ -24,6 +36,26 @@ func (p *Parser) parseObjectPropertyFromShorthand(propertyName ast.ObjectPropert
 
 	p.unexpectedToken()
 	return nil
+}
+
+func (p *Parser) parseObjectPropertyMethodShorthand(
+	start file.Idx,
+	async bool,
+	propertyName ast.ObjectPropertyName,
+) *ast.ObjectPropertyValue {
+	parameterList := p.parseFunctionParameterList()
+	functionLiteral := &ast.FunctionLiteral{
+		Start:      start,
+		Async:      async,
+		Parameters: parameterList,
+	}
+
+	p.parseFunctionBlock(functionLiteral)
+
+	return &ast.ObjectPropertyValue{
+		PropertyName: propertyName,
+		Value:        functionLiteral,
+	}
 }
 
 func (p *Parser) parseObjectPropertyValue(start file.Idx, propertyName ast.ObjectPropertyName) *ast.ObjectPropertyValue {
@@ -56,70 +88,38 @@ func (p *Parser) parseObjectPropertyValue(start file.Idx, propertyName ast.Objec
 	return nil
 }
 
+/*
+Modern JS standard have brought to the light ugly creatures
+called contextual keywords.
+
+These rare species are very special kinds of snowflakes.
+Normal keyword is a reserved word,
+that means that you can not use it as a variable or property name.
+
+But there was `class: foo` all the time, you may have wonder now.
+Yes, but it is a cake for parser to support it.
+
+But there is one keyword, that is still ambiguous: async
+
+consider these valid examples:
+
+`foo = { async }` - a shorthand for `{ async: async }` where second async is some var
+`foo = { async: 0 }` - just using async as a property name, pretty much like with class, ok
+`foo = { async async() {} }` - well, lol, async method with name async
+`foo = { async await() {} }` - not really related, but still funny
+`foo = { set async(v) {} }` - not really different from `async async() {}`
+`foo = { async set(v) {} }` - ffs
+
+*/
 func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 	var propertyName ast.ObjectPropertyName
 
-	if p.is(token.IDENTIFIER) {
-		shouldConsumeNext := true
-
-		// Maybe setter or getter
-		if p.literal == "get" || p.literal == "set" {
-			start, name := p.idx, p.literal
-			p.next()
-
-			// Setter or getter
-			if p.is(token.IDENTIFIER) {
-				propertyName = &ast.Identifier{
-					Start: start,
-					Name:  name,
-				}
-
-				p.next()
-				parameterList := p.parseFunctionParameterList()
-
-				functionLiteral := &ast.FunctionLiteral{
-					Start:      start,
-					Parameters: parameterList,
-				}
-				p.parseFunctionBlock(functionLiteral)
-
-				if name == "set" {
-					return &ast.ObjectPropertySetter{
-						PropertyName: propertyName,
-						Setter:       functionLiteral,
-					}
-				} else {
-					return &ast.ObjectPropertyGetter{
-						PropertyName: propertyName,
-						Getter:       functionLiteral,
-					}
-				}
-			}
-
-			shouldConsumeNext = false
-		}
-
-		name, start := p.literal, p.idx
-
-		propertyName = &ast.Identifier{
-			Start: start,
-			Name:  name,
-		}
-
-		if shouldConsumeNext {
-			p.next()
-		}
-
-		property := p.parseObjectPropertyValue(start, propertyName)
-
-		if property == nil {
-			return p.parseObjectPropertyFromShorthand(propertyName)
-		}
-
-		return property
-	} else if p.is(token.NUMBER) {
+	// start with easy variants
+	switch p.token {
+	case token.NUMBER:
 		name, start := p.literal, p.idx
 		_, err := parseNumberLiteral(p.literal)
+		p.next()
 
 		if err != nil {
 			name = ""
@@ -137,9 +137,12 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 			PropertyName: propertyName,
 			Value:        p.parseAssignmentExpression(),
 		}
-	} else if p.is(token.STRING) {
+
+	case token.STRING:
 		start := p.idx
 		name, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
+		p.next()
+
 		if err != nil {
 			p.error(p.idx, err.Error())
 		}
@@ -155,28 +158,94 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 			PropertyName: propertyName,
 			Value:        p.parseAssignmentExpression(),
 		}
-	} else if p.is(token.LEFT_BRACKET) {
+
+	case token.LEFT_BRACKET:
 		// computed property name
 		start := p.idx
-		p.consumeExpected(token.LEFT_BRACKET)
-
-		propertyName = &ast.ComputedName{
-			Expression: p.parseAssignmentExpression(),
-		}
-
-		p.consumeExpected(token.RIGHT_BRACKET)
+		propertyName = p.parseObjectPropertyComputedName()
 
 		property := p.parseObjectPropertyValue(start, propertyName)
-
 		if property != nil {
 			return property
 		}
-	} else if p.is(token.DOTDOTDOT) {
+
+	case token.DOTDOTDOT:
 		p.consumeExpected(token.DOTDOTDOT)
 
 		return &ast.ObjectSpread{
 			Expression: p.parseAssignmentExpression(),
 		}
+	}
+
+	// now that easy variants are all gone
+	// let the show of identifiers and keywords begin
+	if p.isIdentifierOrKeyword() {
+		possibleAsync := p.is(token.ASYNC)
+		shouldConsumeNext := true
+
+		if p.literal == "get" || p.literal == "set" {
+			start, accessor := p.idx, p.literal
+
+			p.next()
+			shouldConsumeNext = false
+
+			// we have parsed set or get by now
+			// if next is valid property identifier then it's an accessor
+			if p.isIdentifierOrKeyword() {
+				propertyName = p.parseIdentifierIncludingKeywords()
+				parameterList := p.parseFunctionParameterList()
+
+				functionLiteral := &ast.FunctionLiteral{
+					Start:      start,
+					Parameters: parameterList,
+				}
+				p.parseFunctionBlock(functionLiteral)
+
+				if accessor == "set" {
+					return &ast.ObjectPropertySetter{
+						PropertyName: propertyName,
+						Setter:       functionLiteral,
+					}
+				} else {
+					return &ast.ObjectPropertyGetter{
+						PropertyName: propertyName,
+						Getter:       functionLiteral,
+					}
+				}
+			}
+		}
+
+		start := p.idx
+		propertyName = p.currentIdentifier()
+
+		if shouldConsumeNext {
+			p.next()
+		}
+		
+		// now that we have first two tokens we can start to disambiguate
+		if possibleAsync {
+			// `async blah` can only end with `() {}`, so a method shorthand
+			if p.isIdentifierOrKeyword() {
+				propertyName = p.parseIdentifierIncludingKeywords()
+
+				return p.parseObjectPropertyMethodShorthand(start, true, propertyName)
+			}
+
+			// `async []() {}`
+			if p.is(token.LEFT_BRACKET) {
+				propertyName = p.parseObjectPropertyComputedName()
+
+				return p.parseObjectPropertyMethodShorthand(start, true, propertyName)
+			}
+		}
+
+		property := p.parseObjectPropertyValue(start, propertyName)
+
+		if property == nil {
+			return p.parseObjectPropertyFromShorthand(propertyName)
+		}
+
+		return property
 	}
 
 	p.unexpectedToken()
@@ -211,6 +280,12 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 
 	defer func() {
 		p.patternBindingMode = wasPatternBindingMode
+
+		err := recover()
+
+		if err != nil {
+			return
+		}
 	}()
 
 	return p.parseObjectBinding(), p.patternBindingMode
@@ -218,7 +293,7 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 
 func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
 	start := p.idx
-	partialState := p.getPartialState()
+	partialState := p.captureState()
 
 	objectBinding, success := p.maybeParseObjectBinding()
 
@@ -232,7 +307,7 @@ func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
 		}
 	}
 
-	p.restorePartialState(partialState)
+	p.rewindStateTo(partialState)
 
 	return p.parseObjectLiteral()
 }

@@ -89,7 +89,7 @@ func (p *Parser) scanIdentifier() (string, error) {
 		}
 		p.read()
 	}
-	literal := string(p.str[offset:p.chrOffset])
+	literal := p.str[offset:p.chrOffset]
 	if parse {
 		return parseStringLiteral(literal)
 	}
@@ -172,15 +172,50 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					token.RETURN,
 					token.CONTINUE,
 					token.DEBUGGER:
-					p.insertSemicolon = true
-					return
+						p.insertSemicolon = true
+						return
 
 				// some special keywords can only be used as keywords in known context
 				case
+					token.OF,
 					token.AS,
-					token.TYPE_TYPE:
+					token.FROM:
+						p.insertSemicolon = true
+						tkn = token.IDENTIFIER
+						return
+
+				case token.TYPE_TYPE:
 					p.insertSemicolon = true
-					tkn = token.IDENTIFIER
+					if !p.scope.inModuleRoot() {
+						tkn = token.IDENTIFIER
+					}
+					return
+
+				// following are keywords only when in type
+				case
+					token.TYPE_STRING,
+					token.TYPE_NUMBER,
+					token.TYPE_MIXED,
+					token.TYPE_BOOLEAN,
+					token.TYPE_ANY,
+					token.TYPE_OPAQUE:
+						if !p.scope.inType {
+							tkn = token.IDENTIFIER
+						}
+						return
+
+				case token.AWAIT:
+					p.insertSemicolon = true
+					if !p.scope.allowAwait {
+						tkn = token.IDENTIFIER
+					}
+					return
+
+				case token.YIELD:
+					p.insertSemicolon = true
+					if !p.scope.allowYield {
+						tkn = token.IDENTIFIER
+					}
 					return
 
 				default:
@@ -461,7 +496,7 @@ func (p *Parser) _peek() rune {
 	return -1
 }
 
-type ParserPartialState struct {
+type ParserStateSnapshot struct {
 	idx               file.Idx
 	token             token.Token
 	errors            ErrorList
@@ -474,8 +509,8 @@ type ParserPartialState struct {
 	implicitSemicolon bool
 }
 
-func (p *Parser) getPartialState() *ParserPartialState {
-	return &ParserPartialState{
+func (p *Parser) captureState() *ParserStateSnapshot {
+	return &ParserStateSnapshot{
 		idx:               p.idx,
 		token:             p.token,
 		errors:            p.errors,
@@ -489,7 +524,7 @@ func (p *Parser) getPartialState() *ParserPartialState {
 	}
 }
 
-func (p *Parser) restorePartialState(state *ParserPartialState) {
+func (p *Parser) rewindStateTo(state *ParserStateSnapshot) {
 	p.idx = state.idx
 	p.token = state.token
 	p.errors = state.errors
@@ -502,8 +537,12 @@ func (p *Parser) restorePartialState(state *ParserPartialState) {
 	p.implicitSemicolon = state.implicitSemicolon
 }
 
+func (p *Parser) statesNeedsRewinding(ps *ParserStateSnapshot) bool {
+	return len(ps.errors) != len(p.errors)
+}
+
 func (p *Parser) read() {
-	p.parsedStr += string(p.chr)
+	p.parsedStr = p.str[0:p.offset]
 
 	if p.offset < p.length {
 		p.chrOffset = p.offset

@@ -7,12 +7,16 @@ import (
 )
 
 func (p *Parser) parseIdentifier() *ast.Identifier {
-	literal := p.literal
-	idx := p.idx
+	id := p.currentIdentifier()
 	p.next()
+
+	return id
+}
+
+func (p *Parser) currentIdentifier() *ast.Identifier {
 	return &ast.Identifier{
-		Name:  literal,
-		Start: idx,
+		Start: p.idx,
+		Name:  p.literal,
 	}
 }
 

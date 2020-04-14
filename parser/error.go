@@ -87,6 +87,9 @@ func (p *Parser) error(place interface{}, msg string, msgValues ...interface{}) 
 	position := p.position(idx)
 	msg = fmt.Sprintf(msg, msgValues...)
 	p.errors.Add(position, msg)
+
+	panic(msg)
+
 	return p.errors[len(p.errors)-1]
 }
 

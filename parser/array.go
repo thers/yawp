@@ -44,6 +44,12 @@ func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
 
 	defer func() {
 		p.patternBindingMode = wasPatternBindingMode
+
+		err := recover()
+
+		if err != nil {
+			return
+		}
 	}()
 
 	return p.parseArrayBinding(), p.patternBindingMode
@@ -51,7 +57,7 @@ func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
 
 func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
 	start := p.idx
-	partialState := p.getPartialState()
+	partialState := p.captureState()
 
 	arrayBinding, success := p.maybeParseArrayBinding()
 
@@ -65,23 +71,13 @@ func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
 		}
 	}
 
-	p.restorePartialState(partialState)
+	p.rewindStateTo(partialState)
 
 	return p.parseArrayLiteral()
 }
 
-func (p *Parser) parseArrayBindingStatement() ast.Statement {
-	exp := &ast.VariableBinding{
-		Start:       p.idx,
-		Binder:      p.parseArrayBinding(),
-		Initializer: nil,
-	}
-
-	p.consumeExpected(token.ASSIGN)
-
-	exp.Initializer = p.parseAssignmentExpression()
-
+func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.Statement {
 	return &ast.ExpressionStatement{
-		Expression: exp,
+		Expression: p.parseAssignmentExpression(),
 	}
 }

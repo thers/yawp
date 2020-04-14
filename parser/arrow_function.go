@@ -12,6 +12,12 @@ func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters
 
 	defer func() {
 		p.arrowFunctionMode = wasArrowMode
+
+		err := recover()
+
+		if err != nil {
+			return
+		}
 	}()
 
 	params := p.parseFunctionParameterList()
@@ -19,9 +25,9 @@ func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters
 	return params, p.arrowFunctionMode
 }
 
-func (p *Parser) parseArrowFunctionBody() ast.Statement {
+func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
 	// arrow function could not be generators
-	closeFunctionScope := p.openFunctionScope(false)
+	closeFunctionScope := p.openFunctionScope(false, async)
 	defer closeFunctionScope()
 
 	if p.is(token.LEFT_BRACE) {
@@ -50,7 +56,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 					DefaultValue: nil,
 				},
 			},
-			Body: p.parseArrowFunctionBody(),
+			Body: p.parseArrowFunctionBody(async),
 		}
 	}
 
@@ -67,7 +73,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 }
 
 func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expression {
-	partialState := p.getPartialState()
+	partialState := p.captureState()
 
 	// First try to parse as arrow function parameters list
 	parameters, success := p.maybeParseArrowFunctionParameterList()
@@ -92,13 +98,13 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 			Async:      async,
 			ReturnType: returnType,
 			Parameters: parameters.List,
-			Body:       p.parseArrowFunctionBody(),
+			Body:       p.parseArrowFunctionBody(async),
 		}
 	}
 
 	// It's a sequence expression or flow type assertion
 	// restoring parser state like we didn't do shit
-	p.restorePartialState(partialState)
+	p.rewindStateTo(partialState)
 
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	wasAllowTypeAssertion := p.scope.allowTypeAssertion
@@ -109,7 +115,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	return expression
 }
 
-func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
+func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx, st *ParserStateSnapshot) ast.Expression {
 	var typeParameters []*ast.FlowTypeParameter
 
 	if p.is(token.LESS) {
@@ -135,7 +141,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 					DefaultValue: nil,
 				},
 			},
-			Body: p.parseArrowFunctionBody(),
+			Body: p.parseArrowFunctionBody(true),
 		}
 	}
 
@@ -149,6 +155,14 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 			p.forbidUnparenthesizedFunctionType = false
 		}
 
+		// may be async(bla) fn call
+		if !p.is(token.ARROW) {
+			p.rewindStateTo(st)
+			p.token = token.IDENTIFIER
+
+			return p.parseAssignmentExpression()
+		}
+
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
@@ -157,7 +171,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx) ast.Expression {
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,
 			Parameters:     parameters.List,
-			Body:           p.parseArrowFunctionBody(),
+			Body:           p.parseArrowFunctionBody(true),
 		}
 	}
 

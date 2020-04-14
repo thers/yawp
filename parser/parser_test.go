@@ -485,11 +485,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-type Test = {|
-	foo: bar;
-bar: z,
-y: y
-|}
+if(1)var g={start:h.selectionStart,end:h.selectionEnd};else label: {};
 		`)
 		if err != nil {
 			panic(err)
@@ -508,6 +504,17 @@ func TestParser(t *testing.T) {
 			is(firstErr(err), chk)
 			return program
 		}
+
+		test(`
+			const t = {
+				async,
+				async: 0,
+				class: 0,
+				async async() {},
+				async set() {},
+				set async(a) {},
+			};
+		`, nil)
 
 		test(`
            abc

@@ -24,6 +24,7 @@ func (p *Parser) parseExportNamespaceFromClause() *ast.ExportNamespaceFromClause
 		clause.ModuleIdentifier = p.parseIdentifier()
 	}
 
+	p.allowNext(token.FROM)
 	p.consumeExpected(token.FROM)
 
 	if p.is(token.STRING) {
@@ -69,6 +70,7 @@ func (p *Parser) parseExportNamedClause() *ast.ExportNamedClause {
 func (p *Parser) parseExportNamedMaybeFromClause() ast.ExportClause {
 	exportNamedClause := p.parseExportNamedClause()
 
+	p.allowNext(token.FROM)
 	if p.is(token.FROM) {
 		p.next()
 

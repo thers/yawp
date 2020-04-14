@@ -240,7 +240,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 }
 
 func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
-	partialState := p.getPartialState()
+	partialState := p.captureState()
 	errorsCount := len(p.errors)
 	start := p.idx
 
@@ -254,7 +254,7 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	}
 
 	// now we can safely assume we're in arrow function
-	p.restorePartialState(partialState)
+	p.rewindStateTo(partialState)
 
 	typeParameters := p.parseFlowTypeParameters()
 
@@ -276,7 +276,7 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,
 			Parameters:     parameters.List,
-			Body:           p.parseArrowFunctionBody(),
+			Body:           p.parseArrowFunctionBody(false),
 		}
 	}
 

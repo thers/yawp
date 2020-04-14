@@ -8,15 +8,16 @@ type Scope struct {
 	outer *Scope
 
 	allowIn            bool
+	allowAwait         bool
+	allowYield         bool
 	allowTypeAssertion bool
 
-	inClass             bool
-	inIteration         bool
-	inSwitch            bool
-	inFunction          bool
-	inGeneratorFunction bool
-	inType              bool
-	declarationList     []ast.Declaration
+	inClass         bool
+	inIteration     bool
+	inSwitch        bool
+	inFunction      bool
+	inType          bool
+	declarationList []ast.Declaration
 
 	allowUnionType        bool
 	allowIntersectionType bool
@@ -49,18 +50,21 @@ func (p *Parser) openClassScope() func() {
 	}
 }
 
-func (p *Parser) openFunctionScope(generator bool) func() {
+func (p *Parser) openFunctionScope(generator bool, async bool) func() {
 	p.openScope()
 
 	wasInFunction := p.scope.inFunction
-	wasInGeneratorFunction := p.scope.inGeneratorFunction
+	wasAllowAwait := p.scope.allowAwait
+	wasAllowYield := p.scope.allowYield
 
 	p.scope.inFunction = true
-	p.scope.inGeneratorFunction = generator
+	p.scope.allowAwait = async
+	p.scope.allowYield = generator
 
 	return func() {
+		p.scope.allowAwait = wasAllowAwait
 		p.scope.inFunction = wasInFunction
-		p.scope.inGeneratorFunction = wasInGeneratorFunction
+		p.scope.allowYield = wasAllowYield
 		p.closeScope()
 	}
 }
@@ -90,4 +94,8 @@ func (self *Scope) hasLabel(name string) bool {
 		return self.outer.hasLabel(name)
 	}
 	return false
+}
+
+func (s *Scope) inModuleRoot() bool {
+	return !s.inFunction && !s.inType && !s.inClass && !s.inIteration && !s.inSwitch
 }

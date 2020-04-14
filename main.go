@@ -3,49 +3,46 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"time"
 	"yawp/parser"
 )
 
-func main() {
-	filename := "" // A filename is optional
-//	src := `
-//    // Sample xyzzy example
-//    (function(){
-//        if (3.14159 > 0) {
-//            console.log(..."Hello, World.");
-//            return;
-//        }
-//
-//        var xyzzy = NaN;
-//        console.log("Nothing happens.");
-//        return xyzzy;
-//    })();
-//`
-	src, _ := ioutil.ReadFile("test/short.js")
+//var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
-	// Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
-	program, err := parser.ParseFile(nil, filename, src)
+func main() {
+	var filename string
+
+	if len(os.Args) > 1 {
+		filename = os.Args[1]
+	} else {
+		filename = "test/short.js"
+	}
+
+	src, _ := ioutil.ReadFile(filename)
+
+	//flag.Parse()
+	//if *cpuprofile != "" {
+	//	f, err := os.Create(*cpuprofile)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	pprof.StartCPUProfile(f)
+	//	defer pprof.StopCPUProfile()
+	//}
+
+	start := time.Now()
+	ast, err := parser.ParseFile(nil, filename, src)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Print(program)
+	timeTaken := time.Since(start)
+	throughput := float64((len(src)/1024.0)/1024.0)/timeTaken.Seconds()
+
+	fmt.Printf("time taken: %s\n", time.Since(start))
+	fmt.Printf("throughput: %fms\n", throughput)
+	fmt.Printf("ast: %d", ast)
 
 	return
-
-	//tokenizer, terr := tokenizer.NewTokenizer(os.Args[1])
-	//if terr != nil {
-	//	panic(terr)
-	//}
-	//
-	//s := time.Now()
-	//tokens, err := tokenizer.Parse()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//e := time.Since(s)
-	//
-	//tokensJson, _ := json.MarshalIndent(tokens, "", "  ")
-	//fmt.Printf("%s\nTook: %s\n", tokensJson, e)
 }

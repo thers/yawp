@@ -52,10 +52,18 @@ func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
 		} else if p.is(token.LEFT_BRACKET) {
 			left = p.parseBracketMember(left)
 		} else if p.isFlowTypeArgumentsStart() {
-			typeArguments := p.parseFlowTypeArguments()
+			partialState := p.captureState()
+			typeArguments := p.tryParseFlowTypeArguments()
+
+			if typeArguments == nil {
+				p.rewindStateTo(partialState)
+				break
+			}
+
 			if !p.is(token.LEFT_PARENTHESIS) {
 				p.unexpectedToken()
 			}
+
 			left = p.parseCallExpression(left, typeArguments)
 		} else if p.is(token.LEFT_PARENTHESIS) {
 			left = p.parseCallExpression(left, nil)

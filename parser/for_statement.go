@@ -87,6 +87,8 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 			list := p.parseVariableDeclarationList(var_, kind)
 
 			if len(list) == 1 {
+				p.allowNext(token.OF)
+
 				if p.is(token.IN) {
 					p.consumeExpected(token.IN)
 					forIn = true
@@ -109,6 +111,9 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 			}
 		}
 		p.scope.allowIn = allowIn
+	} else {
+		p.next()
+		return p.parseFor(start, nil)
 	}
 
 	if left == nil {

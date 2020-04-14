@@ -6,7 +6,7 @@ import (
 )
 
 func (p *Parser) parseYieldExpression() *ast.YieldExpression {
-	if !p.scope.inGeneratorFunction {
+	if !p.scope.allowYield {
 		p.error(p.idx, "yield can not be used outside of generator function")
 		p.next()
 		return nil
