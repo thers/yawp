@@ -471,7 +471,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-if(1)var g={start:h.selectionStart,end:h.selectionEnd};else label: {};
+const \u30f4ヴ = <a><</a>;
 		`)
 		if err != nil {
 			panic(err)

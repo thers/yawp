@@ -42,60 +42,6 @@ func isDigit(chr rune, base int) bool {
 	return digitValue(chr) < base
 }
 
-func isIdentifierStart(chr rune) bool {
-	return chr == '$' || chr == '_' || chr == '\\' ||
-		'a' <= chr && chr <= 'z' || 'A' <= chr && chr <= 'Z' ||
-		chr >= utf8.RuneSelf && unicode.IsLetter(chr)
-}
-
-func isIdentifierPart(chr rune) bool {
-	return chr == '$' || chr == '_' || chr == '\\' ||
-		'a' <= chr && chr <= 'z' || 'A' <= chr && chr <= 'Z' ||
-		'0' <= chr && chr <= '9' ||
-		chr >= utf8.RuneSelf && (unicode.IsLetter(chr) || unicode.IsDigit(chr))
-}
-
-func (p *Parser) scanIdentifier() (string, error) {
-	offset := p.chrOffset
-	parse := false
-	for isIdentifierPart(p.chr) {
-		if p.chr == '\\' {
-			distance := p.chrOffset - offset
-			p.read()
-			if p.chr != 'u' {
-				return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
-			}
-			parse = true
-			var value rune
-			for j := 0; j < 4; j++ {
-				p.read()
-				decimal, ok := hex2decimal(byte(p.chr))
-				if !ok {
-					return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
-				}
-				value = value<<4 | decimal
-			}
-			if value == '\\' {
-				return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-			} else if distance == 0 {
-				if !isIdentifierStart(value) {
-					return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-				}
-			} else if distance > 0 {
-				if !isIdentifierPart(value) {
-					return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-				}
-			}
-		}
-		p.read()
-	}
-	literal := p.src[offset:p.chrOffset]
-	if parse {
-		return parseStringLiteral(literal)
-	}
-	return literal, nil
-}
-
 // 7.2
 func isLineWhiteSpace(chr rune) bool {
 	switch chr {
@@ -421,66 +367,6 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Loc) {
 	}
 }
 
-func (p *Parser) switchAssignment2(tkn0, tkn1 token.Token) token.Token {
-	if p.chr == '=' {
-		p.read()
-		return tkn1
-	}
-	return tkn0
-}
-
-func (p *Parser) switchAssignment3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) token.Token {
-	if p.chr == '=' {
-		p.read()
-		return tkn1
-	}
-	if p.chr == chr2 {
-		p.read()
-		return tkn2
-	}
-	return tkn0
-}
-
-func (p *Parser) switchAssignment4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token) token.Token {
-	if p.chr == '=' {
-		p.read()
-		return tkn1
-	}
-	if p.chr == chr2 {
-		p.read()
-		if p.chr == '=' {
-			p.read()
-			return tkn3
-		}
-		return tkn2
-	}
-	return tkn0
-}
-
-func (p *Parser) switchAssignment6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token, chr3 rune, tkn4, tkn5 token.Token) token.Token {
-	if p.chr == '=' {
-		p.read()
-		return tkn1
-	}
-	if p.chr == chr2 {
-		p.read()
-		if p.chr == '=' {
-			p.read()
-			return tkn3
-		}
-		if p.chr == chr3 {
-			p.read()
-			if p.chr == '=' {
-				p.read()
-				return tkn5
-			}
-			return tkn4
-		}
-		return tkn2
-	}
-	return tkn0
-}
-
 func (p *Parser) chrAt(index int) _chr {
 	value, width := utf8.DecodeRuneInString(p.src[index:])
 	return _chr{
@@ -494,51 +380,6 @@ func (p *Parser) _peek() rune {
 		return rune(p.src[p.nextChrOffset+1])
 	}
 	return -1
-}
-
-type ParserStateSnapshot struct {
-	idx               file.Loc
-	token             token.Token
-	errors            ErrorList
-	offset            int
-	chrOffset         int
-	nextChr           rune
-	literal           string
-	parsedStr         string
-	insertSemicolon   bool
-	implicitSemicolon bool
-}
-
-func (p *Parser) captureState() *ParserStateSnapshot {
-	return &ParserStateSnapshot{
-		idx:               p.loc,
-		token:             p.token,
-		errors:            p.errors,
-		offset:            p.nextChrOffset,
-		chrOffset:         p.chrOffset,
-		nextChr:           p.chr,
-		literal:           p.literal,
-		parsedStr:         p.parsedStr,
-		insertSemicolon:   p.insertSemicolon,
-		implicitSemicolon: p.implicitSemicolon,
-	}
-}
-
-func (p *Parser) rewindStateTo(state *ParserStateSnapshot) {
-	p.loc = state.idx
-	p.token = state.token
-	p.errors = state.errors
-	p.nextChrOffset = state.offset
-	p.chrOffset = state.chrOffset
-	p.chr = state.nextChr
-	p.literal = state.literal
-	p.parsedStr = state.parsedStr
-	p.insertSemicolon = state.insertSemicolon
-	p.implicitSemicolon = state.implicitSemicolon
-}
-
-func (p *Parser) statesNeedsRewinding(ps *ParserStateSnapshot) bool {
-	return len(ps.errors) != len(p.errors)
 }
 
 func (p *Parser) read() {
