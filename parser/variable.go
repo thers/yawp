@@ -11,7 +11,7 @@ func (p *Parser) isVariableStatementStart() bool {
 }
 
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
-	idx := p.idx
+	idx := p.loc
 	kind := p.token
 
 	if !p.isVariableStatementStart() {
@@ -32,7 +32,7 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 
 func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpression, kind token.Token) ast.Expression {
 	if p.is(token.LEFT_BRACKET) || p.is(token.LEFT_BRACE) {
-		start := p.idx
+		start := p.loc
 
 		var binder ast.PatternBinder
 
@@ -63,7 +63,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	}
 
 	literal := p.literal
-	idx := p.idx
+	idx := p.loc
 	p.next()
 	node := &ast.VariableExpression{
 		Kind:  kind,
@@ -88,7 +88,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	return node
 }
 
-func (p *Parser) parseVariableDeclarationList(var_ file.Idx, kind token.Token) []ast.Expression {
+func (p *Parser) parseVariableDeclarationList(var_ file.Loc, kind token.Token) []ast.Expression {
 
 	var declarationList []*ast.VariableExpression // Avoid bad expressions
 	var list []ast.Expression

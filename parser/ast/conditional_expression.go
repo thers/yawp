@@ -12,6 +12,6 @@ type (
 
 func (*ConditionalExpression) _expressionNode() {}
 
-func (c *ConditionalExpression) StartAt() file.Idx { return c.Test.StartAt() }
+func (c *ConditionalExpression) StartAt() file.Loc { return c.Test.StartAt() }
 
-func (c *ConditionalExpression) EndAt() file.Idx { return c.Test.EndAt() }
+func (c *ConditionalExpression) EndAt() file.Loc { return c.Test.EndAt() }

@@ -1,36 +1,3 @@
-/*
-Package parser implements a parser for JavaScript.
-
-    import (
-        "yawp/parser/parser"
-    )
-
-Parse and return an AST
-
-    filename := "" // A filename is optional
-    src := `
-        // Sample xyzzy example
-        (function(){
-            if (3.14159 > 0) {
-                console.log("Hello, World.");
-                return;
-            }
-
-            var xyzzy = NaN;
-            console.log("Nothing happens.");
-            return xyzzy;
-        })();
-    `
-
-    // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
-    program, err := parser.ParseFile(nil, filename, src, 0)
-
-Warning
-
-The parser and AST interfaces are still works-in-progress (particularly where
-node types are concerned) and may change in the future.
-
-*/
 package parser
 
 import (
@@ -46,26 +13,23 @@ import (
 
 type Parser struct {
 	parsedStr string
-	str       string
+	src       string
 	length    int
 	base      int
 
-	chr       rune // The current character
-	chrOffset int  // The offset of current character
-	offset    int  // The offset after current character (may be greater than 1)
+	chr           rune // The current character
+	chrOffset     int  // The offset of current character
+	nextChrOffset int  // The nextChrOffset after current character (may be greater than 1)
 
-	idx       file.Idx    // The index of token
-	token     token.Token // The token
-	literal   string      // The literal of the token, if isAny
-	isKeyword bool
+	loc            file.Loc    // location of token
+	token          token.Token // token itself
+	literal        string      // literal of a token, if any
+	tokenIsKeyword bool        // is current token a keyword
 
 	scope *Scope
 
 	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon bool // An implicit semicolon exists
-
-	arrowFunctionMode  bool // When trying to parse possible arrow fn parameters
-	patternBindingMode bool // When trying to parse possible binding pattern
 
 	genericTypeParametersMode bool
 
@@ -75,27 +39,17 @@ type Parser struct {
 
 	errors ErrorList
 
-	recover struct {
-		// Scratch when trying to seek to the next statement, etc.
-		idx   file.Idx
-		count int
-	}
-
 	file *file.File
 }
 
-func _newParser(filename, src string, base int) *Parser {
+func newParser(filename, src string, base int) *Parser {
 	return &Parser{
 		chr:    ' ', // This is set so we can start scanning by skipping whitespace
-		str:    src,
+		src:    src,
 		length: len(src),
 		base:   base,
 		file:   file.NewFile(filename, src, base),
 	}
-}
-
-func newParser(filename, src string) *Parser {
-	return _newParser(filename, src, 1)
 }
 
 func ReadSource(filename string, src interface{}) ([]byte, error) {
@@ -147,37 +101,9 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}) (*ast.Pr
 			base = fileSet.AddFile(filename, str)
 		}
 
-		parser := _newParser(filename, str, base)
+		parser := newParser(filename, str, base)
 		return parser.parse()
 	}
-}
-
-// ParseFunction parses a given parameter list and body as a function and returns the
-// corresponding ast.FunctionLiteral node.
-//
-// The parameter list, if isAny, should be a comma-separated list of identifiers.
-//
-func ParseFunction(parameterList, body string) (*ast.FunctionLiteral, error) {
-
-	src := "(function(" + parameterList + ") {\n" + body + "\n})"
-
-	parser := _newParser("", src, 1)
-	program, err := parser.parse()
-	if err != nil {
-		return nil, err
-	}
-
-	return program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral), nil
-}
-
-func (p *Parser) slice(idx0, idx1 file.Idx) string {
-	from := int(idx0) - p.base
-	to := int(idx1) - p.base
-	if from >= 0 && to <= len(p.str) {
-		return p.str[from:to]
-	}
-
-	return ""
 }
 
 func (p *Parser) parse() (*ast.Program, error) {
@@ -189,144 +115,28 @@ func (p *Parser) parse() (*ast.Program, error) {
 	return program, p.errors.Err()
 }
 
-func (p *Parser) now() (token.Token, string, file.Idx) {
-	return p.token, p.literal, p.idx
-}
-
-func (p *Parser) next() (idx file.Idx) {
-	idx = p.idx
-	p.token, p.literal, p.idx = p.scan()
+func (p *Parser) next() (idx file.Loc) {
+	idx = p.loc
+	p.token, p.literal, p.loc = p.scan()
 	return
 }
 
-func (p *Parser) optionalSemicolon() {
-	if p.is(token.SEMICOLON) {
-		p.next()
-		return
+
+
+// ParseFunctionForTests parses a given parameter list and body as a function and returns the
+// corresponding ast.FunctionLiteral node.
+//
+// The parameter list, if any, should be a comma-separated list of identifiers.
+//
+func ParseFunctionForTests(parameterList, body string) (*ast.FunctionLiteral, error) {
+
+	src := "(function(" + parameterList + ") {\n" + body + "\n})"
+
+	parser := newParser("", src, 1)
+	program, err := parser.parse()
+	if err != nil {
+		return nil, err
 	}
 
-	if p.implicitSemicolon {
-		p.implicitSemicolon = false
-		return
-	}
-
-	if !p.is(token.EOF) && !p.is(token.RIGHT_BRACE) {
-		p.consumeExpected(token.SEMICOLON)
-	}
-}
-
-func (p *Parser) semicolon() {
-	if !p.is(token.RIGHT_PARENTHESIS) && !p.is(token.RIGHT_BRACE) {
-		if p.implicitSemicolon {
-			p.implicitSemicolon = false
-			return
-		}
-
-		p.consumeExpected(token.SEMICOLON)
-	}
-}
-
-func (p *Parser) idxOf(offset int) file.Idx {
-	return file.Idx(p.base + offset)
-}
-
-func (p *Parser) is(value token.Token) bool {
-	return p.token == value
-}
-
-func (p *Parser) allowNext(value token.Token) {
-	if p.isKeyword {
-		tkn, _ := token.IsKeyword(p.literal)
-
-		if value == tkn {
-			p.token = value
-		}
-	}
-}
-
-func (p *Parser) isAny(values ...token.Token) bool {
-	for _, value := range values {
-		if value == p.token {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (p *Parser) isIdentifierOrKeyword() bool {
-	return p.is(token.IDENTIFIER) || p.isKeyword
-}
-
-func (p *Parser) until(value token.Token) bool {
-	return p.token != value && p.token != token.EOF
-}
-
-func (p *Parser) unexpectedToken() {
-	p.errorUnexpectedToken(p.token)
-}
-
-func (p *Parser) consumeExpected(value token.Token) file.Idx {
-	idx := p.idx
-	if p.token != value {
-		p.unexpectedToken()
-	}
-	p.next()
-	return idx
-}
-
-func (p *Parser) consumePossible(value token.Token) file.Idx {
-	idx := p.idx
-
-	if p.token == value {
-		p.next()
-	}
-
-	return idx
-}
-
-func (p *Parser) shouldBe(value token.Token) {
-	if p.token != value {
-		p.errorUnexpectedToken(p.token)
-	}
-}
-
-func lineCount(str string) (int, int) {
-	line, last := 0, -1
-	pair := false
-	for index, chr := range str {
-		switch chr {
-		case '\r':
-			line += 1
-			last = index
-			pair = true
-			continue
-		case '\n':
-			if !pair {
-				line += 1
-			}
-			last = index
-		case '\u2028', '\u2029':
-			line += 1
-			last = index + 2
-		}
-		pair = false
-	}
-	return line, last
-}
-
-func (p *Parser) position(idx file.Idx) file.Position {
-	position := file.Position{}
-	offset := int(idx) - p.base
-	str := p.str[:offset]
-	position.Filename = p.file.Name()
-	line, last := lineCount(str)
-	position.Line = 1 + line
-	if last >= 0 {
-		position.Column = offset - last
-	} else {
-		position.Column = 1 + len(str)
-	}
-
-	return position
+	return program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral), nil
 }

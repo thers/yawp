@@ -10,7 +10,7 @@ import (
 // Start is a compact encoding of a source position within a file set.
 // It can be converted into a Position for a more convenient, but much
 // larger, representation.
-type Idx int
+type Loc int
 
 // Position describes an arbitrary source position
 // including the filename, line, and column location.
@@ -79,9 +79,9 @@ func (self *FileSet) nextBase() int {
 	return self.last.base + len(self.last.src) + 1
 }
 
-func (self *FileSet) File(idx Idx) *File {
+func (self *FileSet) File(idx Loc) *File {
 	for _, file := range self.files {
-		if idx <= Idx(file.base+len(file.src)) {
+		if idx <= Loc(file.base+len(file.src)) {
 			return file
 		}
 	}
@@ -89,10 +89,10 @@ func (self *FileSet) File(idx Idx) *File {
 }
 
 // Position converts an Start in the FileSet into a Position.
-func (self *FileSet) Position(idx Idx) *Position {
+func (self *FileSet) Position(idx Loc) *Position {
 	position := &Position{}
 	for _, file := range self.files {
-		if idx <= Idx(file.base+len(file.src)) {
+		if idx <= Loc(file.base+len(file.src)) {
 			offset := int(idx) - file.base
 			src := file.src[:offset]
 			position.Filename = file.name

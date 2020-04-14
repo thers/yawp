@@ -4,7 +4,7 @@ import "yawp/parser/file"
 
 type (
 	LegacyDecoratorSubject interface {
-		EndAt() file.Idx
+		EndAt() file.Loc
 		_legacyDecoratorSubject()
 	}
 
@@ -20,6 +20,6 @@ func (c *ClassMethodStatement) _legacyDecoratorSubject() {}
 
 func (l *LegacyDecoratorStatement) _statementNode() {}
 
-func (l *LegacyDecoratorStatement) StartAt() file.Idx { return l.Decorators[0].StartAt() }
+func (l *LegacyDecoratorStatement) StartAt() file.Loc { return l.Decorators[0].StartAt() }
 
-func (l *LegacyDecoratorStatement) EndAt() file.Idx { return l.Subject.EndAt() }
+func (l *LegacyDecoratorStatement) EndAt() file.Loc { return l.Subject.EndAt() }

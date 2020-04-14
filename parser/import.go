@@ -14,7 +14,7 @@ func (p *Parser) parseImportDefaultClause(stmt *ast.ImportDeclaration) {
 	}
 
 	exp := &ast.ImportClause{
-		Start:            p.idx,
+		Start:            p.loc,
 		Namespace:        false,
 		ModuleIdentifier: moduleIdentifier,
 		LocalIdentifier:  identifier,
@@ -54,7 +54,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
 
 func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportDeclaration) {
 	exp := &ast.ImportClause{
-		Start:            p.idx,
+		Start:            p.loc,
 		Namespace:        true,
 		ModuleIdentifier: nil,
 		LocalIdentifier:  nil,
@@ -74,14 +74,14 @@ func (p *Parser) parseImportFromClause(stmt *ast.ImportDeclaration) {
 	if p.is(token.STRING) {
 		stmt.From = p.literal
 		p.next()
-		stmt.End = p.idx
+		stmt.End = p.loc
 	} else {
 		p.unexpectedToken()
 	}
 }
 
 func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
-	start := p.idx
+	start := p.loc
 
 	p.consumeExpected(token.IMPORT)
 	stmt := &ast.ImportDeclaration{
@@ -119,7 +119,7 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 
 	if p.is(token.COMMA) {
 		if !stmt.HasDefaultClause {
-			p.error(p.idx, "Can not use multiple import clauses when first one isn't default")
+			p.error(p.loc, "Can not use multiple import clauses when first one isn't default")
 		} else {
 			p.next()
 

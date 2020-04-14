@@ -15,7 +15,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 	p.consumeExpected(token.LESS)
 	for p.until(token.GREATER) {
 		parameter := &ast.FlowTypeParameter{
-			Start:         p.idx,
+			Start:         p.loc,
 			Name:          nil,
 			Covariant:     false,
 			Contravariant: false,
@@ -30,7 +30,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 			p.next()
 		}
 
-		parameterNameStart := p.idx
+		parameterNameStart := p.loc
 		parameter.Name = p.parseFlowTypeIdentifierIncludingKeywords()
 
 		if parameter.Name == nil {
@@ -51,7 +51,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 
 			parameter.DefaultValue = p.parseFlowType()
 		} else if defaultValueRequired {
-			p.error(p.idx, "Default value required")
+			p.error(p.loc, "Default value required")
 		}
 
 		p.consumePossible(token.COMMA)
@@ -116,7 +116,7 @@ func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
 		//	return nil
 		//}
 
-		argStart := p.idx
+		argStart := p.loc
 		arg := p.parseFlowType()
 
 		if arg == nil {

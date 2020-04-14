@@ -13,7 +13,7 @@ func (p *Parser) parseTryStatement() ast.Statement {
 	}
 
 	if p.is(token.CATCH) {
-		catch := p.idx
+		catch := p.loc
 		p.next()
 
 		var parameter *ast.Identifier

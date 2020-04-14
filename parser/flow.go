@@ -48,7 +48,7 @@ func (p *Parser) parseFlowTypeIdentifierIncludingKeywords() *ast.FlowIdentifier 
 }
 
 func (p *Parser) parseSimpleFlowType() ast.FlowType {
-	start := p.idx
+	start := p.loc
 
 	switch p.token {
 	case token.BOOLEAN:
@@ -66,7 +66,7 @@ func (p *Parser) parseSimpleFlowType() ast.FlowType {
 		}
 	case token.TYPE_BOOLEAN, token.TYPE_ANY, token.TYPE_STRING, token.TYPE_NUMBER, token.VOID, token.NULL, token.TYPE_MIXED:
 		kind := p.token
-		end := start + file.Idx(len(p.literal))
+		end := start + file.Loc(len(p.literal))
 		p.next()
 
 		return &ast.FlowPrimitiveType{
@@ -145,7 +145,7 @@ func (p *Parser) parseSimpleFlowType() ast.FlowType {
 	return nil
 }
 
-func (p *Parser) parseFlowFunctionRemainder(start file.Idx, params []*ast.FlowFunctionParameter) *ast.FlowFunctionType {
+func (p *Parser) parseFlowFunctionRemainder(start file.Loc, params []*ast.FlowFunctionParameter) *ast.FlowFunctionType {
 	p.consumeExpected(token.ARROW)
 
 	return &ast.FlowFunctionType{
@@ -261,7 +261,7 @@ func (p *Parser) parseFlowUnionType(beginning ast.FlowType) *ast.FlowUnionType {
 	}
 
 	if beginning == nil {
-		union.Start = p.idx
+		union.Start = p.loc
 	} else {
 		// FIXME: add StartAt() to ast.FlowType
 		union.Start = -1
@@ -295,7 +295,7 @@ func (p *Parser) parseFlowIntersectionType(beginning ast.FlowType) *ast.FlowInte
 	}
 
 	if beginning == nil {
-		intersection.Start = p.idx
+		intersection.Start = p.loc
 	} else {
 		// FIXME: add StartAt() to ast.FlowType
 		intersection.Start = -1
@@ -315,7 +315,7 @@ func (p *Parser) parseFlowIntersectionType(beginning ast.FlowType) *ast.FlowInte
 }
 
 func (p *Parser) parseFlowType() ast.FlowType {
-	start := p.idx
+	start := p.loc
 	var flowType ast.FlowType
 
 	// could be type expression enclosure or function args

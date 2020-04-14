@@ -7,13 +7,13 @@ import (
 
 func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 	if !p.scope.allowYield {
-		p.error(p.idx, "yield can not be used outside of generator function")
+		p.error(p.loc, "yield can not be used outside of generator function")
 		p.next()
 		return nil
 	}
 
 	exp := &ast.YieldExpression{
-		Start: p.idx,
+		Start: p.loc,
 	}
 
 	p.consumeExpected(token.YIELD)

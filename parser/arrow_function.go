@@ -7,14 +7,8 @@ import (
 )
 
 func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters, bool) {
-	wasArrowMode := p.arrowFunctionMode
-	p.arrowFunctionMode = true
-
 	defer func() {
-		p.arrowFunctionMode = wasArrowMode
-
 		err := recover()
-
 		if err != nil {
 			return
 		}
@@ -22,7 +16,7 @@ func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters
 
 	params := p.parseFunctionParameterList()
 
-	return params, p.arrowFunctionMode
+	return params, true
 }
 
 func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
@@ -35,7 +29,7 @@ func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
 	}
 
 	return &ast.ReturnStatement{
-		Return:   p.idx,
+		Return:   p.loc,
 		Argument: p.parseAssignmentExpression(),
 	}
 }
@@ -115,7 +109,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	return expression
 }
 
-func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx, st *ParserStateSnapshot) ast.Expression {
+func (p *Parser) tryParseAsyncArrowFunction(idx file.Loc, st *ParserStateSnapshot) ast.Expression {
 	var typeParameters []*ast.FlowTypeParameter
 
 	if p.is(token.LESS) {
@@ -124,7 +118,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx, st *ParserStateSnapsho
 
 	if p.is(token.IDENTIFIER) {
 		if typeParameters != nil {
-			p.error(p.idx, "Parenthesis required around generic arrow function parameters")
+			p.error(p.loc, "Parenthesis required around generic arrow function parameters")
 
 			return nil
 		}

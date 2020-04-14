@@ -7,11 +7,11 @@ import (
 
 func (p *Parser) parsePrimaryExpression() ast.Expression {
 	literal := p.literal
-	idx := p.idx
+	idx := p.loc
 
 	switch p.token {
 	case token.SUPER:
-		start := p.idx
+		start := p.loc
 
 		if !p.scope.inClass && !p.scope.inFunction {
 			p.error(start, "illegal use of super keyword")
@@ -30,7 +30,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.CLASS:
 		return p.parseClassExpression()
 	case token.AWAIT:
-		idx := p.idx
+		idx := p.loc
 		p.next()
 
 		return &ast.AwaitExpression{
@@ -38,7 +38,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			Expression: p.parseAssignmentExpression(),
 		}
 	case token.ASYNC:
-		idx := p.idx
+		idx := p.loc
 		st := p.captureState()
 		p.next()
 
@@ -110,7 +110,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			Start: idx,
 		}
 	case token.FUNCTION:
-		return p.parseFunction(false, p.idx, false)
+		return p.parseFunction(false, p.loc, false)
 	case token.YIELD:
 		return p.parseYieldExpression()
 	case token.JSX_FRAGMENT_START:

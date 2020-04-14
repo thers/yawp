@@ -15,7 +15,7 @@ func (p *Parser) parseIterationStatement() ast.Statement {
 	return p.parseStatement()
 }
 
-func (p *Parser) parseForIn(start file.Idx, into ast.Expression) *ast.ForInStatement {
+func (p *Parser) parseForIn(start file.Loc, into ast.Expression) *ast.ForInStatement {
 	// Already have consumed "<into> in"
 
 	source := p.parseExpression()
@@ -29,7 +29,7 @@ func (p *Parser) parseForIn(start file.Idx, into ast.Expression) *ast.ForInState
 	}
 }
 
-func (p *Parser) parseForOf(start file.Idx, into ast.Expression) *ast.ForOfStatement {
+func (p *Parser) parseForOf(start file.Loc, into ast.Expression) *ast.ForOfStatement {
 	// Already have consumed "<into> of"
 
 	source := p.parseExpression()
@@ -43,7 +43,7 @@ func (p *Parser) parseForOf(start file.Idx, into ast.Expression) *ast.ForOfState
 	}
 }
 
-func (p *Parser) parseFor(idx file.Idx, initializer ast.Expression) *ast.ForStatement {
+func (p *Parser) parseFor(idx file.Loc, initializer ast.Expression) *ast.ForStatement {
 
 	// Already have consumed "<initializer> ;"
 
@@ -82,7 +82,7 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 		p.scope.allowIn = false
 		if p.isVariableStatementStart() {
 			kind := p.token
-			var_ := p.idx
+			var_ := p.loc
 			p.next()
 			list := p.parseVariableDeclarationList(var_, kind)
 

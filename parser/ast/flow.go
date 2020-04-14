@@ -7,7 +7,7 @@ import (
 
 type (
 	FlowTypeStatement struct {
-		Start          file.Idx
+		Start          file.Loc
 		Name           *FlowIdentifier
 		Opaque         bool
 		Type           FlowType
@@ -15,8 +15,8 @@ type (
 	}
 
 	FlowInterfaceStatement struct {
-		Start          file.Idx
-		End            file.Idx
+		Start          file.Loc
+		End            file.Loc
 		Name           *FlowIdentifier
 		TypeParameters []*FlowTypeParameter
 		Body           []FlowInterfaceBodyStatement
@@ -24,7 +24,7 @@ type (
 
 	FlowType interface {
 		_flowType()
-		EndAt() file.Idx
+		EndAt() file.Loc
 	}
 
 	FlowInterfaceBodyStatement interface {
@@ -36,7 +36,7 @@ type (
 	}
 
 	FlowTypeParameter struct {
-		Start         file.Idx
+		Start         file.Loc
 		Name          *FlowIdentifier
 		Covariant     bool
 		Contravariant bool
@@ -45,7 +45,7 @@ type (
 	}
 
 	FlowInterfaceMethod struct {
-		Start          file.Idx
+		Start          file.Loc
 		Name           *FlowIdentifier
 		TypeParameters []*FlowTypeParameter
 		Parameters     []interface{}
@@ -53,7 +53,7 @@ type (
 	}
 
 	FlowIdentifier struct {
-		Start         file.Idx
+		Start         file.Loc
 		Name          string
 		Qualification *FlowIdentifier
 	}
@@ -64,19 +64,19 @@ type (
 	}
 
 	FlowInexactObject struct {
-		Start      file.Idx
-		End        file.Idx
+		Start      file.Loc
+		End        file.Loc
 		Properties []FlowObjectProperty
 	}
 
 	FlowExactObject struct {
-		Start      file.Idx
-		End        file.Idx
+		Start      file.Loc
+		End        file.Loc
 		Properties []FlowObjectProperty
 	}
 
 	FlowNamedObjectProperty struct {
-		Start         file.Idx
+		Start         file.Loc
 		Optional      bool
 		Covariant     bool
 		Contravariant bool
@@ -85,33 +85,33 @@ type (
 	}
 
 	FlowIndexerObjectProperty struct {
-		Start   file.Idx
+		Start   file.Loc
 		KeyName string
 		KeyType FlowType
 		Value   FlowType
 	}
 
 	FlowInexactSpecifierProperty struct {
-		Start file.Idx
+		Start file.Loc
 	}
 
 	FlowSpreadObjectProperty struct {
-		Start    file.Idx
+		Start    file.Loc
 		FlowType FlowType
 	}
 
 	FlowUnionType struct {
-		Start file.Idx
+		Start file.Loc
 		Types []FlowType
 	}
 
 	FlowIntersectionType struct {
-		Start file.Idx
+		Start file.Loc
 		Types []FlowType
 	}
 
 	FlowTypeOfType struct {
-		Start      file.Idx
+		Start      file.Loc
 		Identifier *FlowIdentifier
 	}
 
@@ -125,7 +125,7 @@ type (
 	}
 
 	FlowFunctionType struct {
-		Start          file.Idx
+		Start          file.Loc
 		Parameters     []*FlowFunctionParameter
 		TypeParameters []*FlowTypeParameter
 		ReturnType     FlowType
@@ -145,44 +145,44 @@ type (
 type (
 	// Primitives
 	FlowPrimitiveType struct {
-		Start file.Idx
-		End   file.Idx
+		Start file.Loc
+		End   file.Loc
 		Kind  token.Token
 	}
 
 	FlowTrueType struct {
-		Start file.Idx
-		End   file.Idx
+		Start file.Loc
+		End   file.Loc
 	}
 	FlowFalseType struct {
-		Start file.Idx
-		End   file.Idx
+		Start file.Loc
+		End   file.Loc
 	}
 
 	FlowExistentialType struct {
-		Start file.Idx
+		Start file.Loc
 	}
 
 	FlowStringLiteralType struct {
-		Start  file.Idx
-		End    file.Idx
+		Start  file.Loc
+		End    file.Loc
 		String string
 	}
 
 	FlowNumberLiteralType struct {
-		Start  file.Idx
-		End    file.Idx
+		Start  file.Loc
+		End    file.Loc
 		Number interface{}
 	}
 
 	FlowTupleType struct {
-		Start    file.Idx
-		End      file.Idx
+		Start    file.Loc
+		End      file.Loc
 		Elements []FlowType
 	}
 
 	FlowArrayType struct {
-		End         file.Idx
+		End         file.Loc
 		ElementType FlowType
 	}
 )
@@ -222,33 +222,33 @@ func (*FlowInterfaceStatement) _statementNode() {}
 func (*FlowTypeStatement) _exportClauseNode()      {}
 func (*FlowInterfaceStatement) _exportClauseNode() {}
 
-func (f *FlowTypeAssertion) StartAt() file.Idx      { return f.Left.StartAt() }
-func (f *FlowTypeStatement) StartAt() file.Idx      { return f.Start }
-func (f *FlowInterfaceStatement) StartAt() file.Idx { return f.Start }
+func (f *FlowTypeAssertion) StartAt() file.Loc      { return f.Left.StartAt() }
+func (f *FlowTypeStatement) StartAt() file.Loc      { return f.Start }
+func (f *FlowInterfaceStatement) StartAt() file.Loc { return f.Start }
 
-func (f *FlowTypeStatement) EndAt() file.Idx      { return f.Type.EndAt() }
-func (f *FlowInterfaceStatement) EndAt() file.Idx { return f.End }
+func (f *FlowTypeStatement) EndAt() file.Loc      { return f.Type.EndAt() }
+func (f *FlowInterfaceStatement) EndAt() file.Loc { return f.End }
 
-func (f *FlowPrimitiveType) EndAt() file.Idx     { return f.End }
-func (f *FlowTrueType) EndAt() file.Idx          { return f.End }
-func (f *FlowFalseType) EndAt() file.Idx         { return f.End }
-func (f *FlowStringLiteralType) EndAt() file.Idx { return f.End }
-func (f *FlowNumberLiteralType) EndAt() file.Idx { return f.End }
-func (f *FlowIdentifier) EndAt() file.Idx        { return f.Start + file.Idx(len(f.Name)) }
-func (f *FlowTypeOfType) EndAt() file.Idx {
-	return f.Identifier.Start + file.Idx(len(f.Identifier.Name))
+func (f *FlowPrimitiveType) EndAt() file.Loc     { return f.End }
+func (f *FlowTrueType) EndAt() file.Loc          { return f.End }
+func (f *FlowFalseType) EndAt() file.Loc         { return f.End }
+func (f *FlowStringLiteralType) EndAt() file.Loc { return f.End }
+func (f *FlowNumberLiteralType) EndAt() file.Loc { return f.End }
+func (f *FlowIdentifier) EndAt() file.Loc        { return f.Start + file.Loc(len(f.Name)) }
+func (f *FlowTypeOfType) EndAt() file.Loc {
+	return f.Identifier.Start + file.Loc(len(f.Identifier.Name))
 }
-func (f *FlowTypeAssertion) EndAt() file.Idx    { return f.FlowType.EndAt() }
-func (f *FlowOptionalType) EndAt() file.Idx     { return f.FlowType.EndAt() }
-func (f *FlowInexactObject) EndAt() file.Idx    { return f.End }
-func (f *FlowExactObject) EndAt() file.Idx      { return f.End }
-func (f *FlowTupleType) EndAt() file.Idx        { return f.End }
-func (f *FlowArrayType) EndAt() file.Idx        { return f.End }
-func (f *FlowExistentialType) EndAt() file.Idx  { return f.Start + 1 }
-func (f *FlowFunctionType) EndAt() file.Idx     { return f.ReturnType.EndAt() }
-func (f *FlowUnionType) EndAt() file.Idx        { return f.Types[len(f.Types)-1].EndAt() }
-func (f *FlowIntersectionType) EndAt() file.Idx { return f.Types[len(f.Types)-1].EndAt() }
-func (f *FlowGenericType) EndAt() file.Idx {
+func (f *FlowTypeAssertion) EndAt() file.Loc    { return f.FlowType.EndAt() }
+func (f *FlowOptionalType) EndAt() file.Loc     { return f.FlowType.EndAt() }
+func (f *FlowInexactObject) EndAt() file.Loc    { return f.End }
+func (f *FlowExactObject) EndAt() file.Loc      { return f.End }
+func (f *FlowTupleType) EndAt() file.Loc        { return f.End }
+func (f *FlowArrayType) EndAt() file.Loc        { return f.End }
+func (f *FlowExistentialType) EndAt() file.Loc  { return f.Start + 1 }
+func (f *FlowFunctionType) EndAt() file.Loc     { return f.ReturnType.EndAt() }
+func (f *FlowUnionType) EndAt() file.Loc        { return f.Types[len(f.Types)-1].EndAt() }
+func (f *FlowIntersectionType) EndAt() file.Loc { return f.Types[len(f.Types)-1].EndAt() }
+func (f *FlowGenericType) EndAt() file.Loc {
 	return f.TypeArguments[len(f.TypeArguments)-1].EndAt() + 1
 }
 

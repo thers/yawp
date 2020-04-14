@@ -4,8 +4,8 @@ import "yawp/parser/file"
 
 type (
 	JSXElement struct {
-		Start      file.Idx
-		End        file.Idx
+		Start      file.Loc
+		End        file.Loc
 		Name       *JSXElementName
 		Attributes []JSXAttribute
 		Children   []JSXChild
@@ -17,14 +17,14 @@ type (
 	}
 
 	JSXNamespacedName struct {
-		Start     file.Idx
+		Start     file.Loc
 		Namespace string
 		Name      string
 	}
 
 	JSXFragment struct {
-		Start    file.Idx
-		End      file.Idx
+		Start    file.Loc
+		End      file.Loc
 		Children []JSXChild
 	}
 
@@ -38,7 +38,7 @@ type (
 	}
 
 	JSXSpreadAttribute struct {
-		Start      file.Idx
+		Start      file.Loc
 		Expression Expression
 	}
 
@@ -47,8 +47,8 @@ type (
 	}
 
 	JSXText struct {
-		Start file.Idx
-		End   file.Idx
+		Start file.Loc
+		End   file.Loc
 		Text  string
 	}
 
@@ -69,12 +69,12 @@ func (*JSXElement) _expressionNode()        {}
 func (*JSXFragment) _expressionNode()       {}
 func (*JSXNamespacedName) _expressionNode() {}
 
-func (j *JSXElement) StartAt() file.Idx        { return j.Start }
-func (j *JSXFragment) StartAt() file.Idx       { return j.Start }
-func (j *JSXNamespacedName) StartAt() file.Idx { return j.Start }
+func (j *JSXElement) StartAt() file.Loc        { return j.Start }
+func (j *JSXFragment) StartAt() file.Loc       { return j.Start }
+func (j *JSXNamespacedName) StartAt() file.Loc { return j.Start }
 
-func (j *JSXElement) EndAt() file.Idx  { return j.End }
-func (j *JSXFragment) EndAt() file.Idx { return j.End }
-func (j *JSXNamespacedName) EndAt() file.Idx {
-	return j.Start + file.Idx(len(j.Name)) + 1 + file.Idx(len(j.Namespace))
+func (j *JSXElement) EndAt() file.Loc  { return j.End }
+func (j *JSXFragment) EndAt() file.Loc { return j.End }
+func (j *JSXNamespacedName) EndAt() file.Loc {
+	return j.Start + file.Loc(len(j.Name)) + 1 + file.Loc(len(j.Namespace))
 }

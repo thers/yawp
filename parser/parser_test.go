@@ -36,7 +36,7 @@ func testParse(src string) (parser *Parser, program *ast.Program, err error) {
 			panic(tmp)
 		}
 	}()
-	parser = newParser("", src)
+	parser = newParser("", src, 1)
 	program, err = parser.parse()
 	return
 }
@@ -51,7 +51,7 @@ func TestParseFile(t *testing.T) {
 func TestParseFunction(t *testing.T) {
 	tt(t, func() {
 		test := func(prm, bdy string, expect interface{}) *ast.FunctionLiteral {
-			function, err := ParseFunction(prm, bdy)
+			function, err := ParseFunctionForTests(prm, bdy)
 			is(firstErr(err), expect)
 			return function
 		}
@@ -75,7 +75,7 @@ func TestParseFunction(t *testing.T) {
 func TestParserErr(t *testing.T) {
 	tt(t, func() {
 		test := func(input string, expect interface{}) (*ast.Program, *Parser) {
-			parser := newParser("", input)
+			parser := newParser("", input, 1)
 			program, err := parser.parse()
 			is(firstErr(err), expect)
 			return program, parser
@@ -541,12 +541,12 @@ func TestParser(t *testing.T) {
 
 		program = test(";", nil)
 		is(len(program.Body), 1)
-		is(program.Body[0].(*ast.EmptyStatement).Semicolon, file.Idx(1))
+		is(program.Body[0].(*ast.EmptyStatement).Semicolon, file.Loc(1))
 
 		program = test(";;", nil)
 		is(len(program.Body), 2)
-		is(program.Body[0].(*ast.EmptyStatement).Semicolon, file.Idx(1))
-		is(program.Body[1].(*ast.EmptyStatement).Semicolon, file.Idx(2))
+		is(program.Body[0].(*ast.EmptyStatement).Semicolon, file.Loc(1))
+		is(program.Body[1].(*ast.EmptyStatement).Semicolon, file.Loc(2))
 
 		program = test("1.2", nil)
 		is(len(program.Body), 1)
@@ -966,46 +966,24 @@ func Test_parseNumberLiteral(t *testing.T) {
 
 func TestPosition(t *testing.T) {
 	tt(t, func() {
-		parser := newParser("", "// Lorem ipsum")
+		parser := newParser("", "// Lorem ipsum", 1)
 
-		// Out of range, idx0 (error condition)
-		is(parser.slice(0, 1), "")
-		is(parser.slice(0, 10), "")
-
-		// Out of range, idx1 (error condition)
-		is(parser.slice(1, 128), "")
-
-		is(parser.str[0:0], "")
-		is(parser.slice(1, 1), "")
-
-		is(parser.str[0:1], "/")
-		is(parser.slice(1, 2), "/")
-
-		is(parser.str[0:14], "// Lorem ipsum")
-		is(parser.slice(1, 15), "// Lorem ipsum")
-
-		parser = newParser("", "(function(){ return 0; })")
+		parser = newParser("", "(function(){ return 0; })", 1)
 		program, err := parser.parse()
 		is(err, nil)
 
 		var node ast.Node
 		node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
-		is(node.StartAt(), file.Idx(2))
-		is(node.EndAt(), file.Idx(25))
-		is(parser.slice(node.StartAt(), node.EndAt()), "function(){ return 0; }")
-		is(parser.slice(node.StartAt(), node.EndAt()+1), "function(){ return 0; })")
-		is(parser.slice(node.StartAt(), node.EndAt()+2), "")
-		is(node.(*ast.FunctionLiteral).Source, "function(){ return 0; }")
+		is(node.StartAt(), file.Loc(2))
+		is(node.EndAt(), file.Loc(25))
 
 		node = program
-		is(node.StartAt(), file.Idx(2))
-		is(node.EndAt(), file.Idx(25))
-		is(parser.slice(node.StartAt(), node.EndAt()), "function(){ return 0; }")
+		is(node.StartAt(), file.Loc(2))
+		is(node.EndAt(), file.Loc(25))
 
-		parser = newParser("", "(function(){ return abc; })")
+		parser = newParser("", "(function(){ return abc; })", 1)
 		program, err = parser.parse()
 		is(err, nil)
 		node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
-		is(node.(*ast.FunctionLiteral).Source, "function(){ return abc; }")
 	})
 }

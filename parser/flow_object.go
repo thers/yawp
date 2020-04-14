@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Parser) parseFlowNamedObjectPropertyRemainder(
-	start file.Idx,
+	start file.Loc,
 	covariant,
 	contravariant bool,
 	name string,
@@ -42,7 +42,7 @@ func (p *Parser) parseFlowTypeVariance() (covariant, contravariant bool) {
 }
 
 func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
-	start := p.idx
+	start := p.loc
 
 	covariant, contravariant := p.parseFlowTypeVariance()
 	identifier := p.parseIdentifierIncludingKeywords()
@@ -74,7 +74,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 	}
 
 	for p.until(terminator) {
-		start := p.idx
+		start := p.loc
 
 		if p.isIdentifierOrKeyword() || p.isAny(token.PLUS, token.MINUS) {
 			prop := p.parseFlowNamedObjectProperty()
@@ -85,7 +85,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 
 			props = append(props, prop)
 		} else if p.is(token.DOTDOTDOT) {
-			idx := p.idx
+			idx := p.loc
 			p.next()
 
 			// inexact object specifier
@@ -117,7 +117,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 			}
 
 			if p.isIdentifierOrKeyword() {
-				isKeyword := p.isKeyword
+				isKeyword := p.tokenIsKeyword
 				identifier := p.parseIdentifierIncludingKeywords()
 
 				if identifier == nil {

@@ -61,7 +61,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.VAR, token.CONST, token.LET:
 		return p.parseVariableStatement()
 	case token.FUNCTION:
-		return p.parseFunction(true, p.idx, false)
+		return p.parseFunction(true, p.loc, false)
 	case token.SWITCH:
 		return p.parseSwitchStatement()
 	case token.RETURN:
@@ -92,7 +92,7 @@ func (p *Parser) parseStatement() ast.Statement {
 
 	if identifier, isIdentifier := expression.(*ast.Identifier); isIdentifier && p.is(token.COLON) {
 		// LabelledStatement
-		colon := p.idx
+		colon := p.loc
 		p.next() // :
 		label := identifier.Name
 		for _, value := range p.scope.labels {
@@ -225,7 +225,7 @@ func (p *Parser) parseWithStatement() ast.Statement {
 func (p *Parser) parseCaseStatement() *ast.CaseStatement {
 
 	node := &ast.CaseStatement{
-		Case: p.idx,
+		Case: p.loc,
 	}
 	if p.is(token.DEFAULT) {
 		p.next()
@@ -339,7 +339,7 @@ func (p *Parser) parseProgram() *ast.Program {
 }
 
 func (p *Parser) parseSourceMap() *sourcemap.Consumer {
-	lastLine := p.str[strings.LastIndexByte(p.str, '\n')+1:]
+	lastLine := p.src[strings.LastIndexByte(p.src, '\n')+1:]
 	if strings.HasPrefix(lastLine, "//# sourceMappingURL") {
 		urlIndex := strings.Index(lastLine, "=")
 		urlStr := lastLine[urlIndex+1:]
@@ -462,37 +462,4 @@ illegal:
 	p.error(idx, "Illegal continue statement")
 
 	return nil
-}
-
-// Find the next statement after an error (recover)
-func (p *Parser) nextStatement() {
-	for {
-		switch p.token {
-		case token.BREAK, token.CONTINUE,
-			token.FOR, token.IF, token.RETURN, token.SWITCH,
-			token.VAR, token.DO, token.TRY, token.WITH,
-			token.WHILE, token.THROW, token.CATCH, token.FINALLY:
-			// Return only if parser made some progress since last
-			// sync or if it has not reached 10 next calls without
-			// progress. Otherwise consume at least one token to
-			// avoid an endless parser loop
-			if p.idx == p.recover.idx && p.recover.count < 10 {
-				p.recover.count++
-				return
-			}
-			if p.idx > p.recover.idx {
-				p.recover.idx = p.idx
-				p.recover.count = 0
-				return
-			}
-			// Reaching here indicates a parser bug, likely an
-			// incorrect token list in this function, but it only
-			// leads to skipping of possibly correct code if a
-			// previous error is present, and thus is preferred
-			// over a non-terminating parse.
-		case token.EOF:
-			return
-		}
-		p.next()
-	}
 }

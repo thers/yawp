@@ -15,7 +15,7 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 
 func (p *Parser) currentIdentifier() *ast.Identifier {
 	return &ast.Identifier{
-		Start: p.idx,
+		Start: p.loc,
 		Name:  p.literal,
 	}
 }
@@ -23,7 +23,7 @@ func (p *Parser) currentIdentifier() *ast.Identifier {
 func (p *Parser) parseIdentifierIncludingKeywords() *ast.Identifier {
 	if matchIdentifier.MatchString(p.literal) {
 		literal := p.literal
-		idx := p.idx
+		idx := p.loc
 
 		p.next()
 
@@ -42,7 +42,7 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	if p.is(token.QUOTIENT_ASSIGN) {
 		offset -= 1 // =
 	}
-	idx := p.idxOf(offset)
+	idx := p.locOf(offset)
 
 	pattern, err := p.scanString(offset)
 	endOffset := p.chrOffset
@@ -65,7 +65,7 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 		p.next()
 	}
 
-	literal := p.str[offset:endOffset]
+	literal := p.src[offset:endOffset]
 
 	return &ast.RegExpLiteral{
 		Start:   idx,
@@ -75,7 +75,7 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	}
 }
 
-func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end file.Idx) {
+func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end file.Loc) {
 	start = p.consumeExpected(token.LEFT_PARENTHESIS)
 
 	for p.until(token.RIGHT_PARENTHESIS) {
@@ -157,7 +157,7 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 			break
 		}
 		tkn := p.token
-		idx := p.idx
+		idx := p.loc
 		p.next()
 		switch operand.(type) {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
@@ -182,7 +182,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		fallthrough
 	case token.DELETE, token.VOID, token.TYPEOF:
 		tkn := p.token
-		idx := p.idx
+		idx := p.loc
 		p.next()
 		return &ast.UnaryExpression{
 			Operator: tkn,
@@ -191,7 +191,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		}
 	case token.INCREMENT, token.DECREMENT:
 		tkn := p.token
-		idx := p.idx
+		idx := p.loc
 		p.next()
 		operand := p.parseUnaryExpression()
 		switch operand.(type) {

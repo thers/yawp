@@ -38,7 +38,7 @@ func (p *Parser) parseClassFieldName() ast.ClassFieldName {
 }
 
 func (p *Parser) parseClassBodyStatement() ast.Statement {
-	start := p.idx
+	start := p.loc
 	async := false
 	static := false
 	private := false
@@ -148,10 +148,8 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		}
 
 		body, _ := p.parseClassMethodBody(generator, async)
-		source := p.slice(start, body.EndAt())
 
 		method.Body = body
-		method.Source = source
 
 		return method
 	case token.SEMICOLON:

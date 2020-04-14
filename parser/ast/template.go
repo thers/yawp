@@ -4,8 +4,8 @@ import "yawp/parser/file"
 
 type (
 	TemplateExpression struct {
-		Start         file.Idx
-		End           file.Idx
+		Start         file.Loc
+		End           file.Loc
 		Strings       []string
 		Substitutions []Expression
 	}
@@ -19,8 +19,8 @@ type (
 func (*TemplateExpression) _expressionNode()       {}
 func (*TaggedTemplateExpression) _expressionNode() {}
 
-func (t *TemplateExpression) StartAt() file.Idx       { return t.Start }
-func (t *TaggedTemplateExpression) StartAt() file.Idx { return t.Tag.StartAt() }
+func (t *TemplateExpression) StartAt() file.Loc       { return t.Start }
+func (t *TaggedTemplateExpression) StartAt() file.Loc { return t.Tag.StartAt() }
 
-func (t *TemplateExpression) EndAt() file.Idx       { return t.End }
-func (t *TaggedTemplateExpression) EndAt() file.Idx { return t.Template.EndAt() }
+func (t *TemplateExpression) EndAt() file.Loc       { return t.End }
+func (t *TaggedTemplateExpression) EndAt() file.Loc { return t.Template.EndAt() }

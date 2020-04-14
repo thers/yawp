@@ -15,7 +15,7 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 }
 
 func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
-	start := p.idx
+	start := p.loc
 	partialState := p.captureState()
 
 	objectBinding, success := p.maybeParseObjectBinding()

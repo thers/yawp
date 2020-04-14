@@ -31,19 +31,19 @@ type (
 	}
 
 	ArrayBinding struct {
-		Start file.Idx
-		End   file.Idx
+		Start file.Loc
+		End   file.Loc
 		List  []PatternBinder
 	}
 
 	ObjectBinding struct {
-		Start file.Idx
-		End   file.Idx
+		Start file.Loc
+		End   file.Loc
 		List  []PatternBinder
 	}
 
 	VariableBinding struct {
-		Start       file.Idx
+		Start       file.Loc
 		Binder      PatternBinder
 		Initializer Expression
 		FlowType    FlowType
@@ -62,10 +62,10 @@ func (*ArrayBinding) _expressionNode()    {}
 func (*ObjectBinding) _expressionNode()   {}
 func (*VariableBinding) _expressionNode() {}
 
-func (s *ArrayBinding) StartAt() file.Idx    { return s.Start }
-func (s *ObjectBinding) StartAt() file.Idx   { return s.Start }
-func (s *VariableBinding) StartAt() file.Idx { return s.Start }
+func (s *ArrayBinding) StartAt() file.Loc    { return s.Start }
+func (s *ObjectBinding) StartAt() file.Loc   { return s.Start }
+func (s *VariableBinding) StartAt() file.Loc { return s.Start }
 
-func (s *ArrayBinding) EndAt() file.Idx    { return s.End }
-func (s *ObjectBinding) EndAt() file.Idx   { return s.End }
-func (s *VariableBinding) EndAt() file.Idx { return s.Initializer.EndAt() }
+func (s *ArrayBinding) EndAt() file.Loc    { return s.End }
+func (s *ObjectBinding) EndAt() file.Loc   { return s.End }
+func (s *VariableBinding) EndAt() file.Loc { return s.Initializer.EndAt() }

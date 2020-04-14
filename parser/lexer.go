@@ -89,7 +89,7 @@ func (p *Parser) scanIdentifier() (string, error) {
 		}
 		p.read()
 	}
-	literal := p.str[offset:p.chrOffset]
+	literal := p.src[offset:p.chrOffset]
 	if parse {
 		return parseStringLiteral(literal)
 	}
@@ -118,15 +118,15 @@ func isLineTerminator(chr rune) bool {
 	return false
 }
 
-func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
+func (p *Parser) scan() (tkn token.Token, literal string, idx file.Loc) {
 
-	p.isKeyword = false
+	p.tokenIsKeyword = false
 	p.implicitSemicolon = false
 
 	for {
 		p.skipWhiteSpace()
 
-		idx = p.idxOf(p.chrOffset)
+		idx = p.locOf(p.chrOffset)
 		insertSemicolon := false
 
 		switch chr := p.chr; {
@@ -142,7 +142,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				var strict bool
 				tkn, strict = token.IsKeyword(literal)
 
-				p.isKeyword = tkn > 0
+				p.tokenIsKeyword = tkn > 0
 
 				switch tkn {
 
@@ -482,7 +482,7 @@ func (p *Parser) switchAssignment6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3
 }
 
 func (p *Parser) chrAt(index int) _chr {
-	value, width := utf8.DecodeRuneInString(p.str[index:])
+	value, width := utf8.DecodeRuneInString(p.src[index:])
 	return _chr{
 		value: value,
 		width: width,
@@ -490,14 +490,14 @@ func (p *Parser) chrAt(index int) _chr {
 }
 
 func (p *Parser) _peek() rune {
-	if p.offset+1 < p.length {
-		return rune(p.str[p.offset+1])
+	if p.nextChrOffset+1 < p.length {
+		return rune(p.src[p.nextChrOffset+1])
 	}
 	return -1
 }
 
 type ParserStateSnapshot struct {
-	idx               file.Idx
+	idx               file.Loc
 	token             token.Token
 	errors            ErrorList
 	offset            int
@@ -511,10 +511,10 @@ type ParserStateSnapshot struct {
 
 func (p *Parser) captureState() *ParserStateSnapshot {
 	return &ParserStateSnapshot{
-		idx:               p.idx,
+		idx:               p.loc,
 		token:             p.token,
 		errors:            p.errors,
-		offset:            p.offset,
+		offset:            p.nextChrOffset,
 		chrOffset:         p.chrOffset,
 		nextChr:           p.chr,
 		literal:           p.literal,
@@ -525,10 +525,10 @@ func (p *Parser) captureState() *ParserStateSnapshot {
 }
 
 func (p *Parser) rewindStateTo(state *ParserStateSnapshot) {
-	p.idx = state.idx
+	p.loc = state.idx
 	p.token = state.token
 	p.errors = state.errors
-	p.offset = state.offset
+	p.nextChrOffset = state.offset
 	p.chrOffset = state.chrOffset
 	p.chr = state.nextChr
 	p.literal = state.literal
@@ -542,18 +542,18 @@ func (p *Parser) statesNeedsRewinding(ps *ParserStateSnapshot) bool {
 }
 
 func (p *Parser) read() {
-	p.parsedStr = p.str[0:p.offset]
+	p.parsedStr = p.src[0:p.nextChrOffset]
 
-	if p.offset < p.length {
-		p.chrOffset = p.offset
-		chr, width := rune(p.str[p.offset]), 1
+	if p.nextChrOffset < p.length {
+		p.chrOffset = p.nextChrOffset
+		chr, width := rune(p.src[p.nextChrOffset]), 1
 		if chr >= utf8.RuneSelf { // !ASCII
-			chr, width = utf8.DecodeRuneInString(p.str[p.offset:])
+			chr, width = utf8.DecodeRuneInString(p.src[p.nextChrOffset:])
 			if chr == utf8.RuneError && width == 1 {
 				p.error(p.chrOffset, "Invalid UTF-8 character")
 			}
 		}
-		p.offset += width
+		p.nextChrOffset += width
 		p.chr = chr
 	} else {
 		p.chrOffset = p.length
@@ -682,7 +682,7 @@ func (p *Parser) scanEscape(quote rune) {
 
 func (p *Parser) scanString(offset int) (string, error) {
 	// " '  /
-	quote := rune(p.str[offset])
+	quote := rune(p.src[offset])
 
 	for p.chr != quote {
 		chr := p.chr
@@ -711,14 +711,14 @@ func (p *Parser) scanString(offset int) (string, error) {
 	// " '  /
 	p.read()
 
-	return p.str[offset:p.chrOffset], nil
+	return p.src[offset:p.chrOffset], nil
 
 newline:
 	p.scanNewline()
 	err := "String not terminated"
 	if quote == '/' {
 		err = "Invalid regular expression: missing /"
-		p.error(p.idxOf(offset), err)
+		p.error(p.locOf(offset), err)
 	}
 	return "", errors.New(err)
 }
@@ -942,7 +942,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			if isDigit(p.chr, 16) {
 				p.read()
 			} else {
-				return token.ILLEGAL, p.str[offset:p.chrOffset]
+				return token.ILLEGAL, p.src[offset:p.chrOffset]
 			}
 			p.scanNumberRemainder(16)
 
@@ -958,7 +958,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			if isDigit(p.chr, 2) {
 				p.read()
 			} else {
-				return token.ILLEGAL, p.str[offset:p.chrOffset]
+				return token.ILLEGAL, p.src[offset:p.chrOffset]
 			}
 			p.scanNumberRemainder(2)
 
@@ -978,7 +978,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			}
 			p.scanNumberRemainder(8)
 			if p.chr == '8' || p.chr == '9' {
-				return token.ILLEGAL, p.str[offset:p.chrOffset]
+				return token.ILLEGAL, p.src[offset:p.chrOffset]
 			}
 			goto octal
 		}
@@ -1002,7 +1002,7 @@ exponent:
 			p.read()
 			p.scanNumberRemainder(10)
 		} else {
-			return token.ILLEGAL, p.str[offset:p.chrOffset]
+			return token.ILLEGAL, p.src[offset:p.chrOffset]
 		}
 	}
 
@@ -1010,8 +1010,8 @@ binary:
 hexadecimal:
 octal:
 	if isIdentifierStart(p.chr) || isDecimalDigit(p.chr) {
-		return token.ILLEGAL, p.str[offset:p.chrOffset]
+		return token.ILLEGAL, p.src[offset:p.chrOffset]
 	}
 
-	return tkn, p.str[offset:p.chrOffset]
+	return tkn, p.src[offset:p.chrOffset]
 }

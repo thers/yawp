@@ -11,7 +11,7 @@ func (p *Parser) parseTemplateExpression() *ast.TemplateExpression {
 		Substitutions: make([]ast.Expression, 0),
 	}
 
-	exp.Start = p.idx
+	exp.Start = p.loc
 
 	currentString := ""
 
@@ -67,7 +67,7 @@ func (p *Parser) parseTemplateExpression() *ast.TemplateExpression {
 	// reading past last ` so we can normally back to "tokens" mode
 	p.read()
 	exp.Strings = append(exp.Strings, currentString)
-	exp.End = p.idx
+	exp.End = p.loc
 
 	// advance to the next token
 	p.next()

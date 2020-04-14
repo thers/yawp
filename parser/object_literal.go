@@ -39,7 +39,7 @@ func (p *Parser) parseObjectPropertyFromShorthand(propertyName ast.ObjectPropert
 }
 
 func (p *Parser) parseObjectPropertyMethodShorthand(
-	start file.Idx,
+	start file.Loc,
 	async bool,
 	propertyName ast.ObjectPropertyName,
 ) *ast.ObjectPropertyValue {
@@ -58,7 +58,7 @@ func (p *Parser) parseObjectPropertyMethodShorthand(
 	}
 }
 
-func (p *Parser) parseObjectPropertyValue(start file.Idx, propertyName ast.ObjectPropertyName) *ast.ObjectPropertyValue {
+func (p *Parser) parseObjectPropertyValue(start file.Loc, propertyName ast.ObjectPropertyName) *ast.ObjectPropertyValue {
 	// Object function shorthand
 	if p.is(token.LEFT_PARENTHESIS) {
 		parameterList := p.parseFunctionParameterList()
@@ -68,7 +68,6 @@ func (p *Parser) parseObjectPropertyValue(start file.Idx, propertyName ast.Objec
 		}
 
 		p.parseFunctionBlock(functionLiteral)
-		functionLiteral.Source = p.slice(start, functionLiteral.Body.EndAt())
 
 		return &ast.ObjectPropertyValue{
 			PropertyName: propertyName,
@@ -117,13 +116,13 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 	// start with easy variants
 	switch p.token {
 	case token.NUMBER:
-		name, start := p.literal, p.idx
+		name, start := p.literal, p.loc
 		_, err := parseNumberLiteral(p.literal)
 		p.next()
 
 		if err != nil {
 			name = ""
-			p.error(p.idx, err.Error())
+			p.error(p.loc, err.Error())
 		}
 
 		propertyName = &ast.Identifier{
@@ -139,12 +138,12 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		}
 
 	case token.STRING:
-		start := p.idx
+		start := p.loc
 		name, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
 		p.next()
 
 		if err != nil {
-			p.error(p.idx, err.Error())
+			p.error(p.loc, err.Error())
 		}
 
 		propertyName = &ast.Identifier{
@@ -161,7 +160,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 
 	case token.LEFT_BRACKET:
 		// computed property name
-		start := p.idx
+		start := p.loc
 		propertyName = p.parseObjectPropertyComputedName()
 
 		property := p.parseObjectPropertyValue(start, propertyName)
@@ -184,7 +183,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		shouldConsumeNext := true
 
 		if p.literal == "get" || p.literal == "set" {
-			start, accessor := p.idx, p.literal
+			start, accessor := p.loc, p.literal
 
 			p.next()
 			shouldConsumeNext = false
@@ -215,7 +214,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 			}
 		}
 
-		start := p.idx
+		start := p.loc
 		propertyName = p.currentIdentifier()
 
 		if shouldConsumeNext {
@@ -275,24 +274,18 @@ func (p *Parser) parseObjectLiteral() *ast.ObjectLiteral {
 }
 
 func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
-	wasPatternBindingMode := p.patternBindingMode
-	p.patternBindingMode = true
-
 	defer func() {
-		p.patternBindingMode = wasPatternBindingMode
-
 		err := recover()
-
 		if err != nil {
 			return
 		}
 	}()
 
-	return p.parseObjectBinding(), p.patternBindingMode
+	return p.parseObjectBinding(), true
 }
 
 func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
-	start := p.idx
+	start := p.loc
 	partialState := p.captureState()
 
 	objectBinding, success := p.maybeParseObjectBinding()

@@ -17,8 +17,8 @@ type _RegExp_parser struct {
 	length int
 
 	chr       rune // The current character
-	chrOffset int  // The offset of current character
-	offset    int  // The offset after current character (may be greater than 1)
+	chrOffset int  // The nextChrOffset of current character
+	offset    int  // The nextChrOffset after current character (may be greater than 1)
 
 	errors  []error
 	invalid bool // The input is an invalid JavaScript RegExp
@@ -394,7 +394,7 @@ func (self *_RegExp_parser) pass() {
 	self.read()
 }
 
-// TODO Better error reporting, use the offset, etc.
+// TODO Better error reporting, use the nextChrOffset, etc.
 func (self *_RegExp_parser) error(offset int, msg string, msgValues ...interface{}) error {
 	err := fmt.Errorf(msg, msgValues...)
 	self.errors = append(self.errors, err)

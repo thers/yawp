@@ -8,7 +8,7 @@ type (
 	}
 
 	ClassExpression struct {
-		Start              file.Idx
+		Start              file.Loc
 		Name               *Identifier
 		TypeParameters     []*FlowTypeParameter
 		SuperClass         MemberExpression
@@ -17,8 +17,8 @@ type (
 	}
 
 	ClassSuperExpression struct {
-		Start     file.Idx
-		End       file.Idx
+		Start     file.Loc
+		End       file.Loc
 		Arguments []Expression
 	}
 
@@ -27,7 +27,7 @@ type (
 	}
 
 	ClassFieldStatement struct {
-		Start       file.Idx
+		Start       file.Loc
 		Name        ClassFieldName
 		Static      bool
 		Private     bool
@@ -36,14 +36,14 @@ type (
 	}
 
 	ClassAccessorStatement struct {
-		Start file.Idx
+		Start file.Loc
 		Field ClassFieldName
 		Kind  string
 		Body  *FunctionLiteral
 	}
 
 	ClassMethodStatement struct {
-		Method         file.Idx
+		Method         file.Loc
 		Name           ClassFieldName
 		Static         bool
 		Private        bool
@@ -53,7 +53,6 @@ type (
 		ReturnType     FlowType
 		Parameters     *FunctionParameters
 		Body           Statement
-		Source         string
 	}
 )
 
@@ -68,16 +67,16 @@ func (*ClassSuperExpression) _expressionNode() {}
 func (*Identifier) _classFieldName()   {}
 func (*ComputedName) _classFieldName() {}
 
-func (self *ClassStatement) StartAt() file.Idx         { return self.Expression.Start }
-func (self *ClassExpression) StartAt() file.Idx        { return self.Start }
-func (self *ClassSuperExpression) StartAt() file.Idx   { return self.Start }
-func (self *ClassFieldStatement) StartAt() file.Idx    { return self.Start }
-func (self *ClassAccessorStatement) StartAt() file.Idx { return self.Start }
-func (self *ClassMethodStatement) StartAt() file.Idx   { return self.Method }
+func (self *ClassStatement) StartAt() file.Loc         { return self.Expression.Start }
+func (self *ClassExpression) StartAt() file.Loc        { return self.Start }
+func (self *ClassSuperExpression) StartAt() file.Loc   { return self.Start }
+func (self *ClassFieldStatement) StartAt() file.Loc    { return self.Start }
+func (self *ClassAccessorStatement) StartAt() file.Loc { return self.Start }
+func (self *ClassMethodStatement) StartAt() file.Loc   { return self.Method }
 
-func (self *ClassStatement) EndAt() file.Idx         { return self.Expression.Body.EndAt() }
-func (self *ClassExpression) EndAt() file.Idx        { return self.Body.EndAt() }
-func (self *ClassSuperExpression) EndAt() file.Idx   { return self.End }
-func (self *ClassFieldStatement) EndAt() file.Idx    { return self.Initializer.EndAt() }
-func (self *ClassMethodStatement) EndAt() file.Idx   { return self.Body.EndAt() }
-func (self *ClassAccessorStatement) EndAt() file.Idx { return self.Body.EndAt() }
+func (self *ClassStatement) EndAt() file.Loc         { return self.Expression.Body.EndAt() }
+func (self *ClassExpression) EndAt() file.Loc        { return self.Body.EndAt() }
+func (self *ClassSuperExpression) EndAt() file.Loc   { return self.End }
+func (self *ClassFieldStatement) EndAt() file.Loc    { return self.Initializer.EndAt() }
+func (self *ClassMethodStatement) EndAt() file.Loc   { return self.Body.EndAt() }
+func (self *ClassAccessorStatement) EndAt() file.Loc { return self.Body.EndAt() }

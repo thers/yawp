@@ -39,24 +39,18 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 }
 
 func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
-	wasPatternBindingMode := p.patternBindingMode
-	p.patternBindingMode = true
-
 	defer func() {
-		p.patternBindingMode = wasPatternBindingMode
-
 		err := recover()
-
 		if err != nil {
 			return
 		}
 	}()
 
-	return p.parseArrayBinding(), p.patternBindingMode
+	return p.parseArrayBinding(), true
 }
 
 func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
-	start := p.idx
+	start := p.loc
 	partialState := p.captureState()
 
 	arrayBinding, success := p.maybeParseArrayBinding()

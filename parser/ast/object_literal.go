@@ -9,8 +9,8 @@ type (
 	}
 
 	ObjectLiteral struct {
-		LeftBrace  file.Idx
-		RightBrace file.Idx
+		LeftBrace  file.Loc
+		RightBrace file.Loc
 		Properties []ObjectProperty
 	}
 
@@ -52,6 +52,6 @@ func (*ObjectSpread) _objectProperty()         {}
 func (*Identifier) _objectPropertyName()   {}
 func (*ComputedName) _objectPropertyName() {}
 
-func (o *ObjectLiteral) StartAt() file.Idx { return o.LeftBrace }
+func (o *ObjectLiteral) StartAt() file.Loc { return o.LeftBrace }
 
-func (o *ObjectLiteral) EndAt() file.Idx { return o.RightBrace }
+func (o *ObjectLiteral) EndAt() file.Loc { return o.RightBrace }

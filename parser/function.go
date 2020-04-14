@@ -122,7 +122,7 @@ func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
 
 func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.FunctionParameter {
 	var parameter ast.FunctionParameter
-	start := p.idx
+	start := p.loc
 
 	// Rest parameter
 	if p.is(token.DOTDOTDOT) {
@@ -141,9 +141,9 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 			// object destructure
 			parameter = p.parseObjectDestructureParameter()
 		} else {
-			p.arrowFunctionMode = false
 			p.unexpectedToken()
-			p.next()
+
+			return nil
 		}
 	}
 
@@ -193,7 +193,7 @@ func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 	}
 }
 
-func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.FunctionLiteral {
+func (p *Parser) parseFunction(declaration bool, idx file.Loc, async bool) *ast.FunctionLiteral {
 	p.consumeExpected(token.FUNCTION)
 
 	generator := false
@@ -234,7 +234,6 @@ func (p *Parser) parseFunction(declaration bool, idx file.Idx, async bool) *ast.
 	}
 
 	p.parseFunctionBlock(node)
-	node.Source = p.slice(idx, node.EndAt())
 
 	return node
 }

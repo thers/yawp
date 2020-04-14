@@ -10,7 +10,7 @@ import (
 func TestLexerAdditions(t *testing.T) {
 	tt(t, func() {
 		setup := func(src string) *Parser {
-			parser := newParser("", src)
+			parser := newParser("", src, 1)
 			return parser
 		}
 
@@ -27,7 +27,7 @@ func TestLexerAdditions(t *testing.T) {
 					test = test[1:]
 				}
 				if len(test) > 0 {
-					is(idx, file.Idx(test[0].(int)))
+					is(idx, file.Loc(test[0].(int)))
 					test = test[1:]
 				}
 			}
@@ -169,7 +169,7 @@ func TestLexerAdditions(t *testing.T) {
 func TestLexer(t *testing.T) {
 	tt(t, func() {
 		setup := func(src string) *Parser {
-			parser := newParser("", src)
+			parser := newParser("", src, 1)
 			return parser
 		}
 
@@ -187,7 +187,7 @@ func TestLexer(t *testing.T) {
 				}
 				if len(test) > 0 {
 					// FIXME terst, Fix this so that cast to file.Start is not necessary?
-					is(idx, file.Idx(test[0].(int)))
+					is(idx, file.Loc(test[0].(int)))
 					test = test[1:]
 				}
 			}

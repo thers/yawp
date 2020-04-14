@@ -17,7 +17,7 @@ func (p *Parser) parseFlowInterfaceMethodParts() ([]interface{}, ast.FlowType) {
 
 func (p *Parser) parseFlowInterfaceMethod() *ast.FlowInterfaceMethod {
 	method := &ast.FlowInterfaceMethod{
-		Start: p.idx,
+		Start: p.loc,
 	}
 
 	if p.is(token.LESS) {
@@ -30,7 +30,7 @@ func (p *Parser) parseFlowInterfaceMethod() *ast.FlowInterfaceMethod {
 }
 
 func (p *Parser) parseFlowInterfaceBodyStatement() ast.FlowInterfaceBodyStatement {
-	start := p.idx
+	start := p.loc
 	covariant, contravariant := p.parseFlowTypeVariance()
 	isTypeParameters := p.token == token.LESS
 

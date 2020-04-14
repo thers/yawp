@@ -70,14 +70,14 @@ func (self Error) Error() string {
 }
 
 func (p *Parser) error(place interface{}, msg string, msgValues ...interface{}) *Error {
-	idx := file.Idx(0)
+	idx := file.Loc(0)
 
 	switch place := place.(type) {
 	case int:
-		idx = p.idxOf(place)
-	case file.Idx:
+		idx = p.locOf(place)
+	case file.Loc:
 		if place == 0 {
-			idx = p.idxOf(p.chrOffset)
+			idx = p.locOf(p.chrOffset)
 		} else {
 			idx = place
 		}
@@ -94,7 +94,7 @@ func (p *Parser) error(place interface{}, msg string, msgValues ...interface{}) 
 	return p.errors[len(p.errors)-1]
 }
 
-func (p *Parser) errorUnexpected(idx file.Idx, chr rune) error {
+func (p *Parser) errorUnexpected(idx file.Loc, chr rune) error {
 	if chr == -1 {
 		return p.error(idx, err_UnexpectedEndOfInput)
 	}
@@ -102,25 +102,37 @@ func (p *Parser) errorUnexpected(idx file.Idx, chr rune) error {
 }
 
 func (p *Parser) errorUnexpectedToken(tkn token.Token) error {
+	return p.errorUnexpectedTokenAt(tkn, p.loc)
+}
+
+func (p *Parser) errorUnexpectedTokenAt(tkn token.Token, at file.Loc) error {
 	switch tkn {
 	case token.EOF:
-		return p.error(file.Idx(0), err_UnexpectedEndOfInput)
+		return p.error(file.Loc(0), err_UnexpectedEndOfInput)
 	}
 	value := tkn.String()
 	switch tkn {
 	case token.BOOLEAN, token.NULL:
 		value = p.literal
 	case token.IDENTIFIER:
-		return p.error(p.idx, "Unexpected identifier")
+		return p.error(at, "Unexpected identifier")
 	case token.KEYWORD:
 		// TODO Might be a future reserved word
-		return p.error(p.idx, "Unexpected reserved word")
+		return p.error(at, "Unexpected reserved word")
 	case token.NUMBER:
-		return p.error(p.idx, "Unexpected number")
+		return p.error(at, "Unexpected number")
 	case token.STRING:
-		return p.error(p.idx, "Unexpected string")
+		return p.error(at, "Unexpected string")
 	}
-	return p.error(p.idx, err_UnexpectedToken, value)
+	return p.error(at, err_UnexpectedToken, value)
+}
+
+func (p *Parser) unexpectedToken() {
+	p.errorUnexpectedToken(p.token)
+}
+
+func (p *Parser) unexpectedTokenAt(at file.Loc) {
+	p.errorUnexpectedTokenAt(p.token, at)
 }
 
 // ErrorList is a list of *Errors.

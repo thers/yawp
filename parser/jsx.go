@@ -13,13 +13,13 @@ func areElementNamesEqual(a, b *ast.JSXElementName) bool {
 func (p *Parser) parseString() *ast.StringLiteral {
 	value, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
 	if err != nil {
-		p.error(p.idx, err.Error())
+		p.error(p.loc, err.Error())
 	}
 
 	p.next()
 
 	return &ast.StringLiteral{
-		Start:   p.idx,
+		Start:   p.loc,
 		Literal: p.literal,
 		Value:   value,
 	}
@@ -102,7 +102,7 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 
 	// parsing text
 	start := p.jsxTextParseFrom
-	text := p.str[start:p.chrOffset]
+	text := p.src[start:p.chrOffset]
 	for p.chr != '<' && p.chr != '{' && p.chr != -1 {
 		text += string(p.chr)
 		p.read()
@@ -113,8 +113,8 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 	p.next()
 
 	return &ast.JSXText{
-		Start: file.Idx(start),
-		End:   p.idx,
+		Start: file.Loc(start),
+		End:   p.loc,
 		Text:  text,
 	}
 }
@@ -224,7 +224,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	}
 
 	p.consumeExpected(token.JSX_TAG_CLOSE)
-	closeElementNamePos := p.idx
+	closeElementNamePos := p.loc
 	closeElementName := p.parseJSXElementName()
 
 	if !areElementNamesEqual(elm.Name, closeElementName) {
@@ -242,7 +242,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	partialState := p.captureState()
 	errorsCount := len(p.errors)
-	start := p.idx
+	start := p.loc
 
 	// first try to parse as jsx
 	p.genericTypeParametersMode = true

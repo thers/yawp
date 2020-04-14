@@ -4,7 +4,7 @@ import "yawp/parser/file"
 
 type (
 	FunctionLiteral struct {
-		Start          file.Idx
+		Start          file.Loc
 		Async          bool
 		Generator      bool
 		Name           *Identifier
@@ -12,7 +12,6 @@ type (
 		ReturnType     FlowType
 		Parameters     *FunctionParameters
 		Body           Statement
-		Source         string
 
 		DeclarationList []Declaration
 	}
@@ -61,9 +60,9 @@ type (
 func (*FunctionLiteral) _expressionNode() {}
 func (*FunctionLiteral) _statementNode()  {}
 
-func (f *FunctionLiteral) StartAt() file.Idx { return f.Start }
+func (f *FunctionLiteral) StartAt() file.Loc { return f.Start }
 
-func (f *FunctionLiteral) EndAt() file.Idx { return f.Body.EndAt() }
+func (f *FunctionLiteral) EndAt() file.Loc { return f.Body.EndAt() }
 
 func (ip *IdentifierParameter) GetDefaultValue() Expression     { return ip.DefaultValue }
 func (rp *RestParameter) GetDefaultValue() Expression           { return nil }
