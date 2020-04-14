@@ -22,9 +22,9 @@ func (p *Parser) parseTryStatement() ast.Statement {
 			p.consumeExpected(token.LEFT_PARENTHESIS)
 
 			if !p.is(token.IDENTIFIER) {
-				p.consumeExpected(token.IDENTIFIER)
-				p.nextStatement()
-				return &ast.BadStatement{From: catch, To: p.idx}
+				p.unexpectedToken()
+
+				return nil
 			} else {
 				parameter = p.parseIdentifier()
 				p.consumeExpected(token.RIGHT_PARENTHESIS)
@@ -45,7 +45,8 @@ func (p *Parser) parseTryStatement() ast.Statement {
 
 	if node.Catch == nil && node.Finally == nil {
 		p.error(node.Try, "Missing catch or finally after try")
-		return &ast.BadStatement{From: node.Try, To: node.Body.EndAt()}
+
+		return nil
 	}
 
 	return node

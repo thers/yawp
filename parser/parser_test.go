@@ -81,20 +81,6 @@ func TestParserErr(t *testing.T) {
 			return program, parser
 		}
 
-		program, parser := test("", nil)
-
-		program, parser = test(`
-        var abc;
-        break; do {
-        } while(true);
-    `, "(anonymous): Line 3:9 Illegal break statement")
-		{
-			stmt := program.Body[1].(*ast.BadStatement)
-			is(parser.position(stmt.From).Column, 9)
-			is(parser.position(stmt.To).Column, 16)
-			is(parser.slice(stmt.From, stmt.To), "break; ")
-		}
-
 		test("{", "(anonymous): Line 1:2 Unexpected end of input")
 
 		test("}", "(anonymous): Line 1:1 Unexpected token }")

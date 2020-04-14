@@ -10,5 +10,3 @@ type (
 func (d *DotExpression) _memberExpressionNode()     {}
 func (b *BracketExpression) _memberExpressionNode() {}
 func (i *Identifier) _memberExpressionNode()        {}
-
-func (b *BadExpression) _memberExpressionNode() {}

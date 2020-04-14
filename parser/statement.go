@@ -26,10 +26,9 @@ func (p *Parser) parseStatementList() (list []ast.Statement) {
 }
 
 func (p *Parser) parseStatement() ast.Statement {
-
 	if p.is(token.EOF) {
-		p.errorUnexpectedToken(p.token)
-		return &ast.BadStatement{From: p.idx, To: p.idx + 1}
+		p.unexpectedToken()
+		return nil
 	}
 
 	if p.scope.inModuleRoot() {
@@ -161,8 +160,8 @@ func (p *Parser) parseThrowStatement() ast.Statement {
 		} else {
 			p.error(idx, "Illegal newline after throw")
 		}
-		p.nextStatement()
-		return &ast.BadStatement{From: idx, To: p.idx}
+
+		return nil
 	}
 
 	node := &ast.ThrowStatement{
@@ -401,7 +400,8 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 		identifier := p.parseIdentifier()
 		if !p.scope.hasLabel(identifier.Name) {
 			p.error(idx, "Undefined label '%s'", identifier.Name)
-			return &ast.BadStatement{From: idx, To: identifier.EndAt()}
+
+			return nil
 		}
 		p.semicolon()
 		return &ast.BranchStatement{
@@ -415,8 +415,8 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 
 illegal:
 	p.error(idx, "Illegal break statement")
-	p.nextStatement()
-	return &ast.BadStatement{From: idx, To: p.idx}
+
+	return nil
 }
 
 func (p *Parser) parseContinueStatement() ast.Statement {
@@ -442,7 +442,8 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 		identifier := p.parseIdentifier()
 		if !p.scope.hasLabel(identifier.Name) {
 			p.error(idx, "Undefined label '%s'", identifier.Name)
-			return &ast.BadStatement{From: idx, To: identifier.EndAt()}
+
+			return nil
 		}
 		if !p.scope.inIteration {
 			goto illegal
@@ -459,8 +460,8 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 
 illegal:
 	p.error(idx, "Illegal continue statement")
-	p.nextStatement()
-	return &ast.BadStatement{From: idx, To: p.idx}
+
+	return nil
 }
 
 // Find the next statement after an error (recover)

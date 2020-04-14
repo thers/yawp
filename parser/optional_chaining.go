@@ -6,8 +6,7 @@ import (
 )
 
 func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
-	optionalChaining := p.consumeExpected(token.OPTIONAL_CHAINING)
-
+	start := p.consumeExpected(token.OPTIONAL_CHAINING)
 	identifier := p.parseIdentifierIncludingKeywords()
 
 	if identifier == nil {
@@ -32,13 +31,7 @@ func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
 				End:       end,
 			}
 		default:
-			p.consumeExpected(token.IDENTIFIER)
-			p.nextStatement()
-
-			return &ast.BadExpression{
-				From: optionalChaining,
-				To:   p.idx,
-			}
+			p.error(start, "Unexpected token")
 		}
 	}
 

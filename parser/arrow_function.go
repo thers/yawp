@@ -125,7 +125,8 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx, st *ParserStateSnapsho
 	if p.is(token.IDENTIFIER) {
 		if typeParameters != nil {
 			p.error(p.idx, "Parenthesis required around generic arrow function parameters")
-			goto End
+
+			return nil
 		}
 
 		identifier := p.parseIdentifier()
@@ -175,9 +176,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Idx, st *ParserStateSnapsho
 		}
 	}
 
-End:
-	return &ast.BadExpression{
-		From: idx,
-		To:   p.idx,
-	}
+	p.unexpectedToken()
+
+	return nil
 }

@@ -57,9 +57,9 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	}
 
 	if !p.is(token.IDENTIFIER) {
-		idx := p.consumeExpected(token.IDENTIFIER)
-		p.nextStatement()
-		return &ast.BadExpression{From: idx, To: p.idx}
+		p.unexpectedToken()
+
+		return nil
 	}
 
 	literal := p.literal

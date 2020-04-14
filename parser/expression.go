@@ -107,7 +107,7 @@ func (p *Parser) parseCallExpression(left ast.Expression, typeArguments []ast.Fl
 }
 
 func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
-	period := p.consumeExpected(token.PERIOD)
+	p.consumeExpected(token.PERIOD)
 
 	// this.#bla
 	if p.is(token.HASH) && p.scope.inClass {
@@ -124,9 +124,9 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	identifier := p.parseIdentifierIncludingKeywords()
 
 	if identifier == nil {
-		p.consumeExpected(token.IDENTIFIER)
-		p.nextStatement()
-		return &ast.BadExpression{From: period, To: p.idx}
+		p.unexpectedToken()
+
+		return nil
 	}
 
 	return &ast.DotExpression{
@@ -163,8 +163,6 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
 		default:
 			p.error(idx, "Invalid left-hand side in assignment")
-			p.nextStatement()
-			return &ast.BadExpression{From: idx, To: p.idx}
 		}
 		return &ast.UnaryExpression{
 			Operator: tkn,
@@ -200,8 +198,6 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
 		default:
 			p.error(idx, "Invalid left-hand side in assignment")
-			p.nextStatement()
-			return &ast.BadExpression{From: idx, To: p.idx}
 		}
 		return &ast.UnaryExpression{
 			Operator: tkn,

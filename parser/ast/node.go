@@ -38,11 +38,6 @@ type (
 		Right    Expression
 	}
 
-	BadExpression struct {
-		From file.Idx
-		To   file.Idx
-	}
-
 	BinaryExpression struct {
 		Operator   token.Token
 		Left       Expression
@@ -177,7 +172,6 @@ type (
 // _expressionNode
 
 func (*AssignExpression) _expressionNode()        {}
-func (*BadExpression) _expressionNode()           {}
 func (*BinaryExpression) _expressionNode()        {}
 func (*BooleanLiteral) _expressionNode()          {}
 func (*BracketExpression) _expressionNode()       {}
@@ -206,11 +200,6 @@ type (
 	Statement interface {
 		Node
 		_statementNode()
-	}
-
-	BadStatement struct {
-		From file.Idx
-		To   file.Idx
 	}
 
 	BlockStatement struct {
@@ -313,7 +302,6 @@ type (
 
 // _statementNode
 
-func (*BadStatement) _statementNode()        {}
 func (*BlockStatement) _statementNode()      {}
 func (*BranchStatement) _statementNode()     {}
 func (*CaseStatement) _statementNode()       {}
@@ -383,7 +371,6 @@ type Program struct {
 // ==== //
 
 func (self *AssignExpression) StartAt() file.Idx        { return self.Left.StartAt() }
-func (self *BadExpression) StartAt() file.Idx           { return self.From }
 func (self *BinaryExpression) StartAt() file.Idx        { return self.Left.StartAt() }
 func (self *BooleanLiteral) StartAt() file.Idx          { return self.Start }
 func (self *BracketExpression) StartAt() file.Idx       { return self.Left.StartAt() }
@@ -403,7 +390,6 @@ func (self *ArrowFunctionExpression) StartAt() file.Idx { return self.Start }
 func (self *AwaitExpression) StartAt() file.Idx         { return self.Start }
 func (self *SpreadExpression) StartAt() file.Idx        { return self.Start }
 
-func (self *BadStatement) StartAt() file.Idx        { return self.From }
 func (self *BlockStatement) StartAt() file.Idx      { return self.LeftBrace }
 func (self *BranchStatement) StartAt() file.Idx     { return self.Idx }
 func (self *CaseStatement) StartAt() file.Idx       { return self.Case }
@@ -428,7 +414,6 @@ func (self *WithStatement) StartAt() file.Idx       { return self.With }
 // ==== //
 
 func (self *AssignExpression) EndAt() file.Idx   { return self.Right.EndAt() }
-func (self *BadExpression) EndAt() file.Idx      { return self.To }
 func (self *BinaryExpression) EndAt() file.Idx   { return self.Right.EndAt() }
 func (self *BooleanLiteral) EndAt() file.Idx     { return file.Idx(int(self.Start) + len(self.Literal)) }
 func (self *BracketExpression) EndAt() file.Idx  { return self.RightBracket + 1 }
@@ -458,7 +443,6 @@ func (self *ArrowFunctionExpression) EndAt() file.Idx { return self.Body.EndAt()
 func (self *AwaitExpression) EndAt() file.Idx         { return self.Expression.EndAt() }
 func (self *SpreadExpression) EndAt() file.Idx        { return self.Value.EndAt() }
 
-func (self *BadStatement) EndAt() file.Idx        { return self.To }
 func (self *BlockStatement) EndAt() file.Idx      { return self.RightBrace + 1 }
 func (self *BranchStatement) EndAt() file.Idx     { return self.Idx }
 func (self *CaseStatement) EndAt() file.Idx       { return self.Consequent[len(self.Consequent)-1].EndAt() }

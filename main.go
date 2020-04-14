@@ -41,8 +41,8 @@ func main() {
 	throughput := float64((len(src)/1024.0)/1024.0)/timeTaken.Seconds()
 
 	fmt.Printf("time taken: %s\n", time.Since(start))
-	fmt.Printf("throughput: %fms\n", throughput)
-	fmt.Printf("ast: %d", ast)
+	fmt.Printf("throughput: %fMB/s\n", throughput)
+	fmt.Println(len(ast.Body))
 
 	return
 }

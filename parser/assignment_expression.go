@@ -40,7 +40,6 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 	}
 
 	if operator != 0 {
-		idx := p.idx
 		p.next()
 
 		switch left.(type) {
@@ -48,8 +47,6 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 			// these are the only valid types of left expression
 		default:
 			p.error(left.StartAt(), "Invalid left-hand side in assignment")
-			p.nextStatement()
-			return &ast.BadExpression{From: idx, To: p.idx}
 		}
 
 		return &ast.AssignExpression{

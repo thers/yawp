@@ -71,6 +71,7 @@ func (self Error) Error() string {
 
 func (p *Parser) error(place interface{}, msg string, msgValues ...interface{}) *Error {
 	idx := file.Idx(0)
+
 	switch place := place.(type) {
 	case int:
 		idx = p.idxOf(place)

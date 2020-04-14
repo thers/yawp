@@ -17,20 +17,18 @@ func (p *Parser) parseMemberExpression() ast.MemberExpression {
 			left, ok = dotMember.(ast.MemberExpression)
 
 			if !ok {
-				return &ast.BadExpression{
-					From: left.StartAt(),
-					To:   left.EndAt(),
-				}
+				p.error(left.StartAt(), "Invalid member expression dot prefix")
+
+				return nil
 			}
 		} else if p.is(token.LEFT_BRACKET) {
 			bracketMember := p.parseBracketMember(left)
 			left, ok = bracketMember.(ast.MemberExpression)
 
 			if !ok {
-				return &ast.BadExpression{
-					From: left.StartAt(),
-					To:   left.EndAt(),
-				}
+				p.error(bracketMember.StartAt(), "Invalid member expression")
+
+				return nil
 			}
 		} else {
 			break

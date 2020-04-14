@@ -10,8 +10,6 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 
 	if !p.scope.inFunction {
 		p.error(idx, "Illegal return statement")
-		p.nextStatement()
-		return &ast.BadStatement{From: idx, To: p.idx}
 	}
 
 	node := &ast.ReturnStatement{

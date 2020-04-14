@@ -16,10 +16,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		if !p.scope.inClass && !p.scope.inFunction {
 			p.error(start, "illegal use of super keyword")
 
-			return &ast.BadExpression{
-				From: start,
-				To:   start,
-			}
+			return nil
 		}
 
 		p.next()
@@ -125,6 +122,6 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	}
 
 	p.errorUnexpectedToken(p.token)
-	p.nextStatement()
-	return &ast.BadExpression{From: idx, To: p.idx}
+
+	return nil
 }

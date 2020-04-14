@@ -117,19 +117,17 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 	}
 
 	if left == nil {
-		return &ast.BadStatement{
-			From: start,
-			To:   p.idx,
-		}
+		p.error(start, "Invalid for statement initializer")
+
+		return nil
 	}
 
 	intoVar := left[0]
 
 	if intoVar == nil {
-		return &ast.BadStatement{
-			From: start,
-			To:   p.idx,
-		}
+		p.error(start, "Invalid for statement initializer")
+
+		return nil
 	}
 
 	if forIn || forOf {
@@ -142,8 +140,6 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 			// These are all acceptable
 		default:
 			p.error(start, "Invalid left-hand side in for-in")
-			p.nextStatement()
-			return &ast.BadStatement{From: start, To: p.idx}
 		}
 
 		if forIn {
