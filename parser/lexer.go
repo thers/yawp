@@ -354,7 +354,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, loc file.Idx) {
 					tkn = token.ILLEGAL
 				}
 			default:
-				p.errorUnexpected(loc, chr)
+				p.errorUnexpected(p.loc(), chr)
 				tkn = token.ILLEGAL
 			}
 		}
@@ -387,7 +387,7 @@ func (p *Parser) read() {
 		if chr >= utf8.RuneSelf { // !ASCII
 			chr, width = utf8.DecodeRuneInString(p.src[p.nextChrOffset:])
 			if chr == utf8.RuneError && width == 1 {
-				p.error(p.chrOffset, "Invalid UTF-8 character")
+				p.error(p.loc(), "Invalid UTF-8 character")
 			}
 		}
 		p.col += width
@@ -440,7 +440,7 @@ func (p *Parser) skipMultiLineComment() {
 		}
 	}
 
-	p.errorUnexpected(0, p.chr)
+	p.errorUnexpected(p.loc(), p.chr)
 }
 
 func (p *Parser) skipWhiteSpace() {
@@ -559,7 +559,7 @@ newline:
 	err := "String not terminated"
 	if quote == '/' {
 		err = "Invalid regular expression: missing /"
-		p.error(p.locOf(offset), err)
+		p.error(p.loc(), err)
 	}
 	return "", errors.New(err)
 }
@@ -639,7 +639,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 
 			if p.chrOffset-offset <= 2 {
 				// Only "0x" or "0X"
-				p.error(0, "Illegal hexadecimal number")
+				p.error(p.loc(), "Illegal hexadecimal number")
 			}
 
 			goto hexadecimal
@@ -655,7 +655,7 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 
 			if p.chrOffset-offset <= 2 {
 				// Only "0b" or "0B"
-				p.error(0, "Illegal binary number")
+				p.error(p.loc(), "Illegal binary number")
 			}
 
 			goto binary

@@ -6,17 +6,12 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) maybeParseArrowFunctionParameterList() (*ast.FunctionParameters, bool) {
+func (p *Parser) maybeParseArrowFunctionParameterList() *ast.FunctionParameters {
 	defer func() {
-		err := recover()
-		if err != nil {
-			return
-		}
+		_ = recover()
 	}()
 
-	params := p.parseFunctionParameterList()
-
-	return params, true
+	return p.parseFunctionParameterList()
 }
 
 func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
@@ -67,16 +62,14 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 }
 
 func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expression {
-	partialState := p.captureState()
+	snapshot := p.snapshot()
 
 	// First try to parse as arrow function parameters list
-	parameters, success := p.maybeParseArrowFunctionParameterList()
+	parameters := p.maybeParseArrowFunctionParameterList()
 	var returnType ast.FlowType
 
-	success = success && len(partialState.errors) == len(p.errors)
-
 	// may be also arrow fn return type or type assertion
-	if success && p.is(token.COLON) {
+	if parameters != nil && p.is(token.COLON) {
 		wasForbidden := p.forbidUnparenthesizedFunctionType
 		p.forbidUnparenthesizedFunctionType = true
 		returnType = p.parseFlowTypeAnnotation()
@@ -85,7 +78,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 
 	// If no errors occurred while parsing parameters
 	// And next token is => then it's an arrow function
-	if success && p.is(token.ARROW) {
+	if parameters != nil && p.is(token.ARROW) {
 		p.next()
 		return &ast.ArrowFunctionExpression{
 			Loc:        parameters.Loc,
@@ -98,7 +91,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 
 	// It's a sequence expression or flow type assertion
 	// restoring parser state like we didn't do shit
-	p.rewindStateTo(partialState)
+	p.toSnapshot(snapshot)
 
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	wasAllowTypeAssertion := p.scope.allowTypeAssertion
@@ -109,7 +102,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	return expression
 }
 
-func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserStateSnapshot) ast.Expression {
+func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) ast.Expression {
 	var typeParameters []*ast.FlowTypeParameter
 
 	if p.is(token.LESS) {
@@ -154,7 +147,7 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserStateSnapsh
 
 		// may be async(bla) fn call
 		if !p.is(token.ARROW) {
-			p.rewindStateTo(st)
+			p.toSnapshot(st)
 			p.token = token.IDENTIFIER
 
 			return p.parseAssignmentExpression()

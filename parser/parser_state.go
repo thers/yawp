@@ -5,10 +5,9 @@ import (
 	"yawp/parser/token"
 )
 
-type ParserStateSnapshot struct {
+type ParserSnapshot struct {
 	idx               file.Idx
 	token             token.Token
-	errors            ErrorList
 	offset            int
 	chrOffset         int
 	nextChr           rune
@@ -18,11 +17,10 @@ type ParserStateSnapshot struct {
 	implicitSemicolon bool
 }
 
-func (p *Parser) captureState() *ParserStateSnapshot {
-	return &ParserStateSnapshot{
+func (p *Parser) snapshot() *ParserSnapshot {
+	return &ParserSnapshot{
 		idx:               p.idx,
 		token:             p.token,
-		errors:            p.errors,
 		offset:            p.nextChrOffset,
 		chrOffset:         p.chrOffset,
 		nextChr:           p.chr,
@@ -33,10 +31,9 @@ func (p *Parser) captureState() *ParserStateSnapshot {
 	}
 }
 
-func (p *Parser) rewindStateTo(state *ParserStateSnapshot) {
+func (p *Parser) toSnapshot(state *ParserSnapshot) {
 	p.idx = state.idx
 	p.token = state.token
-	p.errors = state.errors
 	p.nextChrOffset = state.offset
 	p.chrOffset = state.chrOffset
 	p.chr = state.nextChr
@@ -45,8 +42,3 @@ func (p *Parser) rewindStateTo(state *ParserStateSnapshot) {
 	p.insertSemicolon = state.insertSemicolon
 	p.implicitSemicolon = state.implicitSemicolon
 }
-
-func (p *Parser) statesNeedsRewinding(ps *ParserStateSnapshot) bool {
-	return len(ps.errors) != len(p.errors)
-}
-

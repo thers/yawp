@@ -51,7 +51,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 
 			parameter.DefaultValue = p.parseFlowType()
 		} else if defaultValueRequired {
-			p.error(p.idx, "Default value required")
+			p.error(p.loc(), "Default value required")
 		}
 
 		p.consumePossible(token.COMMA)
@@ -102,11 +102,7 @@ func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
 
 func (p *Parser) tryParseFlowTypeArguments() []ast.FlowType {
 	defer func() {
-		err := recover()
-
-		if err != nil {
-			return
-		}
+		_ = recover()
 	}()
 
 	return p.parseFlowTypeArguments()

@@ -19,7 +19,7 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 
 func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
 	loc := p.loc()
-	partialState := p.captureState()
+	snapshot := p.snapshot()
 
 	objectBinding, success := p.maybeParseObjectBinding()
 
@@ -35,7 +35,7 @@ func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
 		}
 	}
 
-	p.rewindStateTo(partialState)
+	p.toSnapshot(snapshot)
 
 	return p.parseBlockStatement()
 }

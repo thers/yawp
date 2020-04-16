@@ -40,7 +40,7 @@ type Parser struct {
 
 	jsxTextParseFrom int
 
-	errors ErrorList
+	err error
 
 	file *file.File
 }
@@ -117,7 +117,7 @@ func (p *Parser) parse() (*ast.Program, error) {
 	p.next()
 	program := p.parseProgram()
 
-	return program, p.errors.Err()
+	return program, p.err
 }
 
 func (p *Parser) next() (idx file.Idx) {

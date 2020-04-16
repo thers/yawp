@@ -278,7 +278,7 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 
 func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
 	loc := p.loc()
-	partialState := p.captureState()
+	snapshot := p.snapshot()
 
 	objectBinding, success := p.maybeParseObjectBinding()
 
@@ -292,7 +292,7 @@ func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
 		}
 	}
 
-	p.rewindStateTo(partialState)
+	p.toSnapshot(snapshot)
 
 	return p.parseObjectLiteral()
 }

@@ -54,7 +54,7 @@ func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
 
 func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
 	loc := p.loc()
-	partialState := p.captureState()
+	snapshot := p.snapshot()
 
 	arrayBinding, success := p.maybeParseArrayBinding()
 
@@ -68,7 +68,7 @@ func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
 		}
 	}
 
-	p.rewindStateTo(partialState)
+	p.toSnapshot(snapshot)
 
 	return p.parseArrayLiteral()
 }

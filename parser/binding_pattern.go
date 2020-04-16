@@ -60,7 +60,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 			DefaultValue: nil,
 		}
 
-		propertyIdx := p.idx
+		propertyLoc := p.loc()
 		propertyName := p.parseIdentifierIncludingKeywords()
 
 		if propertyName == nil {
@@ -79,7 +79,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 			_, isKeyword := token.IsKeyword(propertyName.Name)
 
 			if isKeyword {
-				p.unexpectedTokenAt(propertyIdx)
+				p.unexpectedTokenAt(propertyLoc)
 
 				return nil
 			} else {

@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"runtime/pprof"
 	"time"
 	"yawp/parser"
 )
@@ -23,12 +21,12 @@ func main() {
 
 	src, _ := ioutil.ReadFile(filename)
 
-	f, err := os.Create("main.perf")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+	//f, err := os.Create("main.perf")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//pprof.StartCPUProfile(f)
+	//defer pprof.StopCPUProfile()
 
 	start := time.Now()
 	ast, err := parser.ParseFile(nil, filename, src)

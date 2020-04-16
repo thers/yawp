@@ -118,7 +118,7 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 
 	if p.is(token.COMMA) {
 		if !stmt.HasDefaultClause {
-			p.error(p.idx, "Can not use multiple import clauses when first one isn't default")
+			p.error(p.loc(), "Can not use multiple import clauses when first one isn't default")
 		} else {
 			p.next()
 

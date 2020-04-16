@@ -122,7 +122,7 @@ func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
 
 func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.FunctionParameter {
 	var parameter ast.FunctionParameter
-	start := p.idx
+	loc := p.loc()
 
 	// Rest parameter
 	if p.is(token.DOTDOTDOT) {
@@ -148,7 +148,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 	}
 
 	if parameter == nil {
-		p.error(start, "Unable to parse function argument")
+		p.error(loc, "Unable to parse function argument")
 		return nil
 	}
 
@@ -164,7 +164,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 	}
 
 	// Parsing default value
-	if p.is(token.ASSIGN) && parameter != nil {
+	if p.is(token.ASSIGN) {
 		p.next()
 
 		parameter.SetDefaultValue(p.parseAssignmentExpression())

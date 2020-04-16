@@ -227,11 +227,11 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	}
 
 	p.consumeExpected(token.JSX_TAG_CLOSE)
-	closeElementNamePos := p.idx
+	closeElementNameLoc := p.loc()
 	closeElementName := p.parseJSXElementName()
 
 	if !areElementNamesEqual(elm.Name, closeElementName) {
-		p.error(closeElementNamePos, "Closing JSX element tag must be identical to the opening one")
+		p.error(closeElementNameLoc, "Closing JSX element tag must be identical to the opening one")
 		p.next()
 		return nil
 	}
@@ -258,7 +258,7 @@ func (p *Parser) maybeParseJSXElement() (ast.Expression, bool) {
 }
 
 func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
-	partialState := p.captureState()
+	snapshot := p.snapshot()
 	loc := p.loc()
 
 	// first try to parse as jsx
@@ -269,7 +269,7 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	}
 
 	// now we can safely assume we're in arrow function
-	p.rewindStateTo(partialState)
+	p.toSnapshot(snapshot)
 
 	typeParameters := p.parseFlowTypeParameters()
 

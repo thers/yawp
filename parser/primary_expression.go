@@ -11,10 +11,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 
 	switch p.token {
 	case token.SUPER:
-		start := p.idx
-
 		if !p.scope.inClass && !p.scope.inFunction {
-			p.error(start, "illegal use of super keyword")
+			p.error(loc, "illegal use of super keyword")
 
 			return nil
 		}
@@ -36,7 +34,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 			Expression: p.parseAssignmentExpression(),
 		}
 	case token.ASYNC:
-		st := p.captureState()
+		st := p.snapshot()
 		p.next()
 
 		if p.is(token.FUNCTION) {

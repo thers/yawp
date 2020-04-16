@@ -2,7 +2,6 @@ package parser
 
 import (
 	"encoding/base64"
-	"fmt"
 	"github.com/go-sourcemap/sourcemap"
 	"io/ioutil"
 	"net/url"
@@ -325,17 +324,19 @@ func (p *Parser) parseSourceElements() []ast.Statement {
 	defer func() {
 		err := recover()
 
-		if err != nil {
-			fmt.Errorf("%s", err)
+		if err == nil {
+			return
+		}
+
+		if errito, ok := err.(error); ok {
+			p.err = errito
+		} else {
+			panic(err)
 		}
 	}()
 
 	for !p.is(token.EOF) {
 		stmt := p.parseStatement()
-
-		if len(p.errors) > 0 {
-			return body
-		}
 
 		if _, ok := stmt.(*ast.EmptyStatement); !ok {
 			body = append(body, stmt)

@@ -185,6 +185,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 
 	for p.until(token.RIGHT_BRACE) {
 		if p.is(token.AT) {
+			loc := p.loc()
 			decorators := p.parseDecoratorsList()
 			statement := p.parseClassBodyStatement()
 
@@ -196,7 +197,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			case *ast.ClassMethodStatement:
 				subject = refinedStatement
 			default:
-				p.error(0, "Class accessor definition can not be decorated")
+				p.error(loc, "Class accessor definition can not be decorated")
 				return nil
 			}
 

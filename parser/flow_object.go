@@ -85,14 +85,13 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 
 			props = append(props, prop)
 		} else if p.is(token.DOTDOTDOT) {
-			idx := p.idx
 			p.next()
 
 			// inexact object specifier
 			if p.is(token.COMMA) || p.is(terminator) {
 				if exact {
 					// explicit inexact disallowed in exact
-					p.error(idx, "Explicit inexact syntax is not allowed in exact object type")
+					p.error(loc, "Explicit inexact syntax is not allowed in exact object type")
 					break
 				}
 
