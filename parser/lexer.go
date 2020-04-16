@@ -392,7 +392,7 @@ func (p *Parser) peekChr() rune {
 }
 
 func (p *Parser) read() {
-	p.parsedStr = p.src[:p.nextChrOffset]
+	p.parsedSrc = p.src[:p.nextChrOffset]
 
 	if p.nextChrOffset < p.length {
 		p.chrOffset = p.nextChrOffset

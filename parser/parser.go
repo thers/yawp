@@ -12,13 +12,13 @@ import (
 )
 
 type Parser struct {
-	parsedStr string
+	parsedSrc string
 	src       string
 	length    int
 	base      int
 
-	col         int   // column of the current char
-	line        int   // line of the current char
+	col  int // column of the current char
+	line int // line of the current char
 
 	chr           rune // The current character
 	chrOffset     int  // The offset of current character
@@ -34,8 +34,7 @@ type Parser struct {
 	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon bool // An implicit semicolon exists
 
-	genericTypeParametersMode bool
-
+	genericTypeParametersMode         bool
 	forbidUnparenthesizedFunctionType bool
 
 	jsxTextParseFrom int

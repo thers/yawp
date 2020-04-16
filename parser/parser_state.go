@@ -25,7 +25,7 @@ func (p *Parser) snapshot() *ParserSnapshot {
 		chrOffset:         p.chrOffset,
 		nextChr:           p.chr,
 		literal:           p.literal,
-		parsedStr:         p.parsedStr,
+		parsedStr:         p.parsedSrc,
 		insertSemicolon:   p.insertSemicolon,
 		implicitSemicolon: p.implicitSemicolon,
 	}
@@ -38,7 +38,7 @@ func (p *Parser) toSnapshot(state *ParserSnapshot) {
 	p.chrOffset = state.chrOffset
 	p.chr = state.nextChr
 	p.literal = state.literal
-	p.parsedStr = state.parsedStr
+	p.parsedSrc = state.parsedStr
 	p.insertSemicolon = state.insertSemicolon
 	p.implicitSemicolon = state.implicitSemicolon
 }
