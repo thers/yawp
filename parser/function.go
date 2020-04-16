@@ -122,7 +122,7 @@ func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
 
 func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.FunctionParameter {
 	var parameter ast.FunctionParameter
-	start := p.loc
+	start := p.idx
 
 	// Rest parameter
 	if p.is(token.DOTDOTDOT) {
@@ -178,22 +178,24 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 }
 
 func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
-	opening := p.consumeExpected(token.LEFT_PARENTHESIS)
+	loc := p.loc()
+
+	p.consumeExpected(token.LEFT_PARENTHESIS)
 	var list []ast.FunctionParameter
 
 	for !p.is(token.RIGHT_PARENTHESIS) && !p.is(token.EOF) {
 		list = append(list, p.parseFunctionParameterEndingBy(token.RIGHT_PARENTHESIS))
 	}
-	closing := p.consumeExpected(token.RIGHT_PARENTHESIS)
+
+	loc.End(p.consumeExpected(token.RIGHT_PARENTHESIS))
 
 	return &ast.FunctionParameters{
-		Opening: opening,
-		List:    list,
-		Closing: closing,
+		Loc:  loc,
+		List: list,
 	}
 }
 
-func (p *Parser) parseFunction(declaration bool, idx file.Loc, async bool) *ast.FunctionLiteral {
+func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast.FunctionLiteral {
 	p.consumeExpected(token.FUNCTION)
 
 	generator := false
@@ -203,7 +205,7 @@ func (p *Parser) parseFunction(declaration bool, idx file.Loc, async bool) *ast.
 	}
 
 	node := &ast.FunctionLiteral{
-		Start:     idx,
+		Loc:       loc,
 		Async:     async,
 		Generator: generator,
 	}

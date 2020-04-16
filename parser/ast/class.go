@@ -8,7 +8,7 @@ type (
 	}
 
 	ClassExpression struct {
-		Start              file.Loc
+		Loc                *file.Loc
 		Name               *Identifier
 		TypeParameters     []*FlowTypeParameter
 		SuperClass         MemberExpression
@@ -17,8 +17,7 @@ type (
 	}
 
 	ClassSuperExpression struct {
-		Start     file.Loc
-		End       file.Loc
+		Loc       *file.Loc
 		Arguments []Expression
 	}
 
@@ -27,7 +26,7 @@ type (
 	}
 
 	ClassFieldStatement struct {
-		Start       file.Loc
+		Loc         *file.Loc
 		Name        ClassFieldName
 		Static      bool
 		Private     bool
@@ -36,14 +35,14 @@ type (
 	}
 
 	ClassAccessorStatement struct {
-		Start file.Loc
+		Loc   *file.Loc
 		Field ClassFieldName
 		Kind  string
 		Body  *FunctionLiteral
 	}
 
 	ClassMethodStatement struct {
-		Method         file.Loc
+		Loc            *file.Loc
 		Name           ClassFieldName
 		Static         bool
 		Private        bool
@@ -67,16 +66,9 @@ func (*ClassSuperExpression) _expressionNode() {}
 func (*Identifier) _classFieldName()   {}
 func (*ComputedName) _classFieldName() {}
 
-func (self *ClassStatement) StartAt() file.Loc         { return self.Expression.Start }
-func (self *ClassExpression) StartAt() file.Loc        { return self.Start }
-func (self *ClassSuperExpression) StartAt() file.Loc   { return self.Start }
-func (self *ClassFieldStatement) StartAt() file.Loc    { return self.Start }
-func (self *ClassAccessorStatement) StartAt() file.Loc { return self.Start }
-func (self *ClassMethodStatement) StartAt() file.Loc   { return self.Method }
-
-func (self *ClassStatement) EndAt() file.Loc         { return self.Expression.Body.EndAt() }
-func (self *ClassExpression) EndAt() file.Loc        { return self.Body.EndAt() }
-func (self *ClassSuperExpression) EndAt() file.Loc   { return self.End }
-func (self *ClassFieldStatement) EndAt() file.Loc    { return self.Initializer.EndAt() }
-func (self *ClassMethodStatement) EndAt() file.Loc   { return self.Body.EndAt() }
-func (self *ClassAccessorStatement) EndAt() file.Loc { return self.Body.EndAt() }
+func (c *ClassStatement) GetLoc() *file.Loc         { return c.Expression.GetLoc() }
+func (c *ClassExpression) GetLoc() *file.Loc        { return c.Loc }
+func (c *ClassSuperExpression) GetLoc() *file.Loc   { return c.Loc }
+func (c *ClassFieldStatement) GetLoc() *file.Loc    { return c.Loc }
+func (c *ClassAccessorStatement) GetLoc() *file.Loc { return c.Loc }
+func (c *ClassMethodStatement) GetLoc() *file.Loc   { return c.Loc }

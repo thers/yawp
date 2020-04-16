@@ -29,7 +29,7 @@ func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
 	}
 
 	return &ast.ReturnStatement{
-		Return:   p.loc,
+		Loc:      p.loc(),
 		Argument: p.parseAssignmentExpression(),
 	}
 }
@@ -42,7 +42,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 		p.next()
 
 		return &ast.ArrowFunctionExpression{
-			Start: identifier.Start,
+			Loc:   identifier.GetLoc(),
 			Async: async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
@@ -59,7 +59,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 		tkn, strict := token.IsKeyword(identifier.Name)
 		if tkn == token.KEYWORD {
 			if !strict {
-				p.error(identifier.Start, "Unexpected reserved word")
+				p.error(identifier.Loc, "Unexpected reserved word")
 			}
 		}
 	}
@@ -88,7 +88,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	if success && p.is(token.ARROW) {
 		p.next()
 		return &ast.ArrowFunctionExpression{
-			Start:      parameters.Opening,
+			Loc:        parameters.Loc,
 			Async:      async,
 			ReturnType: returnType,
 			Parameters: parameters.List,
@@ -109,7 +109,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	return expression
 }
 
-func (p *Parser) tryParseAsyncArrowFunction(idx file.Loc, st *ParserStateSnapshot) ast.Expression {
+func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserStateSnapshot) ast.Expression {
 	var typeParameters []*ast.FlowTypeParameter
 
 	if p.is(token.LESS) {
@@ -118,7 +118,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Loc, st *ParserStateSnapsho
 
 	if p.is(token.IDENTIFIER) {
 		if typeParameters != nil {
-			p.error(p.loc, "Parenthesis required around generic arrow function parameters")
+			p.error(p.loc(), "Parenthesis required around generic arrow function parameters")
 
 			return nil
 		}
@@ -127,7 +127,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Loc, st *ParserStateSnapsho
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Start:          identifier.Start,
+			Loc:            loc,
 			Async:          true,
 			TypeParameters: typeParameters,
 			Parameters: []ast.FunctionParameter{
@@ -142,6 +142,8 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Loc, st *ParserStateSnapsho
 
 	if p.is(token.LEFT_PARENTHESIS) {
 		var returnType ast.FlowType
+
+		sloc := p.loc()
 		parameters := p.parseFunctionParameterList()
 
 		if p.is(token.COLON) {
@@ -161,7 +163,7 @@ func (p *Parser) tryParseAsyncArrowFunction(idx file.Loc, st *ParserStateSnapsho
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Start:          parameters.Opening,
+			Loc:            sloc,
 			Async:          true,
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,

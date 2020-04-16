@@ -12,6 +12,12 @@ type (
 
 func (*ConditionalExpression) _expressionNode() {}
 
-func (c *ConditionalExpression) StartAt() file.Loc { return c.Test.StartAt() }
+func (c *ConditionalExpression) GetLoc() *file.Loc {
+	loc := c.Test.GetLoc().Add(c.Consequent.GetLoc())
 
-func (c *ConditionalExpression) EndAt() file.Loc { return c.Test.EndAt() }
+	if c.Alternate != nil {
+		loc = loc.Add(c.Alternate.GetLoc())
+	}
+
+	return loc
+}

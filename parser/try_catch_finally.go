@@ -6,14 +6,16 @@ import (
 )
 
 func (p *Parser) parseTryStatement() ast.Statement {
+	loc := p.loc()
+	p.consumeExpected(token.TRY)
 
 	node := &ast.TryStatement{
-		Try:  p.consumeExpected(token.TRY),
+		Loc:  loc,
 		Body: p.parseBlockStatement(),
 	}
 
 	if p.is(token.CATCH) {
-		catch := p.loc
+		catchLoc := p.loc()
 		p.next()
 
 		var parameter *ast.Identifier
@@ -32,7 +34,7 @@ func (p *Parser) parseTryStatement() ast.Statement {
 		}
 
 		node.Catch = &ast.CatchStatement{
-			Catch:     catch,
+			Loc:       catchLoc,
 			Parameter: parameter,
 			Body:      p.parseBlockStatement(),
 		}
@@ -44,11 +46,10 @@ func (p *Parser) parseTryStatement() ast.Statement {
 	}
 
 	if node.Catch == nil && node.Finally == nil {
-		p.error(node.Try, "Missing catch or finally after try")
+		p.error(node.Loc, "Missing catch or finally after try")
 
 		return nil
 	}
 
 	return node
 }
-

@@ -8,7 +8,10 @@ import (
 func (p *Parser) parseArrayLiteral() ast.Expression {
 	var value []ast.Expression
 
-	start := p.consumeExpected(token.LEFT_BRACKET)
+	loc := p.loc()
+
+	p.consumeExpected(token.LEFT_BRACKET)
+
 	for p.until(token.RIGHT_BRACKET) {
 		// [,,,]
 		if p.is(token.COMMA) {
@@ -29,11 +32,11 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 
 		p.consumePossible(token.COMMA)
 	}
-	end := p.consumeExpected(token.RIGHT_BRACKET)
+
+	loc.End(p.consumeExpected(token.RIGHT_BRACKET))
 
 	return &ast.ArrayLiteral{
-		Start: start,
-		End:   end,
+		Loc:   loc,
 		Value: value,
 	}
 }
@@ -50,7 +53,7 @@ func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
 }
 
 func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
-	start := p.loc
+	loc := p.loc()
 	partialState := p.captureState()
 
 	arrayBinding, success := p.maybeParseArrayBinding()
@@ -59,7 +62,7 @@ func (p *Parser) parseArrayLiteralOrArrayBinding() ast.Expression {
 		p.consumeExpected(token.ASSIGN)
 
 		return &ast.VariableBinding{
-			Start:       start,
+			Loc:         loc,
 			Binder:      arrayBinding,
 			Initializer: p.parseAssignmentExpression(),
 		}

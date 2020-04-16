@@ -11,6 +11,6 @@ type (
 
 func (*CoalesceExpression) _expressionNode() {}
 
-func (c *CoalesceExpression) StartAt() file.Loc { return c.Head.StartAt() }
-
-func (c *CoalesceExpression) EndAt() file.Loc { return c.Head.EndAt() }
+func (c *CoalesceExpression) GetLoc() *file.Loc {
+	return c.Head.GetLoc().Add(c.Consequent.GetLoc())
+}

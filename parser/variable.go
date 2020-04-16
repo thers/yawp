@@ -11,7 +11,7 @@ func (p *Parser) isVariableStatementStart() bool {
 }
 
 func (p *Parser) parseVariableStatement() *ast.VariableStatement {
-	idx := p.loc
+	loc := p.loc()
 	kind := p.token
 
 	if !p.isVariableStatementStart() {
@@ -19,20 +19,20 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	}
 
 	p.next()
-	list := p.parseVariableDeclarationList(idx, kind)
+	list := p.parseVariableDeclarationList(loc, kind)
 
 	p.optionalSemicolon()
 
 	return &ast.VariableStatement{
+		Loc:  loc,
 		Kind: kind,
-		Var:  idx,
 		List: list,
 	}
 }
 
 func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpression, kind token.Token) ast.Expression {
 	if p.is(token.LEFT_BRACKET) || p.is(token.LEFT_BRACE) {
-		start := p.loc
+		loc := p.loc()
 
 		var binder ast.PatternBinder
 
@@ -43,8 +43,8 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 		}
 
 		bnd := &ast.VariableBinding{
-			Start:       start,
-			Binder:      binder,
+			Loc:    loc,
+			Binder: binder,
 		}
 
 		if p.is(token.ASSIGN) {
@@ -62,13 +62,14 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 		return nil
 	}
 
+	loc := p.loc()
 	literal := p.literal
-	idx := p.loc
+
 	p.next()
 	node := &ast.VariableExpression{
-		Kind:  kind,
-		Name:  literal,
-		Start: idx,
+		Loc:  loc,
+		Kind: kind,
+		Name: literal,
 	}
 
 	if declarationList != nil {
@@ -88,7 +89,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	return node
 }
 
-func (p *Parser) parseVariableDeclarationList(var_ file.Loc, kind token.Token) []ast.Expression {
+func (p *Parser) parseVariableDeclarationList(loc *file.Loc, kind token.Token) []ast.Expression {
 
 	var declarationList []*ast.VariableExpression // Avoid bad expressions
 	var list []ast.Expression
@@ -107,8 +108,8 @@ func (p *Parser) parseVariableDeclarationList(var_ file.Loc, kind token.Token) [
 	}
 
 	p.scope.declare(&ast.VariableDeclaration{
+		Loc:  loc,
 		Kind: kind,
-		Var:  var_,
 		List: declarationList,
 	})
 

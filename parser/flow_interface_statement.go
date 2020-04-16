@@ -17,7 +17,7 @@ func (p *Parser) parseFlowInterfaceMethodParts() ([]interface{}, ast.FlowType) {
 
 func (p *Parser) parseFlowInterfaceMethod() *ast.FlowInterfaceMethod {
 	method := &ast.FlowInterfaceMethod{
-		Start: p.loc,
+		Loc: p.loc(),
 	}
 
 	if p.is(token.LESS) {
@@ -30,7 +30,7 @@ func (p *Parser) parseFlowInterfaceMethod() *ast.FlowInterfaceMethod {
 }
 
 func (p *Parser) parseFlowInterfaceBodyStatement() ast.FlowInterfaceBodyStatement {
-	start := p.loc
+	loc := p.loc()
 	covariant, contravariant := p.parseFlowTypeVariance()
 	isTypeParameters := p.token == token.LESS
 
@@ -51,14 +51,14 @@ func (p *Parser) parseFlowInterfaceBodyStatement() ast.FlowInterfaceBodyStatemen
 		if p.isAny(token.LEFT_PARENTHESIS, token.LESS) {
 			// it's a method
 			method := p.parseFlowInterfaceMethod()
-			method.Start = identifier.Start
+			method.Loc = identifier.Loc
 			method.Name = identifier
 
 			return method
 		}
 
 		return p.parseFlowNamedObjectPropertyRemainder(
-			start,
+			loc,
 			covariant,
 			contravariant,
 			identifier.Name,
@@ -72,7 +72,10 @@ func (p *Parser) parseFlowInterfaceBodyStatement() ast.FlowInterfaceBodyStatemen
 }
 
 func (p *Parser) parseFlowInterfaceStatement() *ast.FlowInterfaceStatement {
-	start := p.consumeExpected(token.INTERFACE)
+	loc := p.loc()
+
+	p.consumeExpected(token.INTERFACE)
+
 	name := p.parseFlowTypeIdentifier()
 	var typeParameters []*ast.FlowTypeParameter
 
@@ -96,11 +99,10 @@ func (p *Parser) parseFlowInterfaceStatement() *ast.FlowInterfaceStatement {
 		}
 	}
 
-	end := p.consumeExpected(token.RIGHT_BRACE)
+	loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return &ast.FlowInterfaceStatement{
-		Start:          start,
-		End:            end,
+		Loc:            loc,
 		Name:           name,
 		TypeParameters: typeParameters,
 		Body:           stmts,

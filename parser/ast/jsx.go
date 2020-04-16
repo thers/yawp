@@ -4,8 +4,7 @@ import "yawp/parser/file"
 
 type (
 	JSXElement struct {
-		Start      file.Loc
-		End        file.Loc
+		Loc        *file.Loc
 		Name       *JSXElementName
 		Attributes []JSXAttribute
 		Children   []JSXChild
@@ -17,14 +16,13 @@ type (
 	}
 
 	JSXNamespacedName struct {
-		Start     file.Loc
+		Loc       *file.Loc
 		Namespace string
 		Name      string
 	}
 
 	JSXFragment struct {
-		Start    file.Loc
-		End      file.Loc
+		Loc      *file.Loc
 		Children []JSXChild
 	}
 
@@ -38,7 +36,7 @@ type (
 	}
 
 	JSXSpreadAttribute struct {
-		Start      file.Loc
+		Start      file.Idx
 		Expression Expression
 	}
 
@@ -47,9 +45,8 @@ type (
 	}
 
 	JSXText struct {
-		Start file.Loc
-		End   file.Loc
-		Text  string
+		Loc  *file.Loc
+		Text string
 	}
 
 	JSXChildExpression struct {
@@ -69,12 +66,6 @@ func (*JSXElement) _expressionNode()        {}
 func (*JSXFragment) _expressionNode()       {}
 func (*JSXNamespacedName) _expressionNode() {}
 
-func (j *JSXElement) StartAt() file.Loc        { return j.Start }
-func (j *JSXFragment) StartAt() file.Loc       { return j.Start }
-func (j *JSXNamespacedName) StartAt() file.Loc { return j.Start }
-
-func (j *JSXElement) EndAt() file.Loc  { return j.End }
-func (j *JSXFragment) EndAt() file.Loc { return j.End }
-func (j *JSXNamespacedName) EndAt() file.Loc {
-	return j.Start + file.Loc(len(j.Name)) + 1 + file.Loc(len(j.Namespace))
-}
+func (j *JSXElement) GetLoc() *file.Loc        { return j.Loc }
+func (j *JSXFragment) GetLoc() *file.Loc       { return j.Loc }
+func (j *JSXNamespacedName) GetLoc() *file.Loc { return j.Loc }

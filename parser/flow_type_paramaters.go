@@ -15,7 +15,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 	p.consumeExpected(token.LESS)
 	for p.until(token.GREATER) {
 		parameter := &ast.FlowTypeParameter{
-			Start:         p.loc,
+			Loc:           p.loc(),
 			Name:          nil,
 			Covariant:     false,
 			Contravariant: false,
@@ -30,11 +30,11 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 			p.next()
 		}
 
-		parameterNameStart := p.loc
+		parameterNameLoc := p.loc()
 		parameter.Name = p.parseFlowTypeIdentifierIncludingKeywords()
 
 		if parameter.Name == nil {
-			p.error(parameterNameStart, "Type parameter name is required")
+			p.error(parameterNameLoc, "Type parameter name is required")
 			p.next()
 			continue
 		}
@@ -51,7 +51,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 
 			parameter.DefaultValue = p.parseFlowType()
 		} else if defaultValueRequired {
-			p.error(p.loc, "Default value required")
+			p.error(p.idx, "Default value required")
 		}
 
 		p.consumePossible(token.COMMA)
@@ -71,31 +71,6 @@ func (p *Parser) isFlowTypeArgumentsStart() bool {
 	return p.isAny(token.JSX_FRAGMENT_START, token.LESS)
 }
 
-func (p *Parser) isFlowTypeStart() bool {
-	switch p.token {
-	case
-		token.IDENTIFIER,
-		token.LESS,
-		token.LEFT_BRACE,
-		token.TYPE_EXACT_OBJECT_START,
-		token.LEFT_PARENTHESIS,
-		token.TYPE_ANY,
-		token.TYPE_BOOLEAN,
-		token.TYPE_MIXED,
-		token.TYPE_NUMBER,
-		token.TYPE_STRING,
-		token.TYPE_TYPE,
-		token.VOID,
-		token.TYPEOF,
-		token.BOOLEAN,
-		token.STRING,
-		token.NUMBER:
-			return true
-	default:
-		return false
-	}
-}
-
 func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
 	closeTypeScope := p.openTypeScope()
 	defer closeTypeScope()
@@ -109,18 +84,12 @@ func (p *Parser) parseFlowTypeArguments() []ast.FlowType {
 	p.consumeExpected(token.LESS)
 	args := make([]ast.FlowType, 0)
 
-
 	for p.until(token.GREATER) {
-		//if !p.isFlowTypeStart() {
-		//	p.unexpectedToken()
-		//	return nil
-		//}
-
-		argStart := p.loc
+		argLoc := p.loc()
 		arg := p.parseFlowType()
 
 		if arg == nil {
-			p.error(argStart, "Unexpected token")
+			p.error(argLoc, "Unexpected token")
 			return nil
 		}
 		args = append(args, arg)

@@ -15,35 +15,35 @@ func (p *Parser) parseIterationStatement() ast.Statement {
 	return p.parseStatement()
 }
 
-func (p *Parser) parseForIn(start file.Loc, into ast.Expression) *ast.ForInStatement {
+func (p *Parser) parseForIn(loc *file.Loc, into ast.Expression) *ast.ForInStatement {
 	// Already have consumed "<into> in"
 
 	source := p.parseExpression()
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
 	return &ast.ForInStatement{
-		Start:  start,
+		Loc:    loc,
 		Into:   into,
 		Source: source,
 		Body:   p.parseIterationStatement(),
 	}
 }
 
-func (p *Parser) parseForOf(start file.Loc, into ast.Expression) *ast.ForOfStatement {
+func (p *Parser) parseForOf(loc *file.Loc, into ast.Expression) *ast.ForOfStatement {
 	// Already have consumed "<into> of"
 
 	source := p.parseExpression()
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
 	return &ast.ForOfStatement{
-		Start:    start,
+		Loc:      loc,
 		Binder:   into,
 		Iterator: source,
 		Body:     p.parseIterationStatement(),
 	}
 }
 
-func (p *Parser) parseFor(idx file.Loc, initializer ast.Expression) *ast.ForStatement {
+func (p *Parser) parseFor(loc *file.Loc, initializer ast.Expression) *ast.ForStatement {
 
 	// Already have consumed "<initializer> ;"
 
@@ -60,7 +60,7 @@ func (p *Parser) parseFor(idx file.Loc, initializer ast.Expression) *ast.ForStat
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
 	return &ast.ForStatement{
-		Start:       idx,
+		Loc:         loc,
 		Initializer: initializer,
 		Test:        test,
 		Update:      update,
@@ -69,7 +69,8 @@ func (p *Parser) parseFor(idx file.Loc, initializer ast.Expression) *ast.ForStat
 }
 
 func (p *Parser) parseForOrForInStatement() ast.Statement {
-	start := p.consumeExpected(token.FOR)
+	start := p.loc()
+	p.consumeExpected(token.FOR)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 
 	var left []ast.Expression
@@ -81,10 +82,12 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 		allowIn := p.scope.allowIn
 		p.scope.allowIn = false
 		if p.isVariableStatementStart() {
+			loc := p.loc()
 			kind := p.token
-			var_ := p.loc
+
 			p.next()
-			list := p.parseVariableDeclarationList(var_, kind)
+
+			list := p.parseVariableDeclarationList(loc, kind)
 
 			if len(list) == 1 {
 				p.allowNext(token.OF)

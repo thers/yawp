@@ -13,8 +13,9 @@ import (
 )
 
 func (p *Parser) parseEmptyStatement() ast.Statement {
-	idx := p.consumeExpected(token.SEMICOLON)
-	return &ast.EmptyStatement{Semicolon: idx}
+	loc := p.loc()
+	p.consumeExpected(token.SEMICOLON)
+	return &ast.EmptyStatement{Loc: loc}
 }
 
 func (p *Parser) parseStatementList() (list []ast.Statement) {
@@ -61,7 +62,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.VAR, token.CONST, token.LET:
 		return p.parseVariableStatement()
 	case token.FUNCTION:
-		return p.parseFunction(true, p.loc, false)
+		return p.parseFunction(true, p.loc(), false)
 	case token.SWITCH:
 		return p.parseSwitchStatement()
 	case token.RETURN:
@@ -92,12 +93,12 @@ func (p *Parser) parseStatement() ast.Statement {
 
 	if identifier, isIdentifier := expression.(*ast.Identifier); isIdentifier && p.is(token.COLON) {
 		// LabelledStatement
-		colon := p.loc
+		colon := p.idx
 		p.next() // :
 		label := identifier.Name
 		for _, value := range p.scope.labels {
 			if label == value {
-				p.error(identifier.StartAt(), "Label '%s' already exists", label)
+				p.error(identifier.GetLoc(), "Label '%s' already exists", label)
 			}
 		}
 		p.scope.labels = append(p.scope.labels, label) // Push the label
@@ -140,10 +141,11 @@ func (p *Parser) parseFunctionBlock(node *ast.FunctionLiteral) {
 }
 
 func (p *Parser) parseDebuggerStatement() ast.Statement {
-	idx := p.consumeExpected(token.DEBUGGER)
+	loc := p.loc()
+	p.consumeExpected(token.DEBUGGER)
 
 	node := &ast.DebuggerStatement{
-		Debugger: idx,
+		Loc: loc,
 	}
 
 	p.semicolon()
@@ -152,19 +154,21 @@ func (p *Parser) parseDebuggerStatement() ast.Statement {
 }
 
 func (p *Parser) parseThrowStatement() ast.Statement {
-	idx := p.consumeExpected(token.THROW)
+	loc := p.loc()
+	p.consumeExpected(token.THROW)
 
 	if p.implicitSemicolon {
 		if p.chr == -1 { // Hackish
-			p.error(idx, "Unexpected end of input")
+			p.error(loc, "Unexpected end of input")
 		} else {
-			p.error(idx, "Illegal newline after throw")
+			p.error(loc, "Illegal newline after throw")
 		}
 
 		return nil
 	}
 
 	node := &ast.ThrowStatement{
+		Loc:      loc,
 		Argument: p.parseExpression(),
 	}
 
@@ -174,9 +178,11 @@ func (p *Parser) parseThrowStatement() ast.Statement {
 }
 
 func (p *Parser) parseSwitchStatement() ast.Statement {
+	loc := p.loc()
 	p.consumeExpected(token.SWITCH)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.SwitchStatement{
+		Loc:          loc,
 		Discriminant: p.parseExpression(),
 		Default:      -1,
 	}
@@ -199,10 +205,11 @@ func (p *Parser) parseSwitchStatement() ast.Statement {
 		clause := p.parseCaseStatement()
 		if clause.Test == nil {
 			if node.Default != -1 {
-				p.error(clause.Case, "Already saw a default in switch")
+				p.error(clause.Loc, "Already saw a default in switch")
 			}
 			node.Default = index
 		}
+		node.Loc.Add(clause.Loc)
 		node.Body = append(node.Body, clause)
 	}
 
@@ -210,9 +217,11 @@ func (p *Parser) parseSwitchStatement() ast.Statement {
 }
 
 func (p *Parser) parseWithStatement() ast.Statement {
+	loc := p.loc()
 	p.consumeExpected(token.WITH)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.WithStatement{
+		Loc:    loc,
 		Object: p.parseExpression(),
 	}
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
@@ -223,9 +232,8 @@ func (p *Parser) parseWithStatement() ast.Statement {
 }
 
 func (p *Parser) parseCaseStatement() *ast.CaseStatement {
-
 	node := &ast.CaseStatement{
-		Case: p.loc,
+		Loc: p.loc(),
 	}
 	if p.is(token.DEFAULT) {
 		p.next()
@@ -242,7 +250,10 @@ func (p *Parser) parseCaseStatement() *ast.CaseStatement {
 			p.is(token.DEFAULT) {
 			break
 		}
-		node.Consequent = append(node.Consequent, p.parseStatement())
+
+		consequent := p.parseStatement()
+		node.Loc.Add(consequent.GetLoc())
+		node.Consequent = append(node.Consequent, consequent)
 
 	}
 
@@ -256,8 +267,13 @@ func (p *Parser) parseDoWhileStatement() ast.Statement {
 		p.scope.inIteration = inIteration
 	}()
 
+	loc := p.loc()
 	p.consumeExpected(token.DO)
-	node := &ast.DoWhileStatement{}
+
+	node := &ast.DoWhileStatement{
+		Loc: loc,
+	}
+
 	if p.is(token.LEFT_BRACE) {
 		node.Body = p.parseBlockStatement()
 	} else {
@@ -276,9 +292,11 @@ func (p *Parser) parseDoWhileStatement() ast.Statement {
 }
 
 func (p *Parser) parseIfStatement() ast.Statement {
+	loc := p.loc()
 	p.consumeExpected(token.IF)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.IfStatement{
+		Loc:  loc,
 		Test: p.parseExpression(),
 	}
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
@@ -378,8 +396,11 @@ func (p *Parser) parseSourceMap() *sourcemap.Consumer {
 }
 
 func (p *Parser) parseBreakStatement() ast.Statement {
-	idx := p.consumeExpected(token.BREAK)
+	loc := p.loc()
+
+	p.consumeExpected(token.BREAK)
 	semicolon := p.implicitSemicolon
+
 	if p.is(token.SEMICOLON) {
 		semicolon = true
 		p.next()
@@ -391,21 +412,24 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 			goto illegal
 		}
 		return &ast.BranchStatement{
-			Idx:   idx,
+			Loc:   loc,
 			Token: token.BREAK,
 		}
 	}
 
 	if p.is(token.IDENTIFIER) {
 		identifier := p.parseIdentifier()
+
 		if !p.scope.hasLabel(identifier.Name) {
-			p.error(idx, "Undefined label '%s'", identifier.Name)
+			p.error(loc, "Undefined label '%s'", identifier.Name)
 
 			return nil
 		}
+
 		p.semicolon()
+
 		return &ast.BranchStatement{
-			Idx:   idx,
+			Loc:   loc,
 			Token: token.BREAK,
 			Label: identifier,
 		}
@@ -414,14 +438,17 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 	p.consumeExpected(token.IDENTIFIER)
 
 illegal:
-	p.error(idx, "Illegal break statement")
+	p.error(loc, "Illegal break statement")
 
 	return nil
 }
 
 func (p *Parser) parseContinueStatement() ast.Statement {
-	idx := p.consumeExpected(token.CONTINUE)
+	loc := p.loc()
+	p.consumeExpected(token.CONTINUE)
+
 	semicolon := p.implicitSemicolon
+
 	if p.is(token.SEMICOLON) {
 		semicolon = true
 		p.next()
@@ -433,7 +460,7 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 			goto illegal
 		}
 		return &ast.BranchStatement{
-			Idx:   idx,
+			Loc:   loc,
 			Token: token.CONTINUE,
 		}
 	}
@@ -441,7 +468,7 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 	if p.is(token.IDENTIFIER) {
 		identifier := p.parseIdentifier()
 		if !p.scope.hasLabel(identifier.Name) {
-			p.error(idx, "Undefined label '%s'", identifier.Name)
+			p.error(loc, "Undefined label '%s'", identifier.Name)
 
 			return nil
 		}
@@ -450,7 +477,7 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 		}
 		p.semicolon()
 		return &ast.BranchStatement{
-			Idx:   idx,
+			Loc:   loc,
 			Token: token.CONTINUE,
 			Label: identifier,
 		}
@@ -459,7 +486,7 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 	p.consumeExpected(token.IDENTIFIER)
 
 illegal:
-	p.error(idx, "Illegal continue statement")
+	p.error(loc, "Illegal continue statement")
 
 	return nil
 }

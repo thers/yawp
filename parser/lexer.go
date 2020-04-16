@@ -1,16 +1,12 @@
 package parser
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	"unicode/utf16"
 	"yawp/parser/file"
 	"yawp/parser/token"
 )
@@ -64,7 +60,7 @@ func isLineTerminator(chr rune) bool {
 	return false
 }
 
-func (p *Parser) scan() (tkn token.Token, literal string, idx file.Loc) {
+func (p *Parser) scan() (tkn token.Token, literal string, loc file.Idx) {
 
 	p.tokenIsKeyword = false
 	p.implicitSemicolon = false
@@ -72,7 +68,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Loc) {
 	for {
 		p.skipWhiteSpace()
 
-		idx = p.locOf(p.chrOffset)
+		loc = p.locOf(p.chrOffset)
 		insertSemicolon := false
 
 		switch chr := p.chr; {
@@ -358,7 +354,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Loc) {
 					tkn = token.ILLEGAL
 				}
 			default:
-				p.errorUnexpected(idx, chr)
+				p.errorUnexpected(loc, chr)
 				tkn = token.ILLEGAL
 			}
 		}
@@ -383,7 +379,7 @@ func (p *Parser) _peek() rune {
 }
 
 func (p *Parser) read() {
-	p.parsedStr = p.src[0:p.nextChrOffset]
+	p.parsedStr = p.src[:p.nextChrOffset]
 
 	if p.nextChrOffset < p.length {
 		p.chrOffset = p.nextChrOffset
@@ -394,6 +390,7 @@ func (p *Parser) read() {
 				p.error(p.chrOffset, "Invalid UTF-8 character")
 			}
 		}
+		p.col += width
 		p.nextChrOffset += width
 		p.chr = chr
 	} else {
@@ -458,6 +455,9 @@ func (p *Parser) skipWhiteSpace() {
 			}
 			fallthrough
 		case '\u2028', '\u2029', '\n':
+			p.line++
+			p.col = 1
+
 			if p.insertSemicolon {
 				return
 			}
@@ -574,193 +574,43 @@ func (p *Parser) scanNewline() {
 	p.read()
 }
 
-func hex2decimal(chr byte) (value rune, ok bool) {
-	{
-		chr := rune(chr)
-		switch {
-		case '0' <= chr && chr <= '9':
-			return chr - '0', true
-		case 'a' <= chr && chr <= 'f':
-			return chr - 'a' + 10, true
-		case 'A' <= chr && chr <= 'F':
-			return chr - 'A' + 10, true
-		}
-		return
-	}
-}
-
-func parseNumberLiteral(literal string) (value interface{}, err error) {
+func parseNumberLiteralIntoNumber(literal string) (value interface{}, err error) {
 	// TODO Is Uint okay? What about -MAX_UINT
-	value, err = strconv.ParseInt(literal, 0, 64)
-	if err == nil {
-		return
-	}
+		value, err = strconv.ParseInt(literal, 0, 64)
+		if err == nil {
+			return
+		}
 
-	parseIntErr := err // Save this first error, just in case
+		parseIntErr := err // Save this first error, just in case
 
-	value, err = strconv.ParseFloat(literal, 64)
-	if err == nil {
-		return
-	} else if err.(*strconv.NumError).Err == strconv.ErrRange {
-		// Infinity, etc.
-		return value, nil
-	}
-
-	err = parseIntErr
-
-	if err.(*strconv.NumError).Err == strconv.ErrRange {
-		if len(literal) > 2 && literal[0] == '0' && (literal[1] == 'X' || literal[1] == 'x') {
-			// Could just be a very large number (e.g. 0x8000000000000000)
-			var value float64
-			literal = literal[2:]
-			for _, chr := range literal {
-				digit := digitValue(chr)
-				if digit >= 16 {
-					goto error
-				}
-				value = value*16 + float64(digit)
-			}
+		value, err = strconv.ParseFloat(literal, 64)
+		if err == nil {
+			return
+		} else if err.(*strconv.NumError).Err == strconv.ErrRange {
+			// Infinity, etc.
 			return value, nil
 		}
-	}
 
-error:
-	return nil, errors.New("Illegal numeric literal")
-}
+		err = parseIntErr
 
-func parseStringLiteral(literal string) (string, error) {
-	// Best case scenario...
-	if literal == "" {
-		return "", nil
-	}
-
-	// Slightly less-best case scenario...
-	if !strings.ContainsRune(literal, '\\') {
-		return literal, nil
-	}
-
-	str := literal
-	buffer := bytes.NewBuffer(make([]byte, 0, 3*len(literal)/2))
-	var surrogate rune
-S:
-	for len(str) > 0 {
-		switch chr := str[0]; {
-		// We do not explicitly handle the case of the quote
-		// value, which can be: " ' /
-		// This assumes we're already passed a partially well-formed literal
-		case chr >= utf8.RuneSelf:
-			chr, size := utf8.DecodeRuneInString(str)
-			buffer.WriteRune(chr)
-			str = str[size:]
-			continue
-		case chr != '\\':
-			buffer.WriteByte(chr)
-			str = str[1:]
-			continue
-		}
-
-		if len(str) <= 1 {
-			panic("len(str) <= 1")
-		}
-		chr := str[1]
-		var value rune
-		if chr >= utf8.RuneSelf {
-			str = str[1:]
-			var size int
-			value, size = utf8.DecodeRuneInString(str)
-			str = str[size:] // \ + <character>
-		} else {
-			str = str[2:] // \<character>
-			switch chr {
-			case 'b':
-				value = '\b'
-			case 'f':
-				value = '\f'
-			case 'n':
-				value = '\n'
-			case 'r':
-				value = '\r'
-			case 't':
-				value = '\t'
-			case 'v':
-				value = '\v'
-			case 'x', 'u':
-				size := 0
-				switch chr {
-				case 'x':
-					size = 2
-				case 'u':
-					size = 4
-				}
-				if len(str) < size {
-					return "", fmt.Errorf("invalid escape: \\%s: len(%q) != %d", string(chr), str, size)
-				}
-				for j := 0; j < size; j++ {
-					decimal, ok := hex2decimal(str[j])
-					if !ok {
-						return "", fmt.Errorf("invalid escape: \\%s: %q", string(chr), str[:size])
+		if err.(*strconv.NumError).Err == strconv.ErrRange {
+			if len(literal) > 2 && literal[0] == '0' && (literal[1] == 'X' || literal[1] == 'x') {
+				// Could just be a very large number (e.g. 0x8000000000000000)
+				var value float64
+				literal = literal[2:]
+				for _, chr := range literal {
+					digit := digitValue(chr)
+					if digit >= 16 {
+						goto error
 					}
-					value = value<<4 | decimal
+					value = value*16 + float64(digit)
 				}
-				str = str[size:]
-				if chr == 'x' {
-					break
-				}
-				if value > utf8.MaxRune {
-					panic("value > utf8.MaxRune")
-				}
-			case '0':
-				if len(str) == 0 || '0' > str[0] || str[0] > '7' {
-					value = 0
-					break
-				}
-				fallthrough
-			case '1', '2', '3', '4', '5', '6', '7':
-				// TODO strict
-				value = rune(chr) - '0'
-				j := 0
-				for ; j < 2; j++ {
-					if len(str) < j+1 {
-						break
-					}
-					chr := str[j]
-					if '0' > chr || chr > '7' {
-						break
-					}
-					decimal := rune(str[j]) - '0'
-					value = (value << 3) | decimal
-				}
-				str = str[j:]
-			case '\\':
-				value = '\\'
-			case '\'', '"':
-				value = rune(chr)
-			case '\r':
-				if len(str) > 0 {
-					if str[0] == '\n' {
-						str = str[1:]
-					}
-				}
-				fallthrough
-			case '\n':
-				continue
-			default:
-				value = rune(chr)
-			}
-			if surrogate != 0 {
-				value = utf16.DecodeRune(surrogate, value)
-				surrogate = 0
-			} else {
-				if utf16.IsSurrogate(value) {
-					surrogate = value
-					continue S
-				}
+				return value, nil
 			}
 		}
-		buffer.WriteRune(value)
-	}
 
-	return buffer.String(), nil
+	error:
+		return nil, errors.New("Illegal numeric literal")
 }
 
 func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {

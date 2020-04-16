@@ -14,8 +14,10 @@ func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
 
 	var typeParameters []*ast.FlowTypeParameter
 
+	loc := p.loc()
+
 	p.allowNext(token.TYPE_TYPE)
-	start := p.consumeExpected(token.TYPE_TYPE)
+	p.consumeExpected(token.TYPE_TYPE)
 
 	name := p.parseFlowTypeIdentifier()
 
@@ -30,7 +32,7 @@ func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
 	p.optionalSemicolon()
 
 	return &ast.FlowTypeStatement{
-		Start:          start,
+		Loc:            loc,
 		Name:           name,
 		Opaque:         opaque,
 		Type:           value,

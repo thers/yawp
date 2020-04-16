@@ -7,13 +7,13 @@ import (
 
 func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 	if !p.scope.allowYield {
-		p.error(p.loc, "yield can not be used outside of generator function")
+		p.error(p.loc(), "yield can not be used outside of generator function")
 		p.next()
 		return nil
 	}
 
 	exp := &ast.YieldExpression{
-		Start: p.loc,
+		Loc: p.loc(),
 	}
 
 	p.consumeExpected(token.YIELD)
@@ -24,7 +24,7 @@ func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 	}
 
 	if p.implicitSemicolon {
-		p.error(exp.Start, "No line terminator allowed after yield keyword")
+		p.error(exp.Loc, "No line terminator allowed after yield keyword")
 		return nil
 	}
 

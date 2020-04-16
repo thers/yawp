@@ -97,5 +97,9 @@ func (self *Scope) hasLabel(name string) bool {
 }
 
 func (s *Scope) inModuleRoot() bool {
+	if s == nil {
+		return true
+	}
+
 	return !s.inFunction && !s.inType && !s.inClass && !s.inIteration && !s.inSwitch
 }

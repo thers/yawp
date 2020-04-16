@@ -8,23 +8,51 @@ import (
 )
 
 // Start is a compact encoding of a source position within a file set.
-// It can be converted into a Position for a more convenient, but much
+// It can be converted into a Pos for a more convenient, but much
 // larger, representation.
-type Loc int
+type Idx int
 
-// Position describes an arbitrary source position
-// including the filename, line, and column location.
-type Position struct {
-	Filename string // The filename where the error occurred, if any
-	Offset   int    // The src offset
-	Line     int    // The line number, starting at 1
-	Column   int    // The column number, starting at 1 (The character count)
+type Loc struct {
+	From Idx
+	To   Idx
 
+	Line int
+	Col  int
 }
 
-// A Position is valid if the line number is > 0.
+func (l *Loc) End(offset Idx) *Loc {
+	l.To = offset
 
-func (self *Position) isValid() bool {
+	return l
+}
+
+func (l *Loc) Add(loc *Loc) *Loc {
+	c := l.Copy()
+	c.To = loc.To
+
+	return c
+}
+
+func (l *Loc) Copy() *Loc {
+	return &Loc{
+		From: l.From,
+		To:   l.To,
+		Line: l.Line,
+		Col:  l.Col,
+	}
+}
+
+// Pos describes an arbitrary source position
+// including the filename, line, and column location.
+type Pos struct {
+	Loc    int // The src offset
+	Line   int // The line number, starting at 1
+	Column int // The column number, starting at 1 (The character count)
+}
+
+// A Pos is valid if the line number is > 0.
+
+func (self *Pos) isValid() bool {
 	return self.Line > 0
 }
 
@@ -35,8 +63,8 @@ func (self *Position) isValid() bool {
 //	file                An invalid position with filename
 //	-                   An invalid position without filename
 //
-func (self *Position) String() string {
-	str := self.Filename
+func (self *Pos) String() string {
+	str := ""
 	if self.isValid() {
 		if str != "" {
 			str += ":"
@@ -79,24 +107,23 @@ func (self *FileSet) nextBase() int {
 	return self.last.base + len(self.last.src) + 1
 }
 
-func (self *FileSet) File(idx Loc) *File {
+func (self *FileSet) File(idx Idx) *File {
 	for _, file := range self.files {
-		if idx <= Loc(file.base+len(file.src)) {
+		if idx <= Idx(file.base+len(file.src)) {
 			return file
 		}
 	}
 	return nil
 }
 
-// Position converts an Start in the FileSet into a Position.
-func (self *FileSet) Position(idx Loc) *Position {
-	position := &Position{}
+// Pos converts an Start in the FileSet into a Pos.
+func (self *FileSet) Position(idx Idx) *Pos {
+	position := &Pos{}
 	for _, file := range self.files {
-		if idx <= Loc(file.base+len(file.src)) {
+		if idx <= Idx(file.base+len(file.src)) {
 			offset := int(idx) - file.base
 			src := file.src[:offset]
-			position.Filename = file.name
-			position.Offset = offset
+			position.Loc = offset
 			position.Line = 1 + strings.Count(src, "\n")
 			if index := strings.LastIndex(src, "\n"); index >= 0 {
 				position.Column = offset - index

@@ -15,21 +15,21 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 
 func (p *Parser) currentIdentifier() *ast.Identifier {
 	return &ast.Identifier{
-		Start: p.loc,
-		Name:  p.literal,
+		Loc:  p.loc(),
+		Name: p.literal,
 	}
 }
 
 func (p *Parser) parseIdentifierIncludingKeywords() *ast.Identifier {
 	if matchIdentifier.MatchString(p.literal) {
 		literal := p.literal
-		idx := p.loc
+		loc := p.loc()
 
 		p.next()
 
 		return &ast.Identifier{
-			Name:  literal,
-			Start: idx,
+			Loc:  loc,
+			Name: literal,
 		}
 	}
 
@@ -37,12 +37,16 @@ func (p *Parser) parseIdentifierIncludingKeywords() *ast.Identifier {
 }
 
 func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
+	loc := p.loc()
+	loc.From--
+	loc.Col--
 
 	offset := p.chrOffset - 1 // Opening slash already gotten
 	if p.is(token.QUOTIENT_ASSIGN) {
 		offset -= 1 // =
+		loc.From--
+		loc.Col--
 	}
-	idx := p.locOf(offset)
 
 	pattern, err := p.scanString(offset)
 	endOffset := p.chrOffset
@@ -66,22 +70,26 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	}
 
 	literal := p.src[offset:endOffset]
+	loc.End(file.Idx(endOffset))
 
 	return &ast.RegExpLiteral{
-		Start:   idx,
+		Loc:     loc,
 		Literal: literal,
 		Pattern: pattern,
 		Flags:   flags,
 	}
 }
 
-func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end file.Loc) {
+func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end file.Idx) {
 	start = p.consumeExpected(token.LEFT_PARENTHESIS)
 
 	for p.until(token.RIGHT_PARENTHESIS) {
 		if p.is(token.DOTDOTDOT) {
+			loc := p.loc()
+			p.consumeExpected(token.DOTDOTDOT)
+
 			argumentList = append(argumentList, &ast.SpreadExpression{
-				Start: p.consumeExpected(token.DOTDOTDOT),
+				Loc:   loc,
 				Value: p.parseAssignmentExpression(),
 			})
 		} else {
@@ -96,13 +104,12 @@ func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end 
 }
 
 func (p *Parser) parseCallExpression(left ast.Expression, typeArguments []ast.FlowType) ast.Expression {
-	argumentList, idx0, idx1 := p.parseArgumentList()
+	argumentList, _, _ := p.parseArgumentList()
+
 	return &ast.CallExpression{
-		Callee:           left,
-		TypeArguments:    typeArguments,
-		LeftParenthesis:  idx0,
-		ArgumentList:     argumentList,
-		RightParenthesis: idx1,
+		Callee:        left,
+		TypeArguments: typeArguments,
+		ArgumentList:  argumentList,
 	}
 }
 
@@ -136,14 +143,13 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseBracketMember(left ast.Expression) ast.Expression {
-	idx0 := p.consumeExpected(token.LEFT_BRACKET)
+	p.consumeExpected(token.LEFT_BRACKET)
 	member := p.parseExpression()
-	idx1 := p.consumeExpected(token.RIGHT_BRACKET)
+	p.consumeExpected(token.RIGHT_BRACKET)
+
 	return &ast.BracketExpression{
-		LeftBracket:  idx0,
-		Left:         left,
-		Member:       member,
-		RightBracket: idx1,
+		Left:   left,
+		Member: member,
 	}
 }
 
@@ -156,17 +162,21 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 		if p.implicitSemicolon {
 			break
 		}
+
+		loc := p.loc()
 		tkn := p.token
-		idx := p.loc
+
 		p.next()
+
 		switch operand.(type) {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
 		default:
-			p.error(idx, "Invalid left-hand side in assignment")
+			p.error(loc, "Invalid left-hand side in assignment")
 		}
+
 		return &ast.UnaryExpression{
+			Loc:      loc,
 			Operator: tkn,
-			Start:    idx,
 			Operand:  operand,
 			Postfix:  true,
 		}
@@ -182,26 +192,30 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		fallthrough
 	case token.DELETE, token.VOID, token.TYPEOF:
 		tkn := p.token
-		idx := p.loc
+		loc := p.loc()
+
 		p.next()
+
 		return &ast.UnaryExpression{
+			Loc:      loc,
 			Operator: tkn,
-			Start:    idx,
 			Operand:  p.parseUnaryExpression(),
 		}
 	case token.INCREMENT, token.DECREMENT:
 		tkn := p.token
-		idx := p.loc
+		loc := p.loc()
+
 		p.next()
+
 		operand := p.parseUnaryExpression()
 		switch operand.(type) {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
 		default:
-			p.error(idx, "Invalid left-hand side in assignment")
+			p.error(loc, "Invalid left-hand side in assignment")
 		}
 		return &ast.UnaryExpression{
+			Loc:      loc,
 			Operator: tkn,
-			Start:    idx,
 			Operand:  operand,
 		}
 	}
@@ -376,6 +390,7 @@ func (p *Parser) parseLogicalOrExpression() ast.Expression {
 }
 
 func (p *Parser) parseExpression() ast.Expression {
+	loc := p.loc()
 	next := p.parseAssignmentExpression
 	left := next()
 
@@ -386,9 +401,13 @@ func (p *Parser) parseExpression() ast.Expression {
 				break
 			}
 			p.next()
-			sequence = append(sequence, next())
+
+			exp := next()
+			loc = loc.Add(exp.GetLoc())
+			sequence = append(sequence, exp)
 		}
 		return &ast.SequenceExpression{
+			Loc:      loc,
 			Sequence: sequence,
 		}
 	} else if p.is(token.COLON) && p.scope.allowTypeAssertion {

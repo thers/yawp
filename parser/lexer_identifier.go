@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"unicode"
 	"unicode/utf8"
 )
@@ -21,42 +20,43 @@ func isIdentifierPart(chr rune) bool {
 
 func (p *Parser) scanIdentifier() (string, error) {
 	offset := p.chrOffset
-	parse := false
+	//parse := false
 
 	for isIdentifierPart(p.chr) {
-		if p.chr == '\\' {
-			distance := p.chrOffset - offset
-			p.read()
-			if p.chr != 'u' {
-				return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
-			}
-			parse = true
-			var value rune
-			for j := 0; j < 4; j++ {
-				p.read()
-				decimal, ok := hex2decimal(byte(p.chr))
-				if !ok {
-					return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
-				}
-				value = value<<4 | decimal
-			}
-			if value == '\\' {
-				return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-			} else if distance == 0 {
-				if !isIdentifierStart(value) {
-					return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-				}
-			} else if distance > 0 {
-				if !isIdentifierPart(value) {
-					return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-				}
-			}
-		}
+		//if p.chr == '\\' {
+		//	distance := p.chrOffset - offset
+		//	p.read()
+		//	if p.chr != 'u' {
+		//		return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
+		//	}
+		//	parse = true
+		//	var value rune
+		//	for j := 0; j < 4; j++ {
+		//		p.read()
+		//		decimal, ok := hex2decimal(byte(p.chr))
+		//		if !ok {
+		//			return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
+		//		}
+		//		value = value<<4 | decimal
+		//	}
+		//	if value == '\\' {
+		//		return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
+		//	} else if distance == 0 {
+		//		if !isIdentifierStart(value) {
+		//			return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
+		//		}
+		//	} else if distance > 0 {
+		//		if !isIdentifierPart(value) {
+		//			return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
+		//		}
+		//	}
+		//}
 		p.read()
 	}
-	literal := p.src[offset:p.chrOffset]
-	if parse {
-		return parseStringLiteral(literal)
-	}
-	return literal, nil
+
+	return p.src[offset:p.chrOffset], nil
+	//if parse {
+	//	return parseStringLiteral(literal)
+	//}
+	//return literal, nil
 }

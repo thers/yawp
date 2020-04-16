@@ -6,7 +6,8 @@ import (
 )
 
 func (p *Parser) parseFlowTupleType() *ast.FlowTupleType {
-	start := p.consumeExpected(token.LEFT_BRACKET)
+	loc := p.loc()
+	p.consumeExpected(token.LEFT_BRACKET)
 
 	elements := make([]ast.FlowType, 0)
 
@@ -19,8 +20,7 @@ func (p *Parser) parseFlowTupleType() *ast.FlowTupleType {
 	}
 
 	return &ast.FlowTupleType{
-		Start:    start,
-		End:      p.consumeExpected(token.RIGHT_BRACKET),
+		Loc: loc.End(p.consumeExpected(token.RIGHT_BRACKET)),
 		Elements: elements,
 	}
 }

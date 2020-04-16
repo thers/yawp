@@ -2,8 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"sort"
-
 	"yawp/parser/file"
 	"yawp/parser/token"
 )
@@ -50,14 +48,14 @@ const (
 
 // An Error represents a parsing error. It includes the position where the error occurred and a message/description.
 type Error struct {
-	Position file.Position
+	Position file.Pos
 	Message  string
 }
 
 // FIXME Should this be "SyntaxError"?
 
 func (self Error) Error() string {
-	filename := self.Position.Filename
+	filename := ""
 	if filename == "" {
 		filename = "(anonymous)"
 	}
@@ -70,17 +68,19 @@ func (self Error) Error() string {
 }
 
 func (p *Parser) error(place interface{}, msg string, msgValues ...interface{}) *Error {
-	idx := file.Loc(0)
+	idx := file.Idx(0)
 
 	switch place := place.(type) {
-	case int:
-		idx = p.locOf(place)
-	case file.Loc:
-		if place == 0 {
-			idx = p.locOf(p.chrOffset)
-		} else {
-			idx = place
-		}
+	//case int:
+	//	idx = p.locOf(place)
+	//case file.Idx:
+	//	if place == 0 {
+	//		idx = p.locOf(p.chrOffset)
+	//	} else {
+	//		idx = place
+	//	}
+	case *file.Loc:
+		panic(fmt.Errorf("%d:%d %s", place.Line, place.Col, fmt.Sprintf(msg, msgValues...)))
 	default:
 		panic(fmt.Errorf("error(%T, ...)", place))
 	}
@@ -94,7 +94,7 @@ func (p *Parser) error(place interface{}, msg string, msgValues ...interface{}) 
 	return p.errors[len(p.errors)-1]
 }
 
-func (p *Parser) errorUnexpected(idx file.Loc, chr rune) error {
+func (p *Parser) errorUnexpected(idx file.Idx, chr rune) error {
 	if chr == -1 {
 		return p.error(idx, err_UnexpectedEndOfInput)
 	}
@@ -102,13 +102,13 @@ func (p *Parser) errorUnexpected(idx file.Loc, chr rune) error {
 }
 
 func (p *Parser) errorUnexpectedToken(tkn token.Token) error {
-	return p.errorUnexpectedTokenAt(tkn, p.loc)
+	return p.errorUnexpectedTokenAt(tkn, p.idx)
 }
 
-func (p *Parser) errorUnexpectedTokenAt(tkn token.Token, at file.Loc) error {
+func (p *Parser) errorUnexpectedTokenAt(tkn token.Token, at file.Idx) error {
 	switch tkn {
 	case token.EOF:
-		return p.error(file.Loc(0), err_UnexpectedEndOfInput)
+		return p.error(file.Idx(0), err_UnexpectedEndOfInput)
 	}
 	value := tkn.String()
 	switch tkn {
@@ -131,7 +131,7 @@ func (p *Parser) unexpectedToken() {
 	p.errorUnexpectedToken(p.token)
 }
 
-func (p *Parser) unexpectedTokenAt(at file.Loc) {
+func (p *Parser) unexpectedTokenAt(at file.Idx) {
 	p.errorUnexpectedTokenAt(p.token, at)
 }
 
@@ -140,35 +140,12 @@ func (p *Parser) unexpectedTokenAt(at file.Loc) {
 type ErrorList []*Error
 
 // Add adds an Error with given position and message to an ErrorList.
-func (self *ErrorList) Add(position file.Position, msg string) {
+func (self *ErrorList) Add(position file.Pos, msg string) {
 	*self = append(*self, &Error{position, msg})
 }
 
 // Reset resets an ErrorList to no errors.
 func (self *ErrorList) Reset() { *self = (*self)[0:0] }
-
-func (self ErrorList) Len() int      { return len(self) }
-func (self ErrorList) Swap(i, j int) { self[i], self[j] = self[j], self[i] }
-func (self ErrorList) Less(i, j int) bool {
-	x := &self[i].Position
-	y := &self[j].Position
-	if x.Filename < y.Filename {
-		return true
-	}
-	if x.Filename == y.Filename {
-		if x.Line < y.Line {
-			return true
-		}
-		if x.Line == y.Line {
-			return x.Column < y.Column
-		}
-	}
-	return false
-}
-
-func (self ErrorList) Sort() {
-	sort.Sort(self)
-}
 
 // Error implements the Error interface.
 func (self ErrorList) Error() string {

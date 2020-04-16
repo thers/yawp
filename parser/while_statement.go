@@ -6,9 +6,11 @@ import (
 )
 
 func (p *Parser) parseWhileStatement() ast.Statement {
+	loc := p.loc()
 	p.consumeExpected(token.WHILE)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.WhileStatement{
+		Loc:  loc,
 		Test: p.parseExpression(),
 	}
 	p.consumeExpected(token.RIGHT_PARENTHESIS)

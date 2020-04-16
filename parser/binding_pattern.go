@@ -35,11 +35,12 @@ func (p *Parser) parseBinder() ast.PatternBinder {
 }
 
 func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
-	start := p.consumeExpected(token.LEFT_BRACE)
+	loc := p.loc()
+	p.consumeExpected(token.LEFT_BRACE)
 
 	pattern := &ast.ObjectBinding{
-		Start: start,
-		List:  make([]ast.PatternBinder, 0),
+		Loc:  loc,
+		List: make([]ast.PatternBinder, 0),
 	}
 
 	for p.until(token.RIGHT_BRACE) {
@@ -59,7 +60,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 			DefaultValue: nil,
 		}
 
-		propertyIdx := p.loc
+		propertyIdx := p.idx
 		propertyName := p.parseIdentifierIncludingKeywords()
 
 		if propertyName == nil {
@@ -94,17 +95,18 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 		pattern.List = append(pattern.List, property)
 	}
 
-	pattern.End = p.consumeExpected(token.RIGHT_BRACE)
+	pattern.Loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return pattern
 }
 
 func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
-	start := p.consumeExpected(token.LEFT_BRACKET)
+	loc := p.loc()
+	p.consumeExpected(token.LEFT_BRACKET)
 
 	pattern := &ast.ArrayBinding{
-		Start: start,
-		List:  make([]ast.PatternBinder, 0),
+		Loc:  loc,
+		List: make([]ast.PatternBinder, 0),
 	}
 
 	for p.until(token.RIGHT_BRACKET) {
@@ -128,7 +130,7 @@ func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
 		pattern.List = append(pattern.List, item)
 	}
 
-	pattern.End = p.consumeExpected(token.RIGHT_BRACKET)
+	pattern.Loc.End(p.consumeExpected(token.RIGHT_BRACKET))
 
 	return pattern
 }

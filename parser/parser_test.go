@@ -471,7 +471,12 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-const \u30f4ヴ = <a><</a>;
+type T = {|
+	foo: (a, b) => void,
+|};
+
+@withStyles(s)
+class Curtain<CurtainProps: {...}> extends React.Component<Props, State> {}
 		`)
 		if err != nil {
 			panic(err)
@@ -541,12 +546,12 @@ func TestParser(t *testing.T) {
 
 		program = test(";", nil)
 		is(len(program.Body), 1)
-		is(program.Body[0].(*ast.EmptyStatement).Semicolon, file.Loc(1))
+		is(program.Body[0].(*ast.EmptyStatement).Loc.From, file.Idx(1))
 
 		program = test(";;", nil)
 		is(len(program.Body), 2)
-		is(program.Body[0].(*ast.EmptyStatement).Semicolon, file.Loc(1))
-		is(program.Body[1].(*ast.EmptyStatement).Semicolon, file.Loc(2))
+		is(program.Body[0].(*ast.EmptyStatement).Loc.From, file.Idx(1))
+		is(program.Body[1].(*ast.EmptyStatement).Loc.From, file.Idx(2))
 
 		program = test("1.2", nil)
 		is(len(program.Body), 1)
@@ -880,90 +885,6 @@ func TestParser(t *testing.T) {
 	})
 }
 
-func Test_parseStringLiteral(t *testing.T) {
-	tt(t, func() {
-		test := func(have, want string) {
-			have, err := parseStringLiteral(have)
-			is(err, nil)
-			is(have, want)
-		}
-
-		test("", "")
-
-		test("1(\\\\d+)", "1(\\d+)")
-
-		test("\\u2029", "\u2029")
-
-		test("abc\\uFFFFabc", "abc\uFFFFabc")
-
-		test("[First line \\\nSecond line \\\n Third line\\\n.     ]",
-			"[First line Second line  Third line.     ]")
-
-		test("\\u007a\\x79\\u000a\\x78", "zy\nx")
-
-		// S7.8.4_A4.2_T3
-		test("\\a", "a")
-		test("\u0410", "\u0410")
-
-		// S7.8.4_A5.1_T1
-		test("\\0", "\u0000")
-
-		// S8.4_A5
-		test("\u0000", "\u0000")
-
-		// 15.5.4.20
-		test("'abc'\\\n'def'", "'abc''def'")
-
-		// 15.5.4.20-4-1
-		test("'abc'\\\r\n'def'", "'abc''def'")
-
-		// Octal
-		test("\\0", "\000")
-		test("\\00", "\000")
-		test("\\000", "\000")
-		test("\\09", "\0009")
-		test("\\009", "\0009")
-		test("\\0009", "\0009")
-		test("\\1", "\001")
-		test("\\01", "\001")
-		test("\\001", "\001")
-		test("\\0011", "\0011")
-		test("\\1abc", "\001abc")
-
-		test("\\\u4e16", "\u4e16")
-
-		// err
-		test = func(have, want string) {
-			have, err := parseStringLiteral(have)
-			is(err.Error(), want)
-			is(have, "")
-		}
-
-		test(`\u`, `invalid escape: \u: len("") != 4`)
-		test(`\u0`, `invalid escape: \u: len("0") != 4`)
-		test(`\u00`, `invalid escape: \u: len("00") != 4`)
-		test(`\u000`, `invalid escape: \u: len("000") != 4`)
-
-		test(`\x`, `invalid escape: \x: len("") != 2`)
-		test(`\x0`, `invalid escape: \x: len("0") != 2`)
-		test(`\x0`, `invalid escape: \x: len("0") != 2`)
-	})
-}
-
-func Test_parseNumberLiteral(t *testing.T) {
-	tt(t, func() {
-		test := func(input string, expect interface{}) {
-			result, err := parseNumberLiteral(input)
-			is(err, nil)
-			is(result, expect)
-		}
-
-		test("0", 0)
-
-		test("0x8000000000000000", float64(9.223372036854776e+18))
-	})
-}
-
 func TestPosition(t *testing.T) {
 	tt(t, func() {
 		parser := newParser("", "// Lorem ipsum", 1)
@@ -974,12 +895,12 @@ func TestPosition(t *testing.T) {
 
 		var node ast.Node
 		node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
-		is(node.StartAt(), file.Loc(2))
-		is(node.EndAt(), file.Loc(25))
+		is(node.GetLoc().From, file.Idx(2))
+		is(node.GetLoc().To, file.Idx(25))
 
 		node = program
-		is(node.StartAt(), file.Loc(2))
-		is(node.EndAt(), file.Loc(25))
+		is(node.GetLoc().From, file.Idx(2))
+		is(node.GetLoc().To, file.Idx(25))
 
 		parser = newParser("", "(function(){ return abc; })", 1)
 		program, err = parser.parse()

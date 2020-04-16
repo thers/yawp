@@ -100,11 +100,12 @@ func (p *Parser) parseExportDefaultClause() *ast.ExportDefaultClause {
 }
 
 func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
-	start := p.consumeExpected(token.EXPORT)
+	loc := p.loc()
+	p.consumeExpected(token.EXPORT)
 	p.allowNext(token.TYPE_TYPE)
 
 	declaration := &ast.ExportDeclaration{
-		Start: start,
+		Loc: loc,
 	}
 
 	switch p.token {

@@ -39,13 +39,13 @@ func (p *Parser) parseObjectPropertyFromShorthand(propertyName ast.ObjectPropert
 }
 
 func (p *Parser) parseObjectPropertyMethodShorthand(
-	start file.Loc,
+	loc *file.Loc,
 	async bool,
 	propertyName ast.ObjectPropertyName,
 ) *ast.ObjectPropertyValue {
 	parameterList := p.parseFunctionParameterList()
 	functionLiteral := &ast.FunctionLiteral{
-		Start:      start,
+		Loc:        loc,
 		Async:      async,
 		Parameters: parameterList,
 	}
@@ -58,12 +58,12 @@ func (p *Parser) parseObjectPropertyMethodShorthand(
 	}
 }
 
-func (p *Parser) parseObjectPropertyValue(start file.Loc, propertyName ast.ObjectPropertyName) *ast.ObjectPropertyValue {
+func (p *Parser) parseObjectPropertyValue(loc *file.Loc, propertyName ast.ObjectPropertyName) *ast.ObjectPropertyValue {
 	// Object function shorthand
 	if p.is(token.LEFT_PARENTHESIS) {
 		parameterList := p.parseFunctionParameterList()
 		functionLiteral := &ast.FunctionLiteral{
-			Start:      start,
+			Loc:        loc,
 			Parameters: parameterList,
 		}
 
@@ -113,21 +113,17 @@ consider these valid examples:
 func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 	var propertyName ast.ObjectPropertyName
 
+	loc := p.loc()
+
 	// start with easy variants
 	switch p.token {
 	case token.NUMBER:
-		name, start := p.literal, p.loc
-		_, err := parseNumberLiteral(p.literal)
+		name := p.literal
 		p.next()
 
-		if err != nil {
-			name = ""
-			p.error(p.loc, err.Error())
-		}
-
 		propertyName = &ast.Identifier{
-			Start: start,
-			Name:  name,
+			Loc:  loc,
+			Name: name,
 		}
 
 		p.consumeExpected(token.COLON)
@@ -138,17 +134,12 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		}
 
 	case token.STRING:
-		start := p.loc
-		name, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
+		name := p.literal[1 : len(p.literal)-1]
 		p.next()
 
-		if err != nil {
-			p.error(p.loc, err.Error())
-		}
-
 		propertyName = &ast.Identifier{
-			Start: start,
-			Name:  name,
+			Loc:  loc,
+			Name: name,
 		}
 
 		p.consumeExpected(token.COLON)
@@ -160,10 +151,9 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 
 	case token.LEFT_BRACKET:
 		// computed property name
-		start := p.loc
 		propertyName = p.parseObjectPropertyComputedName()
 
-		property := p.parseObjectPropertyValue(start, propertyName)
+		property := p.parseObjectPropertyValue(loc, propertyName)
 		if property != nil {
 			return property
 		}
@@ -183,7 +173,8 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		shouldConsumeNext := true
 
 		if p.literal == "get" || p.literal == "set" {
-			start, accessor := p.loc, p.literal
+			loc = p.loc()
+			accessor := p.literal
 
 			p.next()
 			shouldConsumeNext = false
@@ -195,7 +186,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 				parameterList := p.parseFunctionParameterList()
 
 				functionLiteral := &ast.FunctionLiteral{
-					Start:      start,
+					Loc:        loc,
 					Parameters: parameterList,
 				}
 				p.parseFunctionBlock(functionLiteral)
@@ -214,31 +205,31 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 			}
 		}
 
-		start := p.loc
+		loc = p.loc()
 		propertyName = p.currentIdentifier()
 
 		if shouldConsumeNext {
 			p.next()
 		}
-		
+
 		// now that we have first two tokens we can start to disambiguate
 		if possibleAsync {
 			// `async blah` can only end with `() {}`, so a method shorthand
 			if p.isIdentifierOrKeyword() {
 				propertyName = p.parseIdentifierIncludingKeywords()
 
-				return p.parseObjectPropertyMethodShorthand(start, true, propertyName)
+				return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
 			}
 
 			// `async []() {}`
 			if p.is(token.LEFT_BRACKET) {
 				propertyName = p.parseObjectPropertyComputedName()
 
-				return p.parseObjectPropertyMethodShorthand(start, true, propertyName)
+				return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
 			}
 		}
 
-		property := p.parseObjectPropertyValue(start, propertyName)
+		property := p.parseObjectPropertyValue(loc, propertyName)
 
 		if property == nil {
 			return p.parseObjectPropertyFromShorthand(propertyName)
@@ -256,7 +247,9 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 func (p *Parser) parseObjectLiteral() *ast.ObjectLiteral {
 	var value []ast.ObjectProperty
 
-	leftBrace := p.consumeExpected(token.LEFT_BRACE)
+	loc := p.loc()
+
+	p.consumeExpected(token.LEFT_BRACE)
 	for p.until(token.RIGHT_BRACE) {
 		property := p.parseObjectProperty()
 
@@ -264,11 +257,10 @@ func (p *Parser) parseObjectLiteral() *ast.ObjectLiteral {
 
 		value = append(value, property)
 	}
-	rightBrace := p.consumeExpected(token.RIGHT_BRACE)
+	loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return &ast.ObjectLiteral{
-		LeftBrace:  leftBrace,
-		RightBrace: rightBrace,
+		Loc:        loc,
 		Properties: value,
 	}
 }
@@ -285,7 +277,7 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 }
 
 func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
-	start := p.loc
+	loc := p.loc()
 	partialState := p.captureState()
 
 	objectBinding, success := p.maybeParseObjectBinding()
@@ -294,7 +286,7 @@ func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
 		p.consumeExpected(token.ASSIGN)
 
 		return &ast.VariableBinding{
-			Start:       start,
+			Loc:         loc,
 			Binder:      objectBinding,
 			Initializer: p.parseAssignmentExpression(),
 		}

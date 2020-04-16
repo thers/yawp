@@ -17,7 +17,7 @@ func (p *Parser) parseMemberExpression() ast.MemberExpression {
 			left, ok = dotMember.(ast.MemberExpression)
 
 			if !ok {
-				p.error(left.StartAt(), "Invalid member expression dot prefix")
+				p.error(left.GetLoc(), "Invalid member expression dot prefix")
 
 				return nil
 			}
@@ -26,7 +26,7 @@ func (p *Parser) parseMemberExpression() ast.MemberExpression {
 			left, ok = bracketMember.(ast.MemberExpression)
 
 			if !ok {
-				p.error(bracketMember.StartAt(), "Invalid member expression")
+				p.error(bracketMember.GetLoc(), "Invalid member expression")
 
 				return nil
 			}

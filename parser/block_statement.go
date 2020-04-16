@@ -6,16 +6,19 @@ import (
 )
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
-	node := &ast.BlockStatement{}
-	node.LeftBrace = p.consumeExpected(token.LEFT_BRACE)
+	node := &ast.BlockStatement{
+		Loc: p.loc(),
+	}
+
+	p.consumeExpected(token.LEFT_BRACE)
 	node.List = p.parseStatementList()
-	node.RightBrace = p.consumeExpected(token.RIGHT_BRACE)
+	node.Loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return node
 }
 
 func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
-	start := p.loc
+	loc := p.loc()
 	partialState := p.captureState()
 
 	objectBinding, success := p.maybeParseObjectBinding()
@@ -25,7 +28,7 @@ func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
 
 		return &ast.ExpressionStatement{
 			Expression: &ast.VariableBinding{
-				Start:       start,
+				Loc:         loc,
 				Binder:      objectBinding,
 				Initializer: p.parseAssignmentExpression(),
 			},
@@ -36,4 +39,3 @@ func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
 
 	return p.parseBlockStatement()
 }
-

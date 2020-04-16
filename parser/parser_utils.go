@@ -5,8 +5,8 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) now() (token.Token, string, file.Loc) {
-	return p.token, p.literal, p.loc
+func (p *Parser) now() (token.Token, string, file.Idx) {
+	return p.token, p.literal, p.idx
 }
 
 func (p *Parser) optionalSemicolon() {
@@ -36,8 +36,8 @@ func (p *Parser) semicolon() {
 	}
 }
 
-func (p *Parser) locOf(offset int) file.Loc {
-	return file.Loc(p.base + offset)
+func (p *Parser) locOf(offset int) file.Idx {
+	return file.Idx(p.base + offset)
 }
 
 func (p *Parser) is(value token.Token) bool {
@@ -72,8 +72,8 @@ func (p *Parser) until(value token.Token) bool {
 	return p.token != value && p.token != token.EOF
 }
 
-func (p *Parser) consumeExpected(value token.Token) file.Loc {
-	idx := p.loc
+func (p *Parser) consumeExpected(value token.Token) file.Idx {
+	idx := p.idx
 	if p.token != value {
 		p.unexpectedToken()
 	}
@@ -81,8 +81,8 @@ func (p *Parser) consumeExpected(value token.Token) file.Loc {
 	return idx
 }
 
-func (p *Parser) consumePossible(value token.Token) file.Loc {
-	idx := p.loc
+func (p *Parser) consumePossible(value token.Token) file.Idx {
+	idx := p.idx
 
 	if p.token == value {
 		p.next()
@@ -98,34 +98,46 @@ func (p *Parser) shouldBe(value token.Token) {
 }
 
 func lineCount(str string) (int, int) {
-	line, last := 0, -1
-	pair := false
-	for index, chr := range str {
-		switch chr {
-		case '\r':
-			line += 1
-			last = index
-			pair = true
-			continue
-		case '\n':
-			if !pair {
-				line += 1
-			}
-			last = index
-		case '\u2028', '\u2029':
-			line += 1
-			last = index + 2
-		}
-		pair = false
-	}
-	return line, last
+	return 0, 0
+
+	//line, last := 0, -1
+	//pair := false
+	//for index, chr := range str {
+	//	switch chr {
+	//	case '\r':
+	//		line += 1
+	//		last = index
+	//		pair = true
+	//		continue
+	//	case '\n':
+	//		if !pair {
+	//			line += 1
+	//		}
+	//		last = index
+	//	case '\u2028', '\u2029':
+	//		line += 1
+	//		last = index + 2
+	//	}
+	//	pair = false
+	//}
+	//return line, last
 }
 
-func (p *Parser) position(idx file.Loc) file.Position {
-	position := file.Position{}
+func (p *Parser) loc() *file.Loc {
+	return &file.Loc{
+		From: p.idx,
+		To:   file.Idx(p.nextChrOffset),
+		Line: p.line,
+		Col:  p.col,
+	}
+}
+
+func (p *Parser) position(idx file.Idx) file.Pos {
+	position := file.Pos{}
+
 	offset := int(idx) - p.base
 	str := p.src[:offset]
-	position.Filename = p.file.Name()
+
 	line, last := lineCount(str)
 	position.Line = 1 + line
 	if last >= 0 {

@@ -11,17 +11,12 @@ func areElementNamesEqual(a, b *ast.JSXElementName) bool {
 }
 
 func (p *Parser) parseString() *ast.StringLiteral {
-	value, err := parseStringLiteral(p.literal[1 : len(p.literal)-1])
-	if err != nil {
-		p.error(p.loc, err.Error())
-	}
-
 	p.next()
 
 	return &ast.StringLiteral{
-		Start:   p.loc,
+		Loc:     p.loc(),
 		Literal: p.literal,
-		Value:   value,
+		Value:   p.literal,
 	}
 }
 
@@ -37,10 +32,12 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 		p.consumeExpected(token.COLON)
 
 		name := p.parseIdentifierIncludingKeywords()
+		loc := rootIdentifier.Loc.Copy()
+		loc.To += file.Idx(len(name.Name))
 
 		return &ast.JSXElementName{
 			Expression: &ast.JSXNamespacedName{
-				Start:     rootIdentifier.Start,
+				Loc:       loc,
 				Namespace: rootIdentifier.Name,
 				Name:      name.Name,
 			},
@@ -101,21 +98,23 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 	}
 
 	// parsing text
-	start := p.jsxTextParseFrom
-	text := p.src[start:p.chrOffset]
+	loc := p.loc()
+	loc.From = file.Idx(p.jsxTextParseFrom)
+
 	for p.chr != '<' && p.chr != '{' && p.chr != -1 {
-		text += string(p.chr)
 		p.read()
 	}
+
+	loc.To = file.Idx(p.chrOffset)
+	text := p.src[p.jsxTextParseFrom:p.chrOffset]
 
 	p.jsxTextParseFrom = p.chrOffset
 
 	p.next()
 
 	return &ast.JSXText{
-		Start: file.Loc(start),
-		End:   p.loc,
-		Text:  text,
+		Loc:  loc,
+		Text: text,
 	}
 }
 
@@ -145,7 +144,7 @@ func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
 				}
 			} else {
 				attribute.Value = &ast.BooleanLiteral{
-					Start:   attribute.Name.Start,
+					Loc:     attribute.Name.GetLoc(),
 					Literal: "true",
 					Value:   true,
 				}
@@ -173,27 +172,31 @@ func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
 }
 
 func (p *Parser) parseJSXFragment() *ast.JSXFragment {
-	start := p.consumeExpected(token.JSX_FRAGMENT_START)
+	loc := p.loc()
+
+	p.consumeExpected(token.JSX_FRAGMENT_START)
 	children := make([]ast.JSXChild, 0)
 
 	for p.until(token.JSX_FRAGMENT_END) {
 		children = append(children, p.parseJSXChild())
 	}
 
-	end := p.consumeExpected(token.JSX_FRAGMENT_END)
+	loc.End(p.consumeExpected(token.JSX_FRAGMENT_END))
 	// it's 3 chars wide token
-	p.jsxTextParseFrom = int(end) + 2
+	p.jsxTextParseFrom = int(loc.To) + 2
 
 	return &ast.JSXFragment{
-		Start:    start,
-		End:      end,
+		Loc:      loc,
 		Children: children,
 	}
 }
 
 func (p *Parser) parseJSXElement() *ast.JSXElement {
+	loc := p.loc()
+	p.consumeExpected(token.LESS)
+
 	elm := &ast.JSXElement{
-		Start:    p.consumeExpected(token.LESS),
+		Loc:      loc,
 		Name:     p.parseJSXElementName(),
 		Children: make([]ast.JSXChild, 0),
 	}
@@ -208,9 +211,9 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 
 	// self closing element />
 	if p.is(token.JSX_TAG_SELF_CLOSE) {
-		elm.End = p.consumeExpected(token.JSX_TAG_SELF_CLOSE)
+		elm.Loc.End(p.consumeExpected(token.JSX_TAG_SELF_CLOSE))
 		// it's a 2 chars wide token
-		p.jsxTextParseFrom = int(elm.End) + 1
+		p.jsxTextParseFrom = int(elm.Loc.To) + 1
 
 		return elm
 	}
@@ -224,7 +227,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	}
 
 	p.consumeExpected(token.JSX_TAG_CLOSE)
-	closeElementNamePos := p.loc
+	closeElementNamePos := p.idx
 	closeElementName := p.parseJSXElementName()
 
 	if !areElementNamesEqual(elm.Name, closeElementName) {
@@ -233,23 +236,35 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 		return nil
 	}
 
-	elm.End = p.consumeExpected(token.GREATER)
-	p.jsxTextParseFrom = int(elm.End)
+	elm.Loc.End(p.consumeExpected(token.GREATER))
+	p.jsxTextParseFrom = int(elm.Loc.To)
 
 	return elm
 }
 
-func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
-	partialState := p.captureState()
-	errorsCount := len(p.errors)
-	start := p.loc
+func (p *Parser) maybeParseJSXElement() (ast.Expression, bool) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			return
+		}
+	}()
 
-	// first try to parse as jsx
 	p.genericTypeParametersMode = true
 	jsx := p.parseJSXElement()
 	p.genericTypeParametersMode = false
 
-	if len(p.errors) == errorsCount {
+	return jsx, true
+}
+
+func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
+	partialState := p.captureState()
+	loc := p.loc()
+
+	// first try to parse as jsx
+	jsx, success := p.maybeParseJSXElement()
+
+	if success {
 		return jsx
 	}
 
@@ -271,7 +286,7 @@ func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
-			Start:          start,
+			Loc:            loc,
 			Async:          false,
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,

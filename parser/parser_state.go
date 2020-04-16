@@ -6,7 +6,7 @@ import (
 )
 
 type ParserStateSnapshot struct {
-	idx               file.Loc
+	idx               file.Idx
 	token             token.Token
 	errors            ErrorList
 	offset            int
@@ -20,7 +20,7 @@ type ParserStateSnapshot struct {
 
 func (p *Parser) captureState() *ParserStateSnapshot {
 	return &ParserStateSnapshot{
-		idx:               p.loc,
+		idx:               p.idx,
 		token:             p.token,
 		errors:            p.errors,
 		offset:            p.nextChrOffset,
@@ -34,7 +34,7 @@ func (p *Parser) captureState() *ParserStateSnapshot {
 }
 
 func (p *Parser) rewindStateTo(state *ParserStateSnapshot) {
-	p.loc = state.idx
+	p.idx = state.idx
 	p.token = state.token
 	p.errors = state.errors
 	p.nextChrOffset = state.offset

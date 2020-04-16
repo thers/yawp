@@ -9,12 +9,12 @@ import (
 func (p *Parser) parseImportDefaultClause(stmt *ast.ImportDeclaration) {
 	identifier := p.parseIdentifier()
 	moduleIdentifier := &ast.Identifier{
-		Start: identifier.Start,
-		Name:  "default",
+		Loc:  identifier.Loc,
+		Name: "default",
 	}
 
 	exp := &ast.ImportClause{
-		Start:            p.loc,
+		Loc:              p.loc(),
 		Namespace:        false,
 		ModuleIdentifier: moduleIdentifier,
 		LocalIdentifier:  identifier,
@@ -38,7 +38,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
 		}
 
 		stmt.Imports = append(stmt.Imports, &ast.ImportClause{
-			Start:            moduleIdentifier.Start,
+			Loc:              moduleIdentifier.Loc,
 			Namespace:        false,
 			ModuleIdentifier: moduleIdentifier,
 			LocalIdentifier:  localIdentifier,
@@ -54,7 +54,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
 
 func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportDeclaration) {
 	exp := &ast.ImportClause{
-		Start:            p.loc,
+		Loc:              p.loc(),
 		Namespace:        true,
 		ModuleIdentifier: nil,
 		LocalIdentifier:  nil,
@@ -74,20 +74,19 @@ func (p *Parser) parseImportFromClause(stmt *ast.ImportDeclaration) {
 	if p.is(token.STRING) {
 		stmt.From = p.literal
 		p.next()
-		stmt.End = p.loc
+		stmt.Loc.End(p.idx)
 	} else {
 		p.unexpectedToken()
 	}
 }
 
 func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
-	start := p.loc
+	loc := p.loc()
 
 	p.consumeExpected(token.IMPORT)
 	stmt := &ast.ImportDeclaration{
-		Start:   start,
+		Loc:     loc,
 		Imports: make([]*ast.ImportClause, 0),
-		End:     0,
 	}
 
 	p.allowNext(token.TYPE_TYPE)
@@ -119,7 +118,7 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 
 	if p.is(token.COMMA) {
 		if !stmt.HasDefaultClause {
-			p.error(p.loc, "Can not use multiple import clauses when first one isn't default")
+			p.error(p.idx, "Can not use multiple import clauses when first one isn't default")
 		} else {
 			p.next()
 
@@ -146,13 +145,14 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 }
 
 func (p *Parser) parseImportCall() ast.Expression {
-	start := p.consumeExpected(token.IMPORT)
+	loc := p.loc()
+
+	p.consumeExpected(token.IMPORT)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 
 	call := &ast.ImportCall{
-		Start:      start,
+		Loc:        loc.End(p.consumeExpected(token.RIGHT_PARENTHESIS)),
 		Expression: p.parseAssignmentExpression(),
-		End:        p.consumeExpected(token.RIGHT_PARENTHESIS),
 	}
 
 	return call

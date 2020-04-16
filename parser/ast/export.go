@@ -8,7 +8,7 @@ type (
 	}
 
 	ExportDeclaration struct {
-		Start  file.Loc
+		Loc    *file.Loc
 		Clause ExportClause
 	}
 
@@ -65,6 +65,4 @@ func (s *ExportFunctionClause) _exportClauseNode()      {}
 func (s *ExportClassClause) _exportClauseNode()         {}
 func (s *ExportDefaultClause) _exportClauseNode()       {}
 
-func (s *ExportDeclaration) StartAt() file.Loc { return s.Start }
-
-func (s *ExportDeclaration) EndAt() file.Loc { return -1 }
+func (s *ExportDeclaration) GetLoc() *file.Loc { return s.Loc }

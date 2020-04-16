@@ -6,7 +6,8 @@ import (
 )
 
 func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
-	start := p.consumeExpected(token.OPTIONAL_CHAINING)
+	loc := p.loc()
+	p.consumeExpected(token.OPTIONAL_CHAINING)
 	identifier := p.parseIdentifierIncludingKeywords()
 
 	if identifier == nil {
@@ -15,23 +16,24 @@ func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
 			p.consumeExpected(token.LEFT_BRACKET)
 
 			index := p.parseAssignmentExpression()
-			end := p.consumeExpected(token.RIGHT_BRACKET)
+			loc.End(p.consumeExpected(token.RIGHT_BRACKET))
 
 			return &ast.OptionalArrayMemberAccessExpression{
+				Loc:   loc,
 				Left:  left,
 				Index: index,
-				End:   end,
 			}
 		case token.LEFT_PARENTHESIS:
 			arguments, _, end := p.parseArgumentList()
+			loc.End(end)
 
 			return &ast.OptionalCallExpression{
+				Loc:       loc,
 				Left:      left,
 				Arguments: arguments,
-				End:       end,
 			}
 		default:
-			p.error(start, "Unexpected token")
+			p.error(loc, "Unexpected token")
 		}
 	}
 

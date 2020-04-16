@@ -6,7 +6,8 @@ import (
 )
 
 func (p *Parser) parseNewExpression() ast.Expression {
-	start := p.consumeExpected(token.NEW)
+	loc := p.loc()
+	p.consumeExpected(token.NEW)
 
 	if p.is(token.PERIOD) {
 		p.consumeExpected(token.PERIOD)
@@ -17,17 +18,16 @@ func (p *Parser) parseNewExpression() ast.Expression {
 			return nil
 		}
 
-		end := p.consumeExpected(token.IDENTIFIER)
+		loc.End(p.consumeExpected(token.IDENTIFIER))
 
 		return &ast.NewTargetExpression{
-			Start: start,
-			End:   end,
+			Loc: loc,
 		}
 	}
 
 	callee := p.parseLeftHandSideExpression()
 	node := &ast.NewExpression{
-		Start:  start,
+		Loc:    loc,
 		Callee: callee,
 	}
 
@@ -36,10 +36,8 @@ func (p *Parser) parseNewExpression() ast.Expression {
 	}
 
 	if p.is(token.LEFT_PARENTHESIS) {
-		argumentList, idx0, idx1 := p.parseArgumentList()
+		argumentList, _, _ := p.parseArgumentList()
 		node.ArgumentList = argumentList
-		node.LeftParenthesis = idx0
-		node.RightParenthesis = idx1
 	}
 
 	return node

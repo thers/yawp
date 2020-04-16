@@ -6,14 +6,15 @@ import (
 )
 
 func (p *Parser) parseReturnStatement() ast.Statement {
-	idx := p.consumeExpected(token.RETURN)
+	loc := p.loc()
+	p.consumeExpected(token.RETURN)
 
 	if !p.scope.inFunction {
-		p.error(idx, "Illegal return statement")
+		p.error(loc, "Illegal return statement")
 	}
 
 	node := &ast.ReturnStatement{
-		Return: idx,
+		Loc: loc,
 	}
 
 	if !p.implicitSemicolon && !p.is(token.SEMICOLON) && !p.is(token.RIGHT_BRACE) && !p.is(token.EOF) {

@@ -46,7 +46,7 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
 			// these are the only valid types of left expression
 		default:
-			p.error(left.StartAt(), "Invalid left-hand side in assignment")
+			p.error(left.GetLoc(), "Invalid left-hand side in assignment")
 		}
 
 		return &ast.AssignExpression{

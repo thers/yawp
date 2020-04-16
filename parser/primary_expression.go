@@ -7,11 +7,11 @@ import (
 
 func (p *Parser) parsePrimaryExpression() ast.Expression {
 	literal := p.literal
-	idx := p.loc
+	loc := p.loc()
 
 	switch p.token {
 	case token.SUPER:
-		start := p.loc
+		start := p.idx
 
 		if !p.scope.inClass && !p.scope.inFunction {
 			p.error(start, "illegal use of super keyword")
@@ -23,36 +23,33 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		arguments, _, end := p.parseArgumentList()
 
 		return &ast.ClassSuperExpression{
-			Start:     start,
-			End:       end,
+			Loc:       loc.End(end),
 			Arguments: arguments,
 		}
 	case token.CLASS:
 		return p.parseClassExpression()
 	case token.AWAIT:
-		idx := p.loc
 		p.next()
 
 		return &ast.AwaitExpression{
-			Start:      idx,
+			Loc:        loc,
 			Expression: p.parseAssignmentExpression(),
 		}
 	case token.ASYNC:
-		idx := p.loc
 		st := p.captureState()
 		p.next()
 
 		if p.is(token.FUNCTION) {
-			return p.parseFunction(false, idx, true)
+			return p.parseFunction(false, loc, true)
 		} else {
-			return p.tryParseAsyncArrowFunction(idx, st)
+			return p.tryParseAsyncArrowFunction(loc, st)
 		}
 	case token.IDENTIFIER:
 		return p.parseIdentifierOrSingleArgumentArrowFunction(false)
 	case token.NULL:
 		p.next()
 		return &ast.NullLiteral{
-			Start:   idx,
+			Loc:     loc,
 			Literal: literal,
 		}
 	case token.BOOLEAN:
@@ -64,10 +61,10 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		case "false":
 			value = false
 		default:
-			p.error(idx, "Illegal boolean literal")
+			p.error(loc, "Illegal boolean literal")
 		}
 		return &ast.BooleanLiteral{
-			Start:   idx,
+			Loc:     loc,
 			Literal: literal,
 			Value:   value,
 		}
@@ -75,26 +72,17 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		return p.parseTemplateExpression()
 	case token.STRING:
 		p.next()
-		value, err := parseStringLiteral(literal[1 : len(literal)-1])
-		if err != nil {
-			p.error(idx, err.Error())
-		}
+
 		return &ast.StringLiteral{
-			Start:   idx,
+			Loc:     loc,
 			Literal: literal,
-			Value:   value,
 		}
 	case token.NUMBER:
 		p.next()
-		value, err := parseNumberLiteral(literal)
-		if err != nil {
-			p.error(idx, err.Error())
-			value = 0
-		}
+
 		return &ast.NumberLiteral{
-			Start:   idx,
+			Loc:     loc,
 			Literal: literal,
-			Value:   value,
 		}
 	case token.SLASH, token.QUOTIENT_ASSIGN:
 		return p.parseRegExpLiteral()
@@ -107,10 +95,10 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.THIS:
 		p.next()
 		return &ast.ThisExpression{
-			Start: idx,
+			Loc: loc,
 		}
 	case token.FUNCTION:
-		return p.parseFunction(false, p.loc, false)
+		return p.parseFunction(false, loc, false)
 	case token.YIELD:
 		return p.parseYieldExpression()
 	case token.JSX_FRAGMENT_START:

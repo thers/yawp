@@ -7,13 +7,13 @@ import (
 )
 
 func (p *Parser) parseFlowNamedObjectPropertyRemainder(
-	start file.Loc,
+	loc *file.Loc,
 	covariant,
 	contravariant bool,
 	name string,
 ) *ast.FlowNamedObjectProperty {
 	prop := &ast.FlowNamedObjectProperty{
-		Start:         start,
+		Loc:           loc,
 		Name:          name,
 		Optional:      false,
 		Covariant:     covariant,
@@ -42,7 +42,7 @@ func (p *Parser) parseFlowTypeVariance() (covariant, contravariant bool) {
 }
 
 func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
-	start := p.loc
+	loc := p.loc()
 
 	covariant, contravariant := p.parseFlowTypeVariance()
 	identifier := p.parseIdentifierIncludingKeywords()
@@ -55,7 +55,7 @@ func (p *Parser) parseFlowNamedObjectProperty() *ast.FlowNamedObjectProperty {
 	}
 
 	return p.parseFlowNamedObjectPropertyRemainder(
-		start,
+		loc,
 		covariant,
 		contravariant,
 		identifier.Name,
@@ -74,7 +74,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 	}
 
 	for p.until(terminator) {
-		start := p.loc
+		loc := p.loc()
 
 		if p.isIdentifierOrKeyword() || p.isAny(token.PLUS, token.MINUS) {
 			prop := p.parseFlowNamedObjectProperty()
@@ -85,7 +85,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 
 			props = append(props, prop)
 		} else if p.is(token.DOTDOTDOT) {
-			idx := p.loc
+			idx := p.idx
 			p.next()
 
 			// inexact object specifier
@@ -97,12 +97,12 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 				}
 
 				props = append(props, &ast.FlowInexactSpecifierProperty{
-					Start: start,
+					Loc: loc,
 				})
 				break
 			} else {
 				props = append(props, &ast.FlowSpreadObjectProperty{
-					Start:    start,
+					Loc:      loc,
 					FlowType: p.parseFlowType(),
 				})
 			}
@@ -110,7 +110,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 			p.next()
 
 			prop := &ast.FlowIndexerObjectProperty{
-				Start:   start,
+				Loc:     loc,
 				KeyName: "",
 				KeyType: nil,
 				Value:   nil,
@@ -129,7 +129,7 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 				if p.is(token.COLON) {
 					if isKeyword {
 						// keywords aren't legal identifiers
-						p.error(identifier.Start, "Cannot use keyword as type identifier")
+						p.error(identifier.GetLoc(), "Cannot use keyword as type identifier")
 						p.next()
 						goto Next
 					}
@@ -138,8 +138,8 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 					prop.KeyType = p.parseFlowTypeAnnotation()
 				} else if p.is(token.RIGHT_BRACKET) {
 					prop.KeyType = &ast.FlowIdentifier{
-						Start: identifier.Start,
-						Name:  identifier.Name,
+						Loc:  identifier.Loc,
+						Name: identifier.Name,
 					}
 				} else {
 					p.unexpectedToken()
@@ -175,31 +175,31 @@ func (p *Parser) parseFlowObjectProperties(exact bool) []ast.FlowObjectProperty 
 }
 
 func (p *Parser) parseFlowInexactObjectType() *ast.FlowInexactObject {
-	start := p.consumeExpected(token.LEFT_BRACE)
+	loc := p.loc()
+	p.consumeExpected(token.LEFT_BRACE)
 
 	properties := p.parseFlowObjectProperties(false)
 	p.consumePossible(token.COMMA)
 
-	end := p.consumeExpected(token.RIGHT_BRACE)
+	loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return &ast.FlowInexactObject{
-		Start:      start,
-		End:        end,
+		Loc:        loc,
 		Properties: properties,
 	}
 }
 
 func (p *Parser) parseFlowExactObjectType() *ast.FlowExactObject {
-	start := p.consumeExpected(token.TYPE_EXACT_OBJECT_START)
+	loc := p.loc()
+	p.consumeExpected(token.TYPE_EXACT_OBJECT_START)
 
 	properties := p.parseFlowObjectProperties(true)
 	p.consumePossible(token.COMMA)
 
-	end := p.consumeExpected(token.TYPE_EXACT_OBJECT_END)
+	loc.End(p.consumeExpected(token.TYPE_EXACT_OBJECT_END))
 
 	return &ast.FlowExactObject{
-		Start:      start,
-		End:        end,
+		Loc:        loc,
 		Properties: properties,
 	}
 }

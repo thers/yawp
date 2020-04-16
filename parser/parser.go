@@ -17,11 +17,14 @@ type Parser struct {
 	length    int
 	base      int
 
+	col         int   // column of the current char
+	line        int   // line of the current char
+
 	chr           rune // The current character
 	chrOffset     int  // The offset of current character
 	nextChrOffset int  // The nextChrOffset after current character (may be greater than 1)
 
-	loc            file.Loc    // location of token
+	idx            file.Idx    // location of token
 	token          token.Token // token itself
 	literal        string      // literal of a token, if any
 	tokenIsKeyword bool        // is current token a keyword
@@ -45,6 +48,8 @@ type Parser struct {
 func newParser(filename, src string, base int) *Parser {
 	return &Parser{
 		chr:    ' ', // This is set so we can start scanning by skipping whitespace
+		col:    1,
+		line:   1,
 		src:    src,
 		length: len(src),
 		base:   base,
@@ -102,26 +107,24 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}) (*ast.Pr
 		}
 
 		parser := newParser(filename, str, base)
-		return parser.parse()
+		prog, perr := parser.parse()
+
+		return prog, perr
 	}
 }
 
 func (p *Parser) parse() (*ast.Program, error) {
 	p.next()
 	program := p.parseProgram()
-	if false {
-		p.errors.Sort()
-	}
+
 	return program, p.errors.Err()
 }
 
-func (p *Parser) next() (idx file.Loc) {
-	idx = p.loc
-	p.token, p.literal, p.loc = p.scan()
+func (p *Parser) next() (idx file.Idx) {
+	idx = p.idx
+	p.token, p.literal, p.idx = p.scan()
 	return
 }
-
-
 
 // ParseFunctionForTests parses a given parameter list and body as a function and returns the
 // corresponding ast.FunctionLiteral node.
