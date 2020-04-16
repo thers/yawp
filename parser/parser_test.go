@@ -12,10 +12,6 @@ import (
 )
 
 func firstErr(err error) error {
-	switch err := err.(type) {
-	case ErrorList:
-		return err[0]
-	}
 	return err
 }
 
@@ -471,12 +467,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-type T = {|
-	foo: (a, b) => void,
-|};
-
-@withStyles(s)
-class Curtain<CurtainProps: {...}> extends React.Component<Props, State> {}
+test?.2:1;
 		`)
 		if err != nil {
 			panic(err)

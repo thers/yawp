@@ -335,8 +335,13 @@ func (p *Parser) scan() (tkn token.Token, literal string, loc file.Idx) {
 				tkn = token.BITWISE_NOT
 			case '?':
 				if p.chr == '.' {
-					p.read()
-					tkn = token.OPTIONAL_CHAINING
+					// excluding foo?.2:1
+					if !isDigit(p.peekChr(), 10) {
+						p.read()
+						tkn = token.OPTIONAL_CHAINING
+					} else {
+						tkn = token.QUESTION_MARK
+					}
 				} else if p.chr == '?' {
 					p.read()
 					tkn = token.NULLISH_COALESCING
@@ -376,6 +381,14 @@ func (p *Parser) _peek() rune {
 		return rune(p.src[p.nextChrOffset+1])
 	}
 	return -1
+}
+
+func (p *Parser) peekChr() rune {
+	if p.nextChrOffset >= p.length {
+		return -1
+	}
+
+	return rune(p.src[p.nextChrOffset])
 }
 
 func (p *Parser) read() {
