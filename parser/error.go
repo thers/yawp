@@ -12,8 +12,23 @@ const (
 )
 
 
+type SyntaxError struct {
+	Loc *file.Loc
+	error error
+}
+
+func (se SyntaxError) Error() error {
+	return fmt.Errorf("%d:%d %s", se.Loc.Line, se.Loc.Col, se.error)
+}
+
+
 func (p *Parser) error(loc *file.Loc, msg string, msgValues ...interface{}) {
-	panic(fmt.Errorf("%d:%d %s", loc.Line, loc.Col, fmt.Sprintf(msg, msgValues...)))
+	message := fmt.Errorf(msg, msgValues...)
+
+	panic(&SyntaxError{
+		Loc: loc,
+		error: message,
+	})
 }
 
 func (p *Parser) errorUnexpected(loc *file.Loc, chr rune) {

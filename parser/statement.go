@@ -1,15 +1,56 @@
 package parser
 
 import (
-	"encoding/base64"
-	"github.com/go-sourcemap/sourcemap"
-	"io/ioutil"
-	"net/url"
-	"os"
-	"strings"
 	"yawp/parser/ast"
 	"yawp/parser/token"
 )
+
+
+
+func (p *Parser) parseSourceElement() ast.Statement {
+	return p.parseStatement()
+}
+
+func (p *Parser) parseSourceElements() []ast.Statement {
+	body := make([]ast.Statement, 0)
+
+	defer func() {
+		err := recover()
+
+		if err == nil {
+			return
+		}
+
+		switch terr := err.(type) {
+		case error:
+			p.err = terr
+		case *SyntaxError:
+			p.err = terr.Error()
+		default:
+			panic(terr)
+		}
+	}()
+
+	for !p.is(token.EOF) {
+		stmt := p.parseStatement()
+
+		if _, ok := stmt.(*ast.EmptyStatement); !ok {
+			body = append(body, stmt)
+		}
+	}
+
+	return body
+}
+
+func (p *Parser) parseProgram() *ast.Program {
+	p.openScope()
+	defer p.closeScope()
+	return &ast.Program{
+		Body:            p.parseSourceElements(),
+		DeclarationList: p.scope.declarationList,
+		File:            p.file,
+	}
+}
 
 func (p *Parser) parseEmptyStatement() ast.Statement {
 	loc := p.loc()
@@ -312,88 +353,6 @@ func (p *Parser) parseIfStatement() ast.Statement {
 	}
 
 	return node
-}
-
-func (p *Parser) parseSourceElement() ast.Statement {
-	return p.parseStatement()
-}
-
-func (p *Parser) parseSourceElements() []ast.Statement {
-	body := make([]ast.Statement, 0)
-
-	defer func() {
-		err := recover()
-
-		if err == nil {
-			return
-		}
-
-		if errito, ok := err.(error); ok {
-			p.err = errito
-		} else {
-			panic(err)
-		}
-	}()
-
-	for !p.is(token.EOF) {
-		stmt := p.parseStatement()
-
-		if _, ok := stmt.(*ast.EmptyStatement); !ok {
-			body = append(body, stmt)
-		}
-	}
-
-	return body
-}
-
-func (p *Parser) parseProgram() *ast.Program {
-	p.openScope()
-	defer p.closeScope()
-	return &ast.Program{
-		Body:            p.parseSourceElements(),
-		DeclarationList: p.scope.declarationList,
-		File:            p.file,
-		SourceMap:       p.parseSourceMap(),
-	}
-}
-
-func (p *Parser) parseSourceMap() *sourcemap.Consumer {
-	lastLine := p.src[strings.LastIndexByte(p.src, '\n')+1:]
-	if strings.HasPrefix(lastLine, "//# sourceMappingURL") {
-		urlIndex := strings.Index(lastLine, "=")
-		urlStr := lastLine[urlIndex+1:]
-
-		var data []byte
-		if strings.HasPrefix(urlStr, "data:application/json") {
-			b64Index := strings.Index(urlStr, ",")
-			b64 := urlStr[b64Index+1:]
-			if d, err := base64.StdEncoding.DecodeString(b64); err == nil {
-				data = d
-			}
-		} else {
-			if smUrl, err := url.Parse(urlStr); err == nil {
-				if smUrl.Scheme == "" || smUrl.Scheme == "file" {
-					if f, err := os.Open(smUrl.Path); err == nil {
-						if d, err := ioutil.ReadAll(f); err == nil {
-							data = d
-						}
-					}
-				} else {
-					// Not implemented - compile error?
-					return nil
-				}
-			}
-		}
-
-		if data == nil {
-			return nil
-		}
-
-		if sm, err := sourcemap.Parse(p.file.Name(), data); err == nil {
-			return sm
-		}
-	}
-	return nil
 }
 
 func (p *Parser) parseBreakStatement() ast.Statement {

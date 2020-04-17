@@ -32,14 +32,14 @@ func testParse(src string) (parser *Parser, program *ast.Program, err error) {
 			panic(tmp)
 		}
 	}()
-	parser = newParser("", src, 1)
+	parser = newParser("", src)
 	program, err = parser.parse()
 	return
 }
 
 func TestParseFile(t *testing.T) {
 	tt(t, func() {
-		_, err := ParseFile(nil, "", `/abc/`)
+		_, err := ParseFile("", `/abc/`)
 		is(err, nil)
 	})
 }
@@ -71,7 +71,7 @@ func TestParseFunction(t *testing.T) {
 func TestParserErr(t *testing.T) {
 	tt(t, func() {
 		test := func(input string, expect interface{}) (*ast.Program, *Parser) {
-			parser := newParser("", input, 1)
+			parser := newParser("", input)
 			program, err := parser.parse()
 			is(firstErr(err), expect)
 			return program, parser
@@ -467,7 +467,7 @@ func TestParserAdditions(t *testing.T) {
 	tt(t, func() {
 		// language=js
 		_, pr, err := testParse(`
-test?.2:1;
+123 + uat + #
 		`)
 		if err != nil {
 			panic(err)
@@ -878,9 +878,9 @@ func TestParser(t *testing.T) {
 
 func TestPosition(t *testing.T) {
 	tt(t, func() {
-		parser := newParser("", "// Lorem ipsum", 1)
+		parser := newParser("", "// Lorem ipsum")
 
-		parser = newParser("", "(function(){ return 0; })", 1)
+		parser = newParser("", "(function(){ return 0; })")
 		program, err := parser.parse()
 		is(err, nil)
 
@@ -893,7 +893,7 @@ func TestPosition(t *testing.T) {
 		is(node.GetLoc().From, file.Idx(2))
 		is(node.GetLoc().To, file.Idx(25))
 
-		parser = newParser("", "(function(){ return abc; })", 1)
+		parser = newParser("", "(function(){ return abc; })")
 		program, err = parser.parse()
 		is(err, nil)
 		node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)

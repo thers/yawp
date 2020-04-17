@@ -172,6 +172,7 @@ var token2string = [...]string{
 	NULL:                        "NULL",
 	NUMBER:                      "NUMBER",
 	IDENTIFIER:                  "IDENTIFIER",
+	HASH:                        "#",
 	TEMPLATE_QUOTE:              "`",
 	PLUS:                        "+",
 	MINUS:                       "-",

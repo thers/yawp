@@ -36,8 +36,8 @@ func (p *Parser) semicolon() {
 	}
 }
 
-func (p *Parser) locOf(offset int) file.Idx {
-	return file.Idx(p.base + offset)
+func (p *Parser) idxOf(offset int) file.Idx {
+	return file.Idx(offset)
 }
 
 func (p *Parser) is(value token.Token) bool {
@@ -135,7 +135,7 @@ func (p *Parser) loc() *file.Loc {
 func (p *Parser) position(idx file.Idx) file.Pos {
 	position := file.Pos{}
 
-	offset := int(idx) - p.base
+	offset := int(idx)
 	str := p.src[:offset]
 
 	line, last := lineCount(str)

@@ -141,11 +141,10 @@ type File struct {
 	base int // This will always be 1 or greater
 }
 
-func NewFile(filename, src string, base int) *File {
+func NewFile(filename, src string) *File {
 	return &File{
 		name: filename,
 		src:  src,
-		base: base,
 	}
 }
 

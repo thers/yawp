@@ -60,7 +60,7 @@ func isLineTerminator(chr rune) bool {
 	return false
 }
 
-func (p *Parser) scan() (tkn token.Token, literal string, loc file.Idx) {
+func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
 	p.tokenIsKeyword = false
 	p.implicitSemicolon = false
@@ -68,7 +68,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, loc file.Idx) {
 	for {
 		p.skipWhiteSpace()
 
-		loc = p.locOf(p.chrOffset)
+		idx = p.idxOf(p.chrOffset)
 		insertSemicolon := false
 
 		switch chr := p.chr; {
@@ -469,7 +469,7 @@ func (p *Parser) skipWhiteSpace() {
 			fallthrough
 		case '\u2028', '\u2029', '\n':
 			p.line++
-			p.col = 1
+			p.lineOffset = p.chrOffset
 
 			if p.insertSemicolon {
 				return

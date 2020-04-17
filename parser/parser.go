@@ -15,10 +15,10 @@ type Parser struct {
 	parsedSrc string
 	src       string
 	length    int
-	base      int
 
-	col  int // column of the current char
-	line int // line of the current char
+	col        int // column of the current char
+	line       int // line of the current char
+	lineOffset int
 
 	chr           rune // The current character
 	chrOffset     int  // The offset of current character
@@ -44,15 +44,14 @@ type Parser struct {
 	file *file.File
 }
 
-func newParser(filename, src string, base int) *Parser {
+func newParser(filename, src string) *Parser {
 	return &Parser{
 		chr:    ' ', // This is set so we can start scanning by skipping whitespace
 		col:    1,
 		line:   1,
 		src:    src,
 		length: len(src),
-		base:   base,
-		file:   file.NewFile(filename, src, base),
+		file:   file.NewFile(filename, src),
 	}
 }
 
@@ -92,7 +91,7 @@ func ReadSource(filename string, src interface{}) ([]byte, error) {
 //      // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
 //      program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
 //
-func ParseFile(fileSet *file.FileSet, filename string, src interface{}) (*ast.Program, error) {
+func ParseFile(filename string, src interface{}) (*ast.Program, error) {
 	str, err := ReadSource(filename, src)
 	if err != nil {
 		return nil, err
@@ -100,12 +99,7 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}) (*ast.Pr
 	{
 		str := string(str)
 
-		base := 1
-		if fileSet != nil {
-			base = fileSet.AddFile(filename, str)
-		}
-
-		parser := newParser(filename, str, base)
+		parser := newParser(filename, str)
 		prog, perr := parser.parse()
 
 		return prog, perr
@@ -122,6 +116,7 @@ func (p *Parser) parse() (*ast.Program, error) {
 func (p *Parser) next() (idx file.Idx) {
 	idx = p.idx
 	p.token, p.literal, p.idx = p.scan()
+	p.col = int(p.idx) - p.lineOffset
 	return
 }
 
@@ -134,7 +129,7 @@ func ParseFunctionForTests(parameterList, body string) (*ast.FunctionLiteral, er
 
 	src := "(function(" + parameterList + ") {\n" + body + "\n})"
 
-	parser := newParser("", src, 1)
+	parser := newParser("", src)
 	program, err := parser.parse()
 	if err != nil {
 		return nil, err
