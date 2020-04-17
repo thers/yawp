@@ -242,61 +242,28 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	return elm
 }
 
-func (p *Parser) maybeParseJSXElement() (ast.Expression, bool) {
-	defer func() {
-		err := recover()
-		if err != nil {
-			return
-		}
-	}()
+func (p *Parser) maybeParseJSXElement() ast.Expression {
+	defer recover()
 
 	p.genericTypeParametersMode = true
 	jsx := p.parseJSXElement()
 	p.genericTypeParametersMode = false
 
-	return jsx, true
+	return jsx
 }
 
 func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
 	snapshot := p.snapshot()
-	loc := p.loc()
 
 	// first try to parse as jsx
-	jsx, success := p.maybeParseJSXElement()
+	jsx := p.maybeParseJSXElement()
 
-	if success {
+	if jsx != nil {
 		return jsx
 	}
 
 	// now we can safely assume we're in arrow function
 	p.toSnapshot(snapshot)
 
-	typeParameters := p.parseFlowTypeParameters()
-
-	if p.is(token.LEFT_PARENTHESIS) {
-		var returnType ast.FlowType
-		parameters := p.parseFunctionParameterList()
-
-		if p.is(token.COLON) {
-			p.forbidUnparenthesizedFunctionType = true
-			returnType = p.parseFlowTypeAnnotation()
-			p.forbidUnparenthesizedFunctionType = false
-		}
-
-		p.consumeExpected(token.ARROW)
-
-		return &ast.ArrowFunctionExpression{
-			Loc:            loc,
-			Async:          false,
-			TypeParameters: typeParameters,
-			ReturnType:     returnType,
-			Parameters:     parameters.List,
-			Body:           p.parseArrowFunctionBody(false),
-		}
-	}
-
-	p.unexpectedToken()
-	p.next()
-
-	return nil
+	return p.parseParametrizedArrowFunction()
 }

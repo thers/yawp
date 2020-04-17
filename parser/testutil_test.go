@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -18,6 +19,41 @@ func tt(t *testing.T, f func()) {
 	}()
 
 	f()
+}
+
+func makeAssert(t *testing.T) func(string, interface{}) {
+	return func(src string, expected interface{}) {
+		_, err := ParseFile("", src)
+
+		if err == nil && expected == nil {
+			return
+		}
+
+		if expected == nil {
+			if err == nil {
+				return
+			}
+		}
+
+		var actual interface{}
+
+		if err == nil {
+			actual = nil
+		} else if errString, ok := err.(error); ok {
+			actual = errString.Error()
+		}
+
+		if expected != actual {
+			name := t.Name()
+			_, filePath, line, _ := runtime.Caller(1)
+			_, file := path.Split(filePath)
+
+			fmt.Printf("\t%s: %s:%d: Expected output: %v\n", name, file, line, expected)
+			fmt.Printf("\t%s: %s:%d: Actual output: %v\n", name, file, line, actual)
+
+			t.Fail()
+		}
+	}
 }
 
 func is(a, b interface{}) {

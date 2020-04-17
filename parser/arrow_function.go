@@ -169,3 +169,35 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 
 	return nil
 }
+
+func (p *Parser) parseParametrizedArrowFunction() *ast.ArrowFunctionExpression {
+	loc := p.loc()
+	typeParameters := p.parseFlowTypeParameters()
+
+	if p.is(token.LEFT_PARENTHESIS) {
+		var returnType ast.FlowType
+		parameters := p.parseFunctionParameterList()
+
+		if p.is(token.COLON) {
+			p.forbidUnparenthesizedFunctionType = true
+			returnType = p.parseFlowTypeAnnotation()
+			p.forbidUnparenthesizedFunctionType = false
+		}
+
+		p.consumeExpected(token.ARROW)
+
+		return &ast.ArrowFunctionExpression{
+			Loc:            loc,
+			Async:          false,
+			TypeParameters: typeParameters,
+			ReturnType:     returnType,
+			Parameters:     parameters.List,
+			Body:           p.parseArrowFunctionBody(false),
+		}
+	}
+
+	p.unexpectedToken()
+	p.next()
+
+	return nil
+}
