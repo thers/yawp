@@ -47,7 +47,6 @@ type (
 	BooleanLiteral struct {
 		Loc     *file.Loc
 		Literal string
-		Value   bool
 	}
 
 	BracketExpression struct {
@@ -101,7 +100,6 @@ type (
 	NumberLiteral struct {
 		Loc     *file.Loc
 		Literal string
-		Value   interface{}
 	}
 
 	FunctionParameters struct {
@@ -124,7 +122,6 @@ type (
 	StringLiteral struct {
 		Loc     *file.Loc
 		Literal string
-		Value   string
 	}
 
 	ThisExpression struct {

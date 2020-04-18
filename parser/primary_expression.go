@@ -52,19 +52,14 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		}
 	case token.BOOLEAN:
 		p.next()
-		value := false
-		switch literal {
-		case "true":
-			value = true
-		case "false":
-			value = false
-		default:
+
+		if literal != ast.LBooleanTrue && literal != ast.LBooleanFalse {
 			p.error(loc, "Illegal boolean literal")
 		}
+
 		return &ast.BooleanLiteral{
 			Loc:     loc,
 			Literal: literal,
-			Value:   value,
 		}
 	case token.TEMPLATE_QUOTE:
 		return p.parseTemplateExpression()

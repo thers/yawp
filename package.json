@@ -1,0 +1,12 @@
+{
+  "name": "yawp",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:thers/yawp.git",
+  "author": "Alexander Kukhta <me@thers.io>",
+  "license": "MIT",
+
+  "scripts": {
+    "build": "go build -o build/main main.go"
+  }
+}

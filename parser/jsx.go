@@ -16,7 +16,6 @@ func (p *Parser) parseString() *ast.StringLiteral {
 	return &ast.StringLiteral{
 		Loc:     p.loc(),
 		Literal: p.literal,
-		Value:   p.literal,
 	}
 }
 
@@ -146,7 +145,6 @@ func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
 				attribute.Value = &ast.BooleanLiteral{
 					Loc:     attribute.Name.GetLoc(),
 					Literal: "true",
-					Value:   true,
 				}
 			}
 

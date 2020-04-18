@@ -5,7 +5,7 @@ import "testing"
 func TestPlayground(t *testing.T) {
 	// language=js
 	src := `
-		t=<a>()=>null;t='</a>
+		while(true){true;false}
 `
 
 	prog, err := ParseFile("", src)
