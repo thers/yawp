@@ -2,7 +2,6 @@ package parser
 
 import (
 	"yawp/parser/ast"
-	"yawp/parser/importKind"
 	"yawp/parser/token"
 )
 
@@ -91,13 +90,13 @@ func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
 
 	p.allowNext(token.TYPE_TYPE)
 	if p.is(token.TYPE_TYPE) {
-		stmt.Kind = importKind.TYPE
+		stmt.Kind = ast.IKType
 		p.next()
 	} else if p.is(token.TYPEOF) {
-		stmt.Kind = importKind.TYPEOF
+		stmt.Kind = ast.IKTypeOf
 		p.next()
 	} else {
-		stmt.Kind = importKind.VALUE
+		stmt.Kind = ast.IKValue
 	}
 
 	switch p.token {

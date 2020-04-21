@@ -2,7 +2,6 @@ package ast
 
 import (
 	"yawp/parser/file"
-	"yawp/parser/importKind"
 )
 
 type (
@@ -15,7 +14,7 @@ type (
 
 	ImportDeclaration struct {
 		Loc                *file.Loc
-		Kind               importKind.ImportKind
+		Kind               ImportKind
 		Imports            []*ImportClause
 		From               string
 		HasNamespaceClause bool
