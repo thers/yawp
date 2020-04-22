@@ -14,9 +14,8 @@ func TestPlayground(t *testing.T) {
 
 	// language=js
 	prog, err := parser.ParseFile("", `
-		class Test<T> extends React.PureComponent<Props, OwnProps> {
-    		foo: T
-		}
+		const test = 132, foo = '';
+		test.a = 123;
 	`)
 
 	if err != nil {
@@ -24,6 +23,13 @@ func TestPlayground(t *testing.T) {
 	}
 
 	str := Generate(opt, prog)
+
+	g := newIdGenerator()
+	gs := make([]string, 1000)
+
+	for i:=0;i<1000;i++ {
+		gs[i] = g.Next()
+	}
 
 	_ = str
 	return

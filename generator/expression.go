@@ -51,13 +51,13 @@ func (g *Generator) number(s *ast.NumberLiteral) {
 }
 
 func (g *Generator) binary(b *ast.BinaryExpression) {
-	g.expression(b.Left)
+	g.refOrExpression(b.Left)
 	g.str(b.Operator.String())
-	g.expression(b.Right)
+	g.refOrExpression(b.Right)
 }
 
 func (g *Generator) assign(a *ast.AssignExpression) {
-	g.expression(a.Left)
+	g.refOrExpression(a.Left)
 	g.str(a.Operator.String())
 	g.expression(a.Right)
 }
@@ -78,7 +78,8 @@ func (g *Generator) call(c *ast.CallExpression) {
 }
 
 func (g *Generator) dot(d *ast.DotExpression) {
-	g.expression(d.Left)
+	g.refOrExpression(d.Left)
+
 	g.rune('.')
 	g.identifier(d.Identifier)
 }

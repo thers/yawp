@@ -1,16 +1,6 @@
-/*
-Package ast declares types representing a JavaScript AST.
-
-Warning
-
-The parser and AST interfaces are still works-in-progress (particularly where
-node types are concerned) and may change in the future.
-
-*/
 package ast
 
 import (
-	"github.com/go-sourcemap/sourcemap"
 	"yawp/parser/file"
 	"yawp/parser/token"
 )
@@ -340,21 +330,3 @@ type (
 func (*FunctionDeclaration) _declarationNode() {}
 func (*VariableDeclaration) _declarationNode() {}
 func (*ClassDeclaration) _declarationNode()    {}
-
-// ==== //
-// Node //
-// ==== //
-
-type Program struct {
-	Body []Statement
-
-	DeclarationList []Declaration
-
-	File *file.File
-
-	SourceMap *sourcemap.Consumer
-}
-
-func (p *Program) GetLoc() *file.Loc {
-	return p.Body[0].GetLoc().Add(p.Body[len(p.Body)-1].GetLoc())
-}

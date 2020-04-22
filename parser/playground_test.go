@@ -5,7 +5,13 @@ import "testing"
 func TestPlayground(t *testing.T) {
 	// language=js
 	src := `
-		while(true){true;false}
+		const test = 123;
+		test = 321;
+		
+		if (true) {
+		    const test = 321;
+		    test++;
+		}
 `
 
 	prog, err := ParseFile("", src)

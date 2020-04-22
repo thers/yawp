@@ -7,8 +7,11 @@ import (
 )
 
 type Generator struct {
+	opt *options.Options
+
 	output *strings.Builder
-	opt    *options.Options
+
+	refScope *RefScope
 }
 
 func (g *Generator) str(s string) {
@@ -30,7 +33,7 @@ func (g *Generator) nl() {
 func Generate(opt *options.Options, prog *ast.Program) string {
 	generator := &Generator{
 		output: &strings.Builder{},
-		opt: opt,
+		opt:    opt,
 	}
 
 	generator.program(prog)
@@ -39,5 +42,6 @@ func Generate(opt *options.Options, prog *ast.Program) string {
 }
 
 func (g *Generator) program(program *ast.Program) {
+	g.pushRefScope()
 	g.statements(program.Body)
 }

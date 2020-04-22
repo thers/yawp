@@ -24,6 +24,8 @@ func (g *Generator) statement(astmt ast.Statement) {
 		g.ifStatement(stmt)
 	case *ast.ClassStatement:
 		g.classStatement(stmt)
+	case *ast.VariableStatement:
+		g.variableStatement(stmt)
 	default:
 		g.str("'unknown statement';\n")
 	}
@@ -37,6 +39,9 @@ func (g *Generator) statements(list []ast.Statement) {
 }
 
 func (g *Generator) blockStatement(blck *ast.BlockStatement) {
+	g.pushRefScope()
+	defer g.popRefScope()
+
 	for index, stmt := range blck.List {
 		if index > 0 {
 			g.semicolon()
@@ -51,8 +56,11 @@ func (g *Generator) expressionStatement(stmt *ast.ExpressionStatement) {
 }
 
 func (g *Generator) whileStatement(stmt *ast.WhileStatement) {
+	g.pushRefScope()
+	defer g.popRefScope()
+
 	g.str("while(")
-	g.expression(stmt.Test)
+	g.refOrExpression(stmt.Test)
 	g.str("){")
 	g.statement(stmt.Body)
 	g.rune('}')
@@ -66,13 +74,19 @@ func (g *Generator) debuggerStatement() {
 }
 
 func (g *Generator) ifStatement(stmt *ast.IfStatement) {
+	g.pushRefScope()
+	defer g.popRefScope()
+
 	g.str("if(")
-	g.expression(stmt.Test)
+	g.refOrExpression(stmt.Test)
 	g.str("){")
 	g.statement(stmt.Consequent)
 	g.rune('}')
 
 	if stmt.Alternate != nil {
+		g.popRefScope()
+		g.pushRefScope()
+
 		g.str("else{")
 		g.statement(stmt.Alternate)
 		g.rune('}')
