@@ -24,7 +24,7 @@ func (p *Parser) parseExportNamespaceFromClause() *ast.ExportNamespaceFromClause
 		clause.ModuleIdentifier = p.parseIdentifier()
 	}
 
-	p.allowNext(token.FROM)
+	p.allowToken(token.FROM)
 	p.consumeExpected(token.FROM)
 
 	if p.is(token.STRING) {
@@ -43,7 +43,7 @@ func (p *Parser) parseExportNamedClause() *ast.ExportNamedClause {
 	}
 
 	p.consumeExpected(token.LEFT_BRACE)
-	p.allowNext(token.AS)
+	p.allowToken(token.AS)
 
 	for !p.is(token.RIGHT_BRACE) {
 		localIdentifier := p.parseIdentifier()
@@ -70,7 +70,7 @@ func (p *Parser) parseExportNamedClause() *ast.ExportNamedClause {
 func (p *Parser) parseExportNamedMaybeFromClause() ast.ExportClause {
 	exportNamedClause := p.parseExportNamedClause()
 
-	p.allowNext(token.FROM)
+	p.allowToken(token.FROM)
 	if p.is(token.FROM) {
 		p.next()
 
@@ -102,7 +102,7 @@ func (p *Parser) parseExportDefaultClause() *ast.ExportDefaultClause {
 func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
 	loc := p.loc()
 	p.consumeExpected(token.EXPORT)
-	p.allowNext(token.TYPE_TYPE)
+	p.allowToken(token.TYPE_TYPE)
 
 	declaration := &ast.ExportDeclaration{
 		Loc: loc,

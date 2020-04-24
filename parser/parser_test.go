@@ -6,7 +6,7 @@ import (
 	"yawp/parser/ast"
 )
 
-func testParse(src string) (parser *Parser, program *ast.Program, err error) {
+func testParse(src string) (parser *Parser, program *ast.Module, err error) {
 	defer func() {
 		if tmp := recover(); tmp != nil {
 			panic(tmp)

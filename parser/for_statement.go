@@ -43,7 +43,7 @@ func (p *Parser) parseForOf(loc *file.Loc, into ast.Expression) *ast.ForOfStatem
 	}
 }
 
-func (p *Parser) parseFor(loc *file.Loc, initializer ast.Expression) *ast.ForStatement {
+func (p *Parser) parseFor(loc *file.Loc, initializer *ast.VariableStatement) *ast.ForStatement {
 
 	// Already have consumed "<initializer> ;"
 
@@ -73,85 +73,56 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 	p.consumeExpected(token.FOR)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 
-	var left []ast.Expression
-
-	forIn := false
-	forOf := false
-
-	if !p.is(token.SEMICOLON) {
-		allowIn := p.scope.allowIn
-		p.scope.allowIn = false
-		if p.isVariableStatementStart() {
-			loc := p.loc()
-			kind := p.token
-
-			p.next()
-
-			list := p.parseVariableDeclarationList(loc, kind)
-
-			if len(list) == 1 {
-				p.allowNext(token.OF)
-
-				if p.is(token.IN) {
-					p.consumeExpected(token.IN)
-					forIn = true
-					left = []ast.Expression{list[0]}
-				} else if p.is(token.OF) {
-					p.consumeExpected(token.OF)
-					forOf = true
-					left = []ast.Expression{list[0]}
-				} else {
-					left = list
-				}
-			} else {
-				left = list
-			}
-		} else {
-			left = append(left, p.parseExpression())
-			if p.is(token.IN) {
-				p.next()
-				forIn = true
-			}
-		}
-		p.scope.allowIn = allowIn
-	} else {
+	// for (;
+	if p.is(token.SEMICOLON) {
 		p.next()
 		return p.parseFor(start, nil)
 	}
 
-	if left == nil {
-		p.error(start, "Invalid for statement initializer")
+	// for(const/var/let
+	if p.isVariableStatementStart() {
+		loc := p.loc()
+		kind := p.token
 
-		return nil
+		p.next()
+
+		list := p.parseVariableDeclarationList(kind)
+		p.allowToken(token.OF)
+
+		switch p.token {
+		case token.IN:
+			p.next()
+			return p.parseForIn(start, list[0])
+		case token.OF:
+			p.next()
+			return p.parseForOf(start, list[0])
+		case token.SEMICOLON:
+			p.next()
+			return p.parseFor(start, &ast.VariableStatement{
+				Loc:  loc,
+				Kind: kind,
+				List: list,
+			})
+		}
 	}
 
-	intoVar := left[0]
+	// for (anything
+	intoExpression := p.parseExpression()
 
-	if intoVar == nil {
-		p.error(start, "Invalid for statement initializer")
-
-		return nil
-	}
-
-	if forIn || forOf {
-		switch intoVar.(type) {
+	if p.is(token.IN) {
+		switch intoExpression.(type) {
 		case *ast.Identifier:
 		case *ast.DotExpression:
 		case *ast.BracketExpression:
-		case *ast.VariableExpression:
-		case *ast.VariableBinding:
 			// These are all acceptable
 		default:
 			p.error(start, "Invalid left-hand side in for-in")
 		}
 
-		if forIn {
-			return p.parseForIn(start, intoVar)
-		} else {
-			return p.parseForOf(start, intoVar)
-		}
+		p.next()
+		return p.parseForIn(start, intoExpression)
 	}
 
-	p.consumeExpected(token.SEMICOLON)
-	return p.parseFor(start, &ast.SequenceExpression{Sequence: left})
+	p.error(start, "Invalid for statement initializer")
+	return nil
 }

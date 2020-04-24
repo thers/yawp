@@ -1,20 +1,22 @@
 package ast
 
 import (
-	"github.com/go-sourcemap/sourcemap"
+	"yawp/ids"
 	"yawp/parser/file"
 )
 
-type Program struct {
-	Body []Statement
-
-	DeclarationList []Declaration
-
+type Module struct {
 	File *file.File
-
-	SourceMap *sourcemap.Consumer
+	Body []Statement
+	Ids  *ids.Ids
 }
 
-func (p *Program) GetLoc() *file.Loc {
-	return p.Body[0].GetLoc().Add(p.Body[len(p.Body)-1].GetLoc())
+func (m *Module) GetLoc() *file.Loc {
+	return m.Body[0].GetLoc().Add(m.Body[len(m.Body)-1].GetLoc())
+}
+
+func (m *Module) Visit(visitor Visitor) {
+	for index, stmt := range m.Body {
+		m.Body[index] = visitor.Statement(stmt)
+	}
 }

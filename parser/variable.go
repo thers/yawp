@@ -2,7 +2,6 @@ package parser
 
 import (
 	"yawp/parser/ast"
-	"yawp/parser/file"
 	"yawp/parser/token"
 )
 
@@ -19,7 +18,7 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	}
 
 	p.next()
-	list := p.parseVariableDeclarationList(loc, kind)
+	list := p.parseVariableDeclarationList(kind)
 
 	p.optionalSemicolon()
 
@@ -30,7 +29,7 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	}
 }
 
-func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpression, kind token.Token) ast.Expression {
+func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBinding, kind token.Token) *ast.VariableBinding {
 	if p.is(token.LEFT_BRACKET) || p.is(token.LEFT_BRACE) {
 		loc := p.loc()
 
@@ -44,6 +43,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 
 		bnd := &ast.VariableBinding{
 			Loc:    loc,
+			Kind:   kind,
 			Binder: binder,
 		}
 
@@ -66,10 +66,15 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	literal := p.literal
 
 	p.next()
-	node := &ast.VariableExpression{
-		Loc:  loc,
-		Kind: kind,
-		Name: literal,
+	node := &ast.VariableBinding{
+		Loc:         loc,
+		Kind:        kind,
+		Binder:      &ast.IdentifierBinder{
+			Name: &ast.Identifier{
+				Loc:  loc,
+				Name: literal,
+			},
+		},
 	}
 
 	if declarationList != nil {
@@ -89,10 +94,10 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpres
 	return node
 }
 
-func (p *Parser) parseVariableDeclarationList(loc *file.Loc, kind token.Token) []ast.Expression {
+func (p *Parser) parseVariableDeclarationList(kind token.Token) []*ast.VariableBinding {
 
-	var declarationList []*ast.VariableExpression // Avoid bad expressions
-	var list []ast.Expression
+	var declarationList []*ast.VariableBinding // Avoid bad expressions
+	var list []*ast.VariableBinding
 
 	for {
 		list = append(list, p.parseVariableDeclaration(
@@ -106,12 +111,6 @@ func (p *Parser) parseVariableDeclarationList(loc *file.Loc, kind token.Token) [
 			break
 		}
 	}
-
-	p.scope.declare(&ast.VariableDeclaration{
-		Loc:  loc,
-		Kind: kind,
-		List: declarationList,
-	})
 
 	return list
 }

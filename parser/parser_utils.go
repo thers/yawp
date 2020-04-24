@@ -44,7 +44,7 @@ func (p *Parser) is(value token.Token) bool {
 	return p.token == value
 }
 
-func (p *Parser) allowNext(value token.Token) {
+func (p *Parser) allowToken(value token.Token) {
 	if p.tokenIsKeyword {
 		tkn, _ := token.IsKeyword(p.literal)
 
@@ -73,7 +73,7 @@ func (p *Parser) until(value token.Token) bool {
 }
 
 func (p *Parser) consumeExpected(value token.Token) file.Idx {
-	idx := p.idx
+	idx := file.Idx(p.chrOffset)
 	if p.token != value {
 		p.unexpectedToken()
 	}

@@ -5,14 +5,15 @@ import (
 	"yawp/parser/ast"
 )
 
-func (g *Generator) classStatement(c *ast.ClassStatement) {
-	g.class(c.Expression)
+func (g *Generator) ClassStatement(c *ast.ClassStatement) *ast.ClassStatement {
+	g.ClassExpression(c.Expression)
+
+	return c
 }
 
-func (g *Generator) class(c *ast.ClassExpression) {
-	if g.opt.Target == options.ES5 {
-		g.classES5(c)
-		return
+func (g *Generator) ClassExpression(c *ast.ClassExpression) *ast.ClassExpression {
+	if g.options.Target == options.ES5 {
+		return g.classES5(c)
 	}
 
 	g.str("class ")
@@ -20,13 +21,17 @@ func (g *Generator) class(c *ast.ClassExpression) {
 
 	if c.SuperClass != nil {
 		g.str(" extends ")
-		g.expression(c.SuperClass)
+		g.Expression(c.SuperClass)
 	}
 
 	g.rune('{')
 	g.rune('}')
+
+	return c
 }
 
-func (g *Generator) classES5(_ *ast.ClassExpression) {
+func (g *Generator) classES5(c *ast.ClassExpression) *ast.ClassExpression {
 	g.str("'es5 class expression'")
+
+	return c
 }

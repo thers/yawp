@@ -2,37 +2,10 @@ package generator
 
 import "yawp/parser/ast"
 
-func (g *Generator) expression(aexp ast.Expression) {
-	if aexp == nil {
-		return
-	}
-
-	switch exp := aexp.(type) {
-	case *ast.Identifier:
-		g.identifier(exp)
-	case *ast.BooleanLiteral:
-		g.boolean(exp)
-	case *ast.StringLiteral:
-		g.string(exp)
-	case *ast.NumberLiteral:
-		g.number(exp)
-	case *ast.BinaryExpression:
-		g.binary(exp)
-	case *ast.AssignExpression:
-		g.assign(exp)
-	case *ast.CallExpression:
-		g.call(exp)
-	case *ast.DotExpression:
-		g.dot(exp)
-	default:
-		g.str("'unknown expression';")
-	}
-}
-
-func (g *Generator) boolean(b *ast.BooleanLiteral) {
-	if !g.opt.Minify {
+func (g *Generator) BooleanLiteral(b *ast.BooleanLiteral) *ast.BooleanLiteral {
+	if !g.options.Minify {
 		g.str(b.Literal)
-		return
+		return b
 	}
 
 	if b.Literal == ast.LBooleanFalse {
@@ -40,30 +13,40 @@ func (g *Generator) boolean(b *ast.BooleanLiteral) {
 	} else {
 		g.str("!0")
 	}
+
+	return b
 }
 
-func (g *Generator) string(s *ast.StringLiteral) {
+func (g *Generator) StringLiteral(s *ast.StringLiteral) *ast.StringLiteral {
 	g.str(s.Literal)
+
+	return s
 }
 
-func (g *Generator) number(s *ast.NumberLiteral) {
+func (g *Generator) NumberLiteral(s *ast.NumberLiteral) *ast.NumberLiteral {
 	g.str(s.Literal)
+
+	return s
 }
 
-func (g *Generator) binary(b *ast.BinaryExpression) {
-	g.refOrExpression(b.Left)
+func (g *Generator) BinaryExpression(b *ast.BinaryExpression) *ast.BinaryExpression {
+	g.Expression(b.Left)
 	g.str(b.Operator.String())
-	g.refOrExpression(b.Right)
+	g.Expression(b.Right)
+
+	return b
 }
 
-func (g *Generator) assign(a *ast.AssignExpression) {
-	g.refOrExpression(a.Left)
+func (g *Generator) AssignExpression(a *ast.AssignExpression) *ast.AssignExpression {
+	g.Expression(a.Left)
 	g.str(a.Operator.String())
-	g.expression(a.Right)
+	g.Expression(a.Right)
+
+	return a
 }
 
-func (g *Generator) call(c *ast.CallExpression) {
-	g.expression(c.Callee)
+func (g *Generator) CallExpression(c *ast.CallExpression) *ast.CallExpression {
+	g.Expression(c.Callee)
 	g.rune('(')
 
 	for index, arg := range c.ArgumentList {
@@ -71,15 +54,19 @@ func (g *Generator) call(c *ast.CallExpression) {
 			g.rune(',')
 		}
 
-		g.expression(arg)
+		g.Expression(arg)
 	}
 
 	g.rune(')')
+
+	return c
 }
 
-func (g *Generator) dot(d *ast.DotExpression) {
-	g.refOrExpression(d.Left)
+func (g *Generator) DotExpression(d *ast.DotExpression) *ast.DotExpression {
+	g.Expression(d.Left)
 
 	g.rune('.')
-	g.identifier(d.Identifier)
+	g.Identifier(d.Identifier)
+
+	return d
 }

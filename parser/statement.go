@@ -1,11 +1,10 @@
 package parser
 
 import (
+	"yawp/ids"
 	"yawp/parser/ast"
 	"yawp/parser/token"
 )
-
-
 
 func (p *Parser) parseSourceElement() ast.Statement {
 	return p.parseStatement()
@@ -42,13 +41,13 @@ func (p *Parser) parseSourceElements() []ast.Statement {
 	return body
 }
 
-func (p *Parser) parseProgram() *ast.Program {
+func (p *Parser) parseProgram() *ast.Module {
 	p.openScope()
 	defer p.closeScope()
-	return &ast.Program{
-		Body:            p.parseSourceElements(),
-		DeclarationList: p.scope.declarationList,
-		File:            p.file,
+	return &ast.Module{
+		Body: p.parseSourceElements(),
+		File: p.file,
+		Ids:  ids.NewIds(),
 	}
 }
 
@@ -73,7 +72,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	}
 
 	if p.scope.inModuleRoot() {
-		p.allowNext(token.TYPE_TYPE)
+		p.allowToken(token.TYPE_TYPE)
 	}
 
 	switch p.token {
@@ -177,7 +176,6 @@ func (p *Parser) parseFunctionBlock(node *ast.FunctionLiteral) {
 	defer closeFunctionScope()
 
 	node.Body = p.parseBlockStatement()
-	node.DeclarationList = p.scope.declarationList
 }
 
 func (p *Parser) parseDebuggerStatement() ast.Statement {

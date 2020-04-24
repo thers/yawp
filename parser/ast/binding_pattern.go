@@ -1,6 +1,9 @@
 package ast
 
-import "yawp/parser/file"
+import (
+	"yawp/parser/file"
+	"yawp/parser/token"
+)
 
 type (
 	PatternBinder interface {
@@ -36,12 +39,13 @@ type (
 	}
 
 	ObjectBinding struct {
-		Loc         *file.Loc
-		List  []PatternBinder
+		Loc  *file.Loc
+		List []PatternBinder
 	}
 
 	VariableBinding struct {
 		Loc         *file.Loc
+		Kind        token.Token
 		Binder      PatternBinder
 		Initializer Expression
 		FlowType    FlowType

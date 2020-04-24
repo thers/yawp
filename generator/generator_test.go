@@ -1,35 +1,35 @@
 package generator
 
 import (
+	"fmt"
 	"testing"
+	"time"
+	"yawp/optimizer"
 	"yawp/options"
 	"yawp/parser"
 )
 
 func TestPlayground(t *testing.T) {
 	opt := &options.Options{
-		Target: options.ES2020,
+		Target: options.ES2015,
 		Minify: true,
 	}
 
 	// language=js
 	prog, err := parser.ParseFile("", `
-		const test = 132, foo = '';
-		test.a = 123;
+		const { t }= { t: 1 }
 	`)
 
-	if err != nil {
+	if err != nil || prog == nil {
 		t.Fail()
 	}
 
+	ops := time.Now()
+	o := optimizer.NewOptimizer(prog, opt)
+	prog.Visit(o)
+	fmt.Println("Optimizer pass took: ", time.Since(ops))
+
 	str := Generate(opt, prog)
-
-	g := newIdGenerator()
-	gs := make([]string, 1000)
-
-	for i:=0;i<1000;i++ {
-		gs[i] = g.Next()
-	}
 
 	_ = str
 	return

@@ -5,11 +5,11 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseClassMethodBody(generator bool, async bool) (*ast.BlockStatement, []ast.Declaration) {
+func (p *Parser) parseClassMethodBody(generator bool, async bool) *ast.BlockStatement {
 	closeFunctionScope := p.openFunctionScope(generator, async)
 	defer closeFunctionScope()
 
-	return p.parseBlockStatement(), p.scope.declarationList
+	return p.parseBlockStatement()
 }
 
 func (p *Parser) parseClassFieldName() ast.ClassFieldName {
@@ -147,7 +147,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 			method.ReturnType = p.parseFlowTypeAnnotation()
 		}
 
-		body, _ := p.parseClassMethodBody(generator, async)
+		body := p.parseClassMethodBody(generator, async)
 
 		method.Body = body
 
@@ -253,11 +253,6 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 			exp.SuperTypeArguments = p.parseFlowTypeArguments()
 		}
 	}
-
-	p.scope.declare(&ast.ClassDeclaration{
-		Name:    exp.Name,
-		Extends: exp.SuperClass,
-	})
 
 	exp.Body = p.parseClassBody()
 

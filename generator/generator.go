@@ -2,16 +2,20 @@ package generator
 
 import (
 	"strings"
+	"yawp/ids"
 	"yawp/options"
 	"yawp/parser/ast"
+	"yawp/parser/file"
 )
 
 type Generator struct {
-	opt *options.Options
+	*ast.DefaultVisitor
+
+	source  string
+	options *options.Options
 
 	output *strings.Builder
-
-	refScope *RefScope
+	ids    *ids.Ids
 }
 
 func (g *Generator) str(s string) {
@@ -30,18 +34,22 @@ func (g *Generator) nl() {
 	g.output.WriteRune('\n')
 }
 
-func Generate(opt *options.Options, prog *ast.Program) string {
-	generator := &Generator{
-		output: &strings.Builder{},
-		opt:    opt,
-	}
-
-	generator.program(prog)
-
-	return generator.output.String()
+func (g *Generator) src(loc *file.Loc) {
+	g.output.WriteString(g.source[loc.From:loc.To])
 }
 
-func (g *Generator) program(program *ast.Program) {
-	g.pushRefScope()
-	g.statements(program.Body)
+func Generate(options *options.Options, program *ast.Module) string {
+	generator := &Generator{
+		DefaultVisitor: &ast.DefaultVisitor{},
+
+		source:  program.File.Source(),
+		output:  &strings.Builder{},
+		options: options,
+		ids:     program.Ids,
+	}
+	generator.DefaultVisitor.Specific = generator
+
+	program.Visit(generator)
+
+	return generator.output.String()
 }

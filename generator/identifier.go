@@ -2,23 +2,16 @@ package generator
 
 import "yawp/parser/ast"
 
-func (g *Generator) identifier(id *ast.Identifier) {
-	g.str(id.Name)
-}
-
-func (g *Generator) ref(ref *ast.Ref) {
-	if !ref.IsMangled && g.opt.Minify {
-		ref.IsMangled = true
-		ref.Name = g.refScope.NextMangledId()
+func (g *Generator) Identifier(id *ast.Identifier) *ast.Identifier {
+	if id == nil {
+		return id
 	}
 
-	g.str(ref.Name)
-}
-
-func (g *Generator) refOrExpression(node ast.Expression) {
-	if refId, ok := node.(*ast.Identifier); ok {
-		g.ref(g.refScope.UseRef(refId.Name))
+	if id.Ref != nil {
+		g.str(id.Ref.Name)
 	} else {
-		g.expression(node)
+		g.str(id.Name)
 	}
+
+	return id
 }

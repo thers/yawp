@@ -80,7 +80,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.SLASH, token.QUOTIENT_ASSIGN:
 		return p.parseRegExpLiteral()
 	case token.LEFT_BRACE:
-		return p.parseObjectLiteralOrObjectPatternBinding()
+		return p.parseObjectLiteralOrObjectPatternAssignment()
 	case token.LEFT_BRACKET:
 		return p.parseArrayLiteralOrArrayBinding()
 	case token.LEFT_PARENTHESIS:

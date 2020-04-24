@@ -1,4 +1,4 @@
-package generator
+package ids
 
 var (
 	idContinue = func() []rune {
@@ -42,13 +42,13 @@ var (
 	maxIdStartIdx = len(idStart) - 1
 )
 
-type IdGenerator struct {
+type Ids struct {
 	bitIdx int
 	bits   []int
 }
 
-func newIdGenerator() *IdGenerator {
-	generator := &IdGenerator{
+func NewIds() *Ids {
+	generator := &Ids{
 		bitIdx: 0,
 		bits:   []int{0},
 	}
@@ -68,14 +68,14 @@ func getListForIdx(idx int) (idList []rune, maxIdListIdx int) {
 	return
 }
 
-func (i *IdGenerator) grow() {
+func (i *Ids) grow() {
 	growToLen := len(i.bits) + 1
 
 	i.bits = make([]int, growToLen)
 	i.bitIdx = growToLen - 1
 }
 
-func (i *IdGenerator) Next() (id string) {
+func (i *Ids) Next() (id string) {
 	maxBitIdx := len(i.bits) - 1
 	idList, maxIdListIdx := getListForIdx(i.bitIdx)
 

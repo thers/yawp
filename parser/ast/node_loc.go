@@ -3,7 +3,6 @@ package ast
 import "yawp/parser/file"
 
 func (i *Identifier) GetLoc() *file.Loc              { return i.Loc }
-func (v *VariableExpression) GetLoc() *file.Loc      { return v.Loc }
 func (v *VariableStatement) GetLoc() *file.Loc       { return v.Loc }
 func (s *SequenceExpression) GetLoc() *file.Loc      { return s.Loc }
 func (d *UnaryExpression) GetLoc() *file.Loc         { return d.Loc }

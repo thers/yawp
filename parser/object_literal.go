@@ -276,8 +276,7 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 	return p.parseObjectBinding(), true
 }
 
-func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
-	loc := p.loc()
+func (p *Parser) parseObjectLiteralOrObjectPatternAssignment() ast.Expression {
 	snapshot := p.snapshot()
 
 	objectBinding, success := p.maybeParseObjectBinding()
@@ -285,10 +284,10 @@ func (p *Parser) parseObjectLiteralOrObjectPatternBinding() ast.Expression {
 	if success && p.is(token.ASSIGN) {
 		p.consumeExpected(token.ASSIGN)
 
-		return &ast.VariableBinding{
-			Loc:         loc,
-			Binder:      objectBinding,
-			Initializer: p.parseAssignmentExpression(),
+		return &ast.AssignExpression{
+			Operator: token.ASSIGN,
+			Left:     objectBinding,
+			Right:    p.parseAssignmentExpression(),
 		}
 	}
 

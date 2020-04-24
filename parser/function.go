@@ -213,11 +213,6 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 	var name *ast.Identifier
 	if p.is(token.IDENTIFIER) {
 		name = p.parseIdentifier()
-		if declaration {
-			p.scope.declare(&ast.FunctionDeclaration{
-				Function: node,
-			})
-		}
 	} else if declaration {
 		// Use consumeExpected error handling
 		p.consumeExpected(token.IDENTIFIER)

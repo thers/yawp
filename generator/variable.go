@@ -2,35 +2,30 @@ package generator
 
 import "yawp/parser/ast"
 
-func (g *Generator) variableExpression(exp *ast.VariableExpression) {
-	g.ref(g.refScope.SetRef(exp.Kind, exp.Name))
+func (g *Generator) VariableBinding(b *ast.VariableBinding) *ast.VariableBinding {
+	g.PatternBinder(b.Binder)
 
-	if exp.Initializer != nil {
+	if b.Initializer != nil {
 		g.rune('=')
-		g.expression(exp.Initializer)
+		g.Expression(b.Initializer)
 	}
+
+	return b
 }
 
-func (g *Generator) variableBinding(bnd *ast.VariableBinding) {
-
-}
-
-func (g *Generator) variableStatement(stmt *ast.VariableStatement) {
+func (g *Generator) VariableStatement(stmt *ast.VariableStatement) *ast.VariableStatement {
 	g.str(stmt.Kind.String())
 	g.rune(' ')
 
-	for index, decl := range stmt.List {
+	for index, binding := range stmt.List {
 		if index > 0 {
 			g.rune(',')
 		}
 
-		switch exp := decl.(type) {
-		case *ast.VariableExpression:
-			g.variableExpression(exp)
-		case *ast.VariableBinding:
-			g.variableBinding(exp)
-		}
+		g.VariableBinding(binding)
 	}
 
 	g.semicolon()
+
+	return stmt
 }

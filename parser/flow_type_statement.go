@@ -16,7 +16,7 @@ func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
 
 	loc := p.loc()
 
-	p.allowNext(token.TYPE_TYPE)
+	p.allowToken(token.TYPE_TYPE)
 	p.consumeExpected(token.TYPE_TYPE)
 
 	name := p.parseFlowTypeIdentifier()

@@ -1,9 +1,5 @@
 package parser
 
-import (
-	"yawp/parser/ast"
-)
-
 type Scope struct {
 	outer *Scope
 
@@ -12,12 +8,11 @@ type Scope struct {
 	allowYield         bool
 	allowTypeAssertion bool
 
-	inClass         bool
-	inIteration     bool
-	inSwitch        bool
-	inFunction      bool
-	inType          bool
-	declarationList []ast.Declaration
+	inClass     bool
+	inIteration bool
+	inSwitch    bool
+	inFunction  bool
+	inType      bool
 
 	allowUnionType        bool
 	allowIntersectionType bool
@@ -77,10 +72,6 @@ func (p *Parser) openTypeScope() func() {
 		p.scope.inType = false
 		p.closeScope()
 	}
-}
-
-func (self *Scope) declare(declaration ast.Declaration) {
-	self.declarationList = append(self.declarationList, declaration)
 }
 
 func (self *Scope) hasLabel(name string) bool {

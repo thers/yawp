@@ -57,6 +57,7 @@ type (
 
 	Identifier struct {
 		Loc  *file.Loc
+		Ref  *Ref
 		Name string
 	}
 
@@ -126,14 +127,6 @@ type (
 		Postfix  bool
 	}
 
-	VariableExpression struct {
-		Loc         *file.Loc
-		Kind        token.Token
-		Name        string
-		Initializer Expression
-		FlowType    FlowType
-	}
-
 	ArrowFunctionExpression struct {
 		Loc            *file.Loc
 		TypeParameters []*FlowTypeParameter
@@ -166,7 +159,6 @@ func (*SequenceExpression) _expressionNode()      {}
 func (*StringLiteral) _expressionNode()           {}
 func (*ThisExpression) _expressionNode()          {}
 func (*UnaryExpression) _expressionNode()         {}
-func (*VariableExpression) _expressionNode()      {}
 func (*ArrowFunctionExpression) _expressionNode() {}
 func (*AwaitExpression) _expressionNode()         {}
 func (*SpreadExpression) _expressionNode()        {}
@@ -263,7 +255,7 @@ type (
 	VariableStatement struct {
 		Loc  *file.Loc
 		Kind token.Token
-		List []Expression
+		List []*VariableBinding
 	}
 
 	WhileStatement struct {
@@ -316,7 +308,7 @@ type (
 	VariableDeclaration struct {
 		Loc  *file.Loc
 		Kind token.Token
-		List []*VariableExpression
+		List []*VariableBinding
 	}
 
 	ClassDeclaration struct {
