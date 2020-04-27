@@ -29,6 +29,21 @@ func (o *Optimizer) popRefScope() *RefScope {
 	return refScope
 }
 
+func (o *Optimizer) resolveTokenToRefKind(tkn token.Token) (kind ast.RefKind) {
+	switch tkn {
+	case token.VAR:
+		kind = ast.RVar
+	case token.CONST:
+		kind = ast.RConst
+	case token.LET:
+		kind = ast.RLet
+	default:
+		kind = ast.RUnknown
+	}
+
+	return
+}
+
 type RefScope struct {
 	Parent *RefScope
 	Refs   map[string]*ast.Ref
@@ -76,35 +91,18 @@ func (r *RefScope) GetRef(name string) *ast.Ref {
 	return ref
 }
 
-func (r *RefScope) BindRef(tkn token.Token, name string) *ast.Ref {
-	var kind ast.RefKind
+func (r *RefScope) BindRef(kind ast.RefKind, name string) *ast.Ref {
 	var ref *ast.Ref
 	var ok bool
 
-	switch tkn {
-	case token.VAR:
-		kind = ast.RVar
-	case token.CONST:
-		kind = ast.RConst
-	case token.LET:
-		kind = ast.RLet
-	case token.IMPORT:
-		kind = ast.RImport
-	default:
-		panic("Invalid ref kind")
-	}
-
 	// vars can hoist declarations and they're not block-scoped
+	// we also don't even bother mangling them
 	if kind == ast.RVar {
 		ref = r.GetRef(name)
 
 		if ref != nil {
 			if ref.Kind == ast.RUnknown {
 				ref.Kind = ast.RVar
-
-				if r.minify {
-					ref.Name = r.NextMangledId()
-				}
 			}
 
 			return ref

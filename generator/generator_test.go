@@ -15,22 +15,29 @@ func TestPlayground(t *testing.T) {
 		Minify: true,
 	}
 
+	parserStart := time.Now()
 	// language=js
-	prog, err := parser.ParseFile("", `
-		const { t }= { t: 1 }
+	prog, err := parser.ParseModule("", `
+		t=1;
+		function \u3041test(t=t) {
+		    if (true) log(t)
+		}
 	`)
+	fmt.Println("Parser pass took:", time.Since(parserStart))
 
 	if err != nil || prog == nil {
 		t.Fail()
 	}
 
-	ops := time.Now()
-	o := optimizer.NewOptimizer(prog, opt)
-	prog.Visit(o)
-	fmt.Println("Optimizer pass took: ", time.Since(ops))
+	optimizerStart := time.Now()
+	optimizer.Optimize(prog, opt)
+	fmt.Println("Optimizer pass took: ", time.Since(optimizerStart))
 
+	generatorStart := time.Now()
 	str := Generate(opt, prog)
+	fmt.Println("Generator pass took:", time.Since(generatorStart))
 
 	_ = str
+	fmt.Println(str)
 	return
 }

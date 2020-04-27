@@ -30,7 +30,7 @@ func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternI
 			identifier := p.parseIdentifier()
 
 			parameter = &ast.IdentifierParameter{
-				Name: identifier,
+				Id: identifier,
 			}
 			propertyName = identifier.Name
 
@@ -39,7 +39,7 @@ func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternI
 
 				// property rename
 				parameter = &ast.IdentifierParameter{
-					Name: p.parseIdentifier(),
+					Id: p.parseIdentifier(),
 				}
 			}
 		}
@@ -131,7 +131,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 		if p.is(token.IDENTIFIER) {
 			// simple argument binding
 			parameter = &ast.IdentifierParameter{
-				Name:         p.parseIdentifier(),
+				Id:           p.parseIdentifier(),
 				DefaultValue: nil,
 			}
 		} else if p.is(token.LEFT_BRACKET) {
@@ -223,7 +223,7 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 		node.TypeParameters = p.parseFlowTypeParameters()
 	}
 
-	node.Name = name
+	node.Id = name
 	node.Parameters = p.parseFunctionParameterList()
 
 	if p.is(token.COLON) {

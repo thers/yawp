@@ -8,6 +8,8 @@ const (
 	RLet
 	RConst
 	RImport
+	RFn
+	RFnParam
 	RLabel
 )
 

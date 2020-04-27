@@ -36,7 +36,7 @@ func main() {
 	//defer pprof.StopCPUProfile()
 
 	start := time.Now()
-	ast, err := parser.ParseFile(filename, src)
+	ast, err := parser.ParseModule(filename, src)
 	if err != nil {
 		panic(err)
 	}

@@ -79,20 +79,20 @@ func ReadSource(filename string, src interface{}) ([]byte, error) {
 	return ioutil.ReadFile(filename)
 }
 
-// ParseFile parses the source code of a single JavaScript/ECMAScript source file and returns
+// ParseModule parses the source code of a single JavaScript/ECMAScript source file and returns
 // the corresponding ast.Module node.
 //
-// If fileSet == nil, ParseFile parses source without a FileSet.
-// If fileSet != nil, ParseFile first adds filename and src to fileSet.
+// If fileSet == nil, ParseModule parses source without a FileSet.
+// If fileSet != nil, ParseModule first adds filename and src to fileSet.
 //
 // The filename argument is optional and is used for labelling errors, etc.
 //
 // src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST always be in UTF-8.
 //
 //      // Parse some JavaScript, yielding a *ast.Module and/or an ErrorList
-//      program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
+//      program, err := parser.ParseModule(nil, "", `if (abc > 1) {}`, 0)
 //
-func ParseFile(filename string, src interface{}) (*ast.Module, error) {
+func ParseModule(filename string, src interface{}) (*ast.Module, error) {
 	str, err := ReadSource(filename, src)
 	if err != nil {
 		return nil, err

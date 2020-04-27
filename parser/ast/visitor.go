@@ -619,7 +619,7 @@ func (d *DefaultVisitor) Identifier(exp *Identifier) *Identifier {
 }
 
 func (d *DefaultVisitor) FunctionLiteral(stmt *FunctionLiteral) *FunctionLiteral {
-	stmt.Name = d.Specific.Identifier(stmt.Name)
+	stmt.Id = d.Specific.Identifier(stmt.Id)
 	stmt.Parameters = d.Specific.FunctionParameters(stmt.Parameters)
 	stmt.Body = d.Specific.Statement(stmt.Body)
 
@@ -969,7 +969,7 @@ func (d *DefaultVisitor) FunctionParameter(param FunctionParameter) FunctionPara
 }
 
 func (d *DefaultVisitor) IdentifierParameter(p *IdentifierParameter) *IdentifierParameter {
-	p.Name = d.Specific.Identifier(p.Name)
+	p.Id = d.Specific.Identifier(p.Id)
 	p.DefaultValue = d.Specific.Expression(p.DefaultValue)
 
 	return p

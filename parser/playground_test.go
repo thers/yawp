@@ -14,7 +14,7 @@ func TestPlayground(t *testing.T) {
 		}
 `
 
-	prog, err := ParseFile("", src)
+	prog, err := ParseModule("", src)
 
 	if err != nil {
 		panic(err)

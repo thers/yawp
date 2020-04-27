@@ -7,7 +7,7 @@ type (
 		Loc            *file.Loc
 		Async          bool
 		Generator      bool
-		Name           *Identifier
+		Id             *Identifier
 		TypeParameters []*FlowTypeParameter
 		ReturnType     FlowType
 		Parameters     *FunctionParameters
@@ -25,7 +25,7 @@ type (
 	}
 
 	IdentifierParameter struct {
-		Name         *Identifier
+		Id           *Identifier
 		DefaultValue Expression
 		FlowType     FlowType
 		Optional     bool

@@ -23,7 +23,7 @@ func tt(t *testing.T, f func()) {
 
 func makeAssert(t *testing.T) func(string, interface{}) {
 	return func(src string, expected interface{}) {
-		_, err := ParseFile("", src)
+		_, err := ParseModule("", src)
 
 		if err == nil && expected == nil {
 			return

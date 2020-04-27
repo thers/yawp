@@ -41,7 +41,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 			Async: async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
-					Name:         identifier,
+					Id:           identifier,
 					DefaultValue: nil,
 				},
 			},
@@ -125,7 +125,7 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 			TypeParameters: typeParameters,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
-					Name:         identifier,
+					Id:           identifier,
 					DefaultValue: nil,
 				},
 			},
