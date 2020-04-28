@@ -696,8 +696,8 @@ func (d *DefaultVisitor) ObjectPropertyName(an ObjectPropertyName) ObjectPropert
 }
 
 func (d *DefaultVisitor) ArrayLiteral(exp *ArrayLiteral) *ArrayLiteral {
-	for index, item := range exp.Value {
-		exp.Value[index] = d.Specific.Expression(item)
+	for index, item := range exp.List {
+		exp.List[index] = d.Specific.Expression(item)
 	}
 
 	return exp
@@ -1040,27 +1040,27 @@ func (d *DefaultVisitor) IdentifierBinder(b *IdentifierBinder) *IdentifierBinder
 }
 
 func (d *DefaultVisitor) ObjectRestBinder(b *ObjectRestBinder) *ObjectRestBinder {
-	b.Name = d.Specific.Identifier(b.Name)
+	b.Id = d.Specific.Identifier(b.Id)
 
 	return b
 }
 
 func (d *DefaultVisitor) ArrayRestBinder(b *ArrayRestBinder) *ArrayRestBinder {
-	b.Name = d.Specific.Identifier(b.Name)
+	b.Id = d.Specific.Identifier(b.Id)
 
 	return b
 }
 
 func (d *DefaultVisitor) ObjectPropertyBinder(b *ObjectPropertyBinder) *ObjectPropertyBinder {
-	b.PropertyName = d.Specific.Identifier(b.PropertyName)
-	b.Property = d.Specific.PatternBinder(b.Property)
+	b.Id = d.Specific.Identifier(b.Id)
+	b.Binder = d.Specific.PatternBinder(b.Binder)
 	b.DefaultValue = d.Specific.Expression(b.DefaultValue)
 
 	return b
 }
 
 func (d *DefaultVisitor) ArrayItemBinder(b *ArrayItemBinder) *ArrayItemBinder {
-	b.Item = d.Specific.PatternBinder(b.Item)
+	b.Binder = d.Specific.PatternBinder(b.Binder)
 	b.DefaultValue = d.Specific.Expression(b.DefaultValue)
 
 	return b

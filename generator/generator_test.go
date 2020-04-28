@@ -12,13 +12,13 @@ import (
 func TestPlayground(t *testing.T) {
 	opt := &options.Options{
 		Target: options.ES5,
-		Minify: true,
+		Minify: false,
 	}
 
 	parserStart := time.Now()
 	// language=js
 	prog, err := parser.ParseModule("", `
-		const a=1; const { foo } = { a }
+		const bar=1; const { zap: [{foo}, ...te] = [{foo:1}], gad } = { bar }
 	`)
 	fmt.Println("Parser pass took:", time.Since(parserStart))
 

@@ -18,6 +18,7 @@ Supports ES2020, Flow, JSX
 ---
 ### Generator progress
 - [ ] variables
+- [ ] source map generation
 
 ---
 ##### Parser progress left

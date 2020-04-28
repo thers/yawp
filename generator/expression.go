@@ -29,6 +29,17 @@ func (g *Generator) NumberLiteral(s *ast.NumberLiteral) *ast.NumberLiteral {
 	return s
 }
 
+func (g *Generator) ArrayLiteral(al *ast.ArrayLiteral) *ast.ArrayLiteral {
+	g.rune('[')
+	defer g.rune(']')
+
+	for index, item := range al.List {
+		al.List[index] = g.Expression(item)
+	}
+
+	return al
+}
+
 func (g *Generator) ObjectLiteral(o *ast.ObjectLiteral) *ast.ObjectLiteral {
 	g.rune('{')
 	defer g.rune('}')
@@ -66,6 +77,11 @@ func (g *Generator) ComputedName(cn *ast.ComputedName) *ast.ComputedName {
 }
 
 func (g *Generator) BinaryExpression(b *ast.BinaryExpression) *ast.BinaryExpression {
+	if g.wrapExpression {
+		g.rune('(')
+		defer g.rune(')')
+	}
+
 	g.Expression(b.Left)
 	g.str(b.Operator.String())
 	g.Expression(b.Right)
@@ -105,4 +121,17 @@ func (g *Generator) DotExpression(d *ast.DotExpression) *ast.DotExpression {
 	g.Identifier(d.Identifier)
 
 	return d
+}
+
+func (g *Generator) BracketExpression(be *ast.BracketExpression) *ast.BracketExpression {
+	wrapExpression := g.wrapExpression
+	g.wrapExpression = true
+	g.Expression(be.Left)
+	g.wrapExpression = wrapExpression
+
+	g.rune('[')
+	g.Expression(be.Member)
+	g.rune(']')
+
+	return be
 }

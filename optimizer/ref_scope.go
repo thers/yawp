@@ -6,6 +6,8 @@ import (
 	"yawp/parser/token"
 )
 
+const ghostIdName = ""
+
 func (o *Optimizer) pushRefScope() *RefScope {
 	parentRefScope := o.refScope
 
@@ -82,6 +84,13 @@ func (r *RefScope) GhostRef() *ast.Ref {
 	return &ast.Ref{
 		Name:   r.NextMangledId(),
 		Kind:   ast.RVar,
+	}
+}
+
+func (r *RefScope) GhostId() *ast.Identifier {
+	return &ast.Identifier{
+		Ref:  r.GhostRef(),
+		Name: ghostIdName,
 	}
 }
 

@@ -20,6 +20,9 @@ type Generator struct {
 	ids    *ids.Ids
 
 	identLevel int
+
+	// punctuation flags
+	wrapExpression bool
 }
 
 func (g *Generator) str(s string) *Generator {

@@ -6,8 +6,6 @@ import "yawp/parser/ast"
 func (g *Generator) Statement(s ast.Statement) ast.Statement {
 	s = g.DefaultVisitor.Statement(s)
 
-	g.nl()
-
 	return s
 }
 
@@ -16,13 +14,13 @@ func (g *Generator) BlockStatement(bs *ast.BlockStatement) *ast.BlockStatement {
 
 	for index, stmt := range bs.List {
 		if index > 0 {
-			g.nl()
+			g.semicolon()
 		}
 
 		g.Statement(stmt)
 	}
 
-	g.indentDec().nl().rune('}')
+	g.rune('}')
 
 	return bs
 }
@@ -36,9 +34,9 @@ func (g *Generator) ExpressionStatement(stmt *ast.ExpressionStatement) *ast.Expr
 func (g *Generator) WhileStatement(stmt *ast.WhileStatement) *ast.WhileStatement {
 	g.str("while(")
 	g.Expression(stmt.Test)
-	g.str("){").indentInc().nl()
+	g.str("){")
 	g.Statement(stmt.Body)
-	g.indentDec().nl().rune('}')
+	g.rune('}')
 
 	return stmt
 }
@@ -55,14 +53,14 @@ func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) *ast.DebuggerSt
 func (g *Generator) IfStatement(stmt *ast.IfStatement) *ast.IfStatement {
 	g.str("if(")
 	g.Expression(stmt.Test)
-	g.str("){").indentInc().nl()
+	g.str("){")
 	g.Statement(stmt.Consequent)
-	g.indentDec().nl().rune('}')
+	g.rune('}')
 
 	if stmt.Alternate != nil {
-		g.str("else{").indentInc().nl()
+		g.str("else{")
 		g.Statement(stmt.Alternate)
-		g.indentDec().nl().rune('}')
+		g.rune('}')
 	}
 
 	return stmt

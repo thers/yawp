@@ -36,8 +36,8 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	loc.End(p.consumeExpected(token.RIGHT_BRACKET))
 
 	return &ast.ArrayLiteral{
-		Loc:   loc,
-		Value: value,
+		Loc:  loc,
+		List: value,
 	}
 }
 

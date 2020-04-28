@@ -15,21 +15,24 @@ type (
 	}
 
 	ObjectRestBinder struct {
-		Name *Identifier
+		Id             *Identifier
+		OmitProperties []*Identifier
 	}
 
 	ArrayRestBinder struct {
-		Name *Identifier
+		Id        *Identifier
+		FromIndex int
 	}
 
 	ObjectPropertyBinder struct {
-		Property     PatternBinder
-		PropertyName *Identifier
+		Binder       PatternBinder
+		Id           *Identifier
 		DefaultValue Expression
 	}
 
 	ArrayItemBinder struct {
-		Item         PatternBinder
+		Binder       PatternBinder
+		Index        int
 		DefaultValue Expression
 	}
 
@@ -67,3 +70,13 @@ func (*VariableBinding) _expressionNode() {}
 func (s *ArrayBinding) GetLoc() *file.Loc    { return s.Loc }
 func (s *ObjectBinding) GetLoc() *file.Loc   { return s.Loc }
 func (s *VariableBinding) GetLoc() *file.Loc { return s.Loc }
+
+func (s *VariableBinding) Clone() *VariableBinding {
+	return &VariableBinding{
+		Loc:         s.Loc,
+		Kind:        s.Kind,
+		Binder:      s.Binder,
+		Initializer: s.Initializer,
+		FlowType:    s.FlowType,
+	}
+}

@@ -43,20 +43,23 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 		List: make([]ast.PatternBinder, 0),
 	}
 
+	boundProperties := make([]*ast.Identifier, 0)
+
 	for p.until(token.RIGHT_BRACE) {
 		// { ...a }
 		if p.is(token.DOTDOTDOT) {
 			p.consumeExpected(token.DOTDOTDOT)
 
 			pattern.List = append(pattern.List, &ast.ObjectRestBinder{
-				Name: p.parseIdentifier(),
+				Id:             p.parseIdentifier(),
+				OmitProperties: boundProperties,
 			})
 			break
 		}
 
 		property := &ast.ObjectPropertyBinder{
-			Property:     nil,
-			PropertyName: nil,
+			Binder:       nil,
+			Id:           nil,
 			DefaultValue: nil,
 		}
 
@@ -69,12 +72,13 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 			return nil
 		}
 
-		property.PropertyName = propertyName
+		property.Id = propertyName
+		boundProperties = append(boundProperties, property.Id)
 
 		if p.is(token.COLON) {
 			p.consumeExpected(token.COLON)
 
-			property.Property = p.parseBinder()
+			property.Binder = p.parseBinder()
 		} else {
 			_, isKeyword := token.IsKeyword(propertyName.Name)
 
@@ -83,8 +87,8 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 
 				return nil
 			} else {
-				property.Property = &ast.IdentifierBinder{
-					Id: property.PropertyName,
+				property.Binder = &ast.IdentifierBinder{
+					Id: property.Id,
 				}
 			}
 		}
@@ -109,22 +113,27 @@ func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
 		List: make([]ast.PatternBinder, 0),
 	}
 
+	itemIndex := 0
+
 	for p.until(token.RIGHT_BRACKET) {
 		// [...a]
 		if p.is(token.DOTDOTDOT) {
 			p.consumeExpected(token.DOTDOTDOT)
 
 			pattern.List = append(pattern.List, &ast.ArrayRestBinder{
-				Name: p.parseIdentifier(),
+				Id:        p.parseIdentifier(),
+				FromIndex: itemIndex,
 			})
 			break
 		}
 
 		item := &ast.ArrayItemBinder{
-			Item:         p.parseBinder(),
+			Binder:       p.parseBinder(),
+			Index:        itemIndex,
 			DefaultValue: p.parseBindingDefaultValue(),
 		}
 
+		itemIndex++
 		p.consumePossible(token.COMMA)
 
 		pattern.List = append(pattern.List, item)

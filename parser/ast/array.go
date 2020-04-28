@@ -4,8 +4,8 @@ import "yawp/parser/file"
 
 type (
 	ArrayLiteral struct {
-		Loc   *file.Loc
-		Value []Expression
+		Loc  *file.Loc
+		List []Expression
 	}
 
 	ArraySpread struct {
