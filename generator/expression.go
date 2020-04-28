@@ -29,6 +29,42 @@ func (g *Generator) NumberLiteral(s *ast.NumberLiteral) *ast.NumberLiteral {
 	return s
 }
 
+func (g *Generator) ObjectLiteral(o *ast.ObjectLiteral) *ast.ObjectLiteral {
+	g.rune('{')
+	defer g.rune('}')
+
+	for _, prop := range o.Properties {
+		switch p := prop.(type) {
+		case *ast.ObjectPropertyValue:
+			g.ObjectPropertyName(p.PropertyName)
+			g.rune(':')
+			g.Expression(p.Value)
+		}
+	}
+
+	return o
+}
+
+func (g *Generator) ObjectPropertyName(opn ast.ObjectPropertyName) ast.ObjectPropertyName {
+	switch o := opn.(type) {
+	case *ast.Identifier:
+		return g.Identifier(o)
+	case *ast.ComputedName:
+		return g.ComputedName(o)
+
+	default:
+		panic("Unknown object property name type")
+	}
+}
+
+func (g *Generator) ComputedName(cn *ast.ComputedName) *ast.ComputedName {
+	g.rune('[')
+	g.Expression(cn.Expression)
+	g.rune(']')
+
+	return cn
+}
+
 func (g *Generator) BinaryExpression(b *ast.BinaryExpression) *ast.BinaryExpression {
 	g.Expression(b.Left)
 	g.str(b.Operator.String())

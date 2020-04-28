@@ -11,17 +11,14 @@ import (
 
 func TestPlayground(t *testing.T) {
 	opt := &options.Options{
-		Target: options.ES2015,
+		Target: options.ES5,
 		Minify: true,
 	}
 
 	parserStart := time.Now()
 	// language=js
 	prog, err := parser.ParseModule("", `
-		t=1;
-		function \u3041test(t=t) {
-		    if (true) log(t)
-		}
+		const a=1; const { foo } = { a }
 	`)
 	fmt.Println("Parser pass took:", time.Since(parserStart))
 

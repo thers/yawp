@@ -36,26 +36,13 @@ type Optimizer struct {
 	refScope *RefScope
 
 	bindingRefKind ast.RefKind
-}
 
-func (o *Optimizer) VariableBinding(vb *ast.VariableBinding) *ast.VariableBinding {
-	// processing initializer first so we resolve id refs correctly
-	// for example, this code:
-	// `a=1; { const a=a; log(a) }`
-	// should be treated like this:
-	// `a=1; { const b=a; lob(b) }`
-	vb.Initializer = o.DefaultVisitor.Expression(vb.Initializer)
-
-	o.bindingRefKind = o.resolveTokenToRefKind(vb.Kind)
-	vb.Binder = o.DefaultVisitor.PatternBinder(vb.Binder)
-	o.bindingRefKind = ast.RUnknown
-
-	return vb
+	extraVariableBindings []*ast.VariableBinding
 }
 
 func (o *Optimizer) IdentifierBinder(vb *ast.IdentifierBinder) *ast.IdentifierBinder {
 	if o.bindingRefKind != ast.RUnknown {
-		vb.Name.Ref = o.refScope.BindRef(o.bindingRefKind, vb.Name.Name)
+		vb.Id.Ref = o.refScope.BindRef(o.bindingRefKind, vb.Id.Name)
 	}
 
 	return vb

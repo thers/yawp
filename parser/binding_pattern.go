@@ -19,7 +19,7 @@ func (p *Parser) parseBinder() ast.PatternBinder {
 	switch p.token {
 	case token.IDENTIFIER:
 		return &ast.IdentifierBinder{
-			Name: p.parseIdentifier(),
+			Id: p.parseIdentifier(),
 		}
 	case token.LEFT_BRACKET:
 		return p.parseArrayBinding()
@@ -84,7 +84,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 				return nil
 			} else {
 				property.Property = &ast.IdentifierBinder{
-					Name: property.PropertyName,
+					Id: property.PropertyName,
 				}
 			}
 		}

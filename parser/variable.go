@@ -70,7 +70,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		Loc:         loc,
 		Kind:        kind,
 		Binder:      &ast.IdentifierBinder{
-			Name: &ast.Identifier{
+			Id: &ast.Identifier{
 				Loc:  loc,
 				Name: literal,
 			},

@@ -78,6 +78,13 @@ func (r *RefScope) createRef(name string) *ast.Ref {
 	return ref
 }
 
+func (r *RefScope) GhostRef() *ast.Ref {
+	return &ast.Ref{
+		Name:   r.NextMangledId(),
+		Kind:   ast.RVar,
+	}
+}
+
 func (r *RefScope) GetRef(name string) *ast.Ref {
 	var ref *ast.Ref
 	var ok bool

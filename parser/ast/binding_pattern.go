@@ -11,7 +11,7 @@ type (
 	}
 
 	IdentifierBinder struct {
-		Name *Identifier
+		Id *Identifier
 	}
 
 	ObjectRestBinder struct {

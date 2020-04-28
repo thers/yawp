@@ -1,6 +1,8 @@
 package generator
 
-import "yawp/parser/ast"
+import (
+	"yawp/parser/ast"
+)
 
 func (g *Generator) VariableBinding(b *ast.VariableBinding) *ast.VariableBinding {
 	g.PatternBinder(b.Binder)

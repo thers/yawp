@@ -1034,7 +1034,7 @@ func (d *DefaultVisitor) PatternBinder(p PatternBinder) PatternBinder {
 }
 
 func (d *DefaultVisitor) IdentifierBinder(b *IdentifierBinder) *IdentifierBinder {
-	b.Name = d.Specific.Identifier(b.Name)
+	b.Id = d.Specific.Identifier(b.Id)
 
 	return b
 }
