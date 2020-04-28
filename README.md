@@ -5,8 +5,8 @@ Supports ES2020, Flow, JSX
 ---
 ### Optimizer progress
 - [x] identifiers mangling
-- [ ] const/let transformation
-- [ ] destructuring assignment transformation
+- [x] const/let transformation
+- [x] destructuring assignment transformation
 - [ ] class transformation
 - [ ] arrow fn transformation
 - [ ] async function transformation
