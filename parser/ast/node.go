@@ -112,6 +112,7 @@ type (
 
 	StringLiteral struct {
 		Loc     *file.Loc
+		Raw     bool
 		Literal string
 	}
 

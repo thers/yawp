@@ -5,10 +5,16 @@ import (
 	"yawp/parser/file"
 )
 
+type ModuleAdditions struct {
+	ObjectOmit bool
+}
+
 type Module struct {
 	File *file.File
 	Body []Statement
-	Ids  *ids.Ids
+
+	Ids       *ids.Ids
+	Additions ModuleAdditions
 }
 
 func (m *Module) GetLoc() *file.Loc {

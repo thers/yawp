@@ -11,6 +11,7 @@ const (
 	RFn
 	RFnParam
 	RLabel
+	RBuiltin
 )
 
 type Ref struct {

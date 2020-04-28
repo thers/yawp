@@ -18,6 +18,11 @@ func (g *Generator) BooleanLiteral(b *ast.BooleanLiteral) *ast.BooleanLiteral {
 }
 
 func (g *Generator) StringLiteral(s *ast.StringLiteral) *ast.StringLiteral {
+	if s.Raw {
+		g.rune('\'')
+		defer g.rune('\'')
+	}
+
 	g.str(s.Literal)
 
 	return s

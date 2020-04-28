@@ -2,14 +2,11 @@ package optimizer
 
 import (
 	"strconv"
+	"yawp/builtins"
 	"yawp/options"
 	"yawp/parser/ast"
 	"yawp/parser/token"
 )
-
-var arraySliceId = &ast.Identifier{
-	Name: "slice",
-}
 
 func (o *Optimizer) pushExtraVariableBinding(vb *ast.VariableBinding) {
 	o.extraVariableBindings = append(o.extraVariableBindings, vb)
@@ -100,6 +97,8 @@ func (o *Optimizer) es5PatternBinder(pb ast.PatternBinder, vb *ast.VariableBindi
 		return o.es5ArrayItemBinder(b, vb)
 	case *ast.ArrayRestBinder:
 		return o.es5ArrayRestBinder(b, vb)
+	case *ast.ObjectRestBinder:
+		return o.es5ObjectRestBinder(b, vb)
 	}
 
 	return vb
@@ -181,20 +180,49 @@ func (o *Optimizer) es5ArrayItemBinder(aib *ast.ArrayItemBinder, vb *ast.Variabl
 
 func (o *Optimizer) es5ArrayRestBinder(arb *ast.ArrayRestBinder, vb *ast.VariableBinding) *ast.VariableBinding {
 	vb.Initializer = &ast.CallExpression{
-		Callee: &ast.DotExpression{
-			Left:       vb.Initializer,
-			Identifier: arraySliceId,
-		},
-		ArgumentList:  []ast.Expression{
+		Callee: builtins.SlicedArrayRest,
+		ArgumentList: []ast.Expression{
+			vb.Initializer,
 			&ast.NumberLiteral{
 				Literal: strconv.Itoa(arb.FromIndex),
 			},
 		},
 	}
-
 	vb.Binder = o.IdentifierBinder(&ast.IdentifierBinder{
 		Id: arb.Id,
 	})
 
 	return vb
+}
+
+func (o *Optimizer) es5ObjectRestBinder(orb *ast.ObjectRestBinder, vb *ast.VariableBinding) *ast.VariableBinding {
+	o.module.Additions.ObjectOmit = true
+
+	vb.Initializer = &ast.CallExpression{
+		Callee: builtins.ObjectRest,
+		ArgumentList: []ast.Expression{
+			vb.Initializer,
+			&ast.ArrayLiteral{
+				List: propertiesToStrings(orb.OmitProperties),
+			},
+		},
+	}
+	vb.Binder = o.IdentifierBinder(&ast.IdentifierBinder{
+		Id: orb.Id,
+	})
+
+	return vb
+}
+
+func propertiesToStrings(list []*ast.Identifier) []ast.Expression {
+	strs := make([]ast.Expression, len(list))
+
+	for index, id := range list {
+		strs[index] = &ast.StringLiteral{
+			Literal: id.Name,
+			Raw:     true,
+		}
+	}
+
+	return strs
 }
