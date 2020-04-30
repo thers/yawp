@@ -14,5 +14,5 @@ func (g *Generator) ObjectBinding(ob *ast.ObjectBinding) *ast.ObjectBinding {
 	g.rune('{')
 	defer g.rune('}')
 
-	return g.DefaultVisitor.ObjectBinding(ob)
+	return g.Walker.ObjectBinding(ob)
 }

@@ -4,6 +4,7 @@ import (
 	"yawp/ids"
 	"yawp/options"
 	"yawp/parser/ast"
+	"yawp/parser/token"
 )
 
 /**
@@ -15,29 +16,54 @@ Here we're performing:
 
 func Optimize(module *ast.Module, options *options.Options) {
 	optimizer := &Optimizer{
-		DefaultVisitor: ast.DefaultVisitor{},
-		module:         module,
-		options:        options,
-		ids:            module.Ids,
+		Walker:  ast.Walker{},
+		module:  module,
+		options: options,
+		ids:     module.Ids,
 	}
-	optimizer.DefaultVisitor.Specific = optimizer
+	optimizer.Walker.Visitor = optimizer
 	optimizer.pushRefScope()
+	optimizer.pushThisScope()
 
 	module.Visit(optimizer)
 }
 
 type Optimizer struct {
-	ast.DefaultVisitor
+	ast.Walker
 
 	ids     *ids.Ids
 	module  *ast.Module
 	options *options.Options
 
-	refScope *RefScope
+	refScope  *RefScope
+	thisScope *ThisScope
 
 	bindingRefKind ast.RefKind
 
 	extraVariableBindings []*ast.VariableBinding
+}
+
+func (o *Optimizer) Body(stmts []ast.Statement) []ast.Statement {
+	stmts = o.Walker.Body(stmts)
+
+	extras := make([]ast.Statement, 0)
+
+	if o.thisScope.ThisInitializer != nil {
+		extras = append(extras, &ast.VariableStatement{
+			Kind: token.VAR,
+			List: []*ast.VariableBinding{
+				{
+					Kind: token.VAR,
+					Binder: &ast.IdentifierBinder{
+						Id: o.thisScope.ThisId,
+					},
+					Initializer: o.thisScope.ThisInitializer,
+				},
+			},
+		})
+	}
+
+	return append(extras, stmts...)
 }
 
 func (o *Optimizer) IdentifierBinder(vb *ast.IdentifierBinder) *ast.IdentifierBinder {
@@ -52,7 +78,7 @@ func (o *Optimizer) BlockStatement(bs *ast.BlockStatement) *ast.BlockStatement {
 	o.pushRefScope()
 	defer o.popRefScope()
 
-	return o.DefaultVisitor.BlockStatement(bs)
+	return o.Walker.BlockStatement(bs)
 }
 
 func (o *Optimizer) Identifier(id *ast.Identifier) *ast.Identifier {

@@ -22,7 +22,5 @@ func (m *Module) GetLoc() *file.Loc {
 }
 
 func (m *Module) Visit(visitor Visitor) {
-	for index, stmt := range m.Body {
-		m.Body[index] = visitor.Statement(stmt)
-	}
+	m.Body = visitor.Body(m.Body)
 }

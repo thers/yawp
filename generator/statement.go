@@ -4,7 +4,7 @@ import "yawp/parser/ast"
 
 
 func (g *Generator) Statement(s ast.Statement) ast.Statement {
-	s = g.DefaultVisitor.Statement(s)
+	s = g.Walker.Statement(s)
 
 	return s
 }
@@ -64,4 +64,11 @@ func (g *Generator) IfStatement(stmt *ast.IfStatement) *ast.IfStatement {
 	}
 
 	return stmt
+}
+
+func (g *Generator) ReturnStatement(rs *ast.ReturnStatement) *ast.ReturnStatement {
+	g.str("return ")
+	g.Expression(rs.Argument)
+
+	return rs
 }

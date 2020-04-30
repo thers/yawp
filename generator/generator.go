@@ -11,7 +11,7 @@ import (
 var ident = "                                                                                                          "
 
 type Generator struct {
-	*ast.DefaultVisitor
+	*ast.Walker
 
 	source  string
 	options *options.Options
@@ -84,7 +84,7 @@ func (g *Generator) indentDec() *Generator {
 
 func Generate(options *options.Options, program *ast.Module) string {
 	generator := &Generator{
-		DefaultVisitor: &ast.DefaultVisitor{},
+		Walker: &ast.Walker{},
 
 		source:     program.File.Source(),
 		output:     &strings.Builder{},
@@ -92,7 +92,7 @@ func Generate(options *options.Options, program *ast.Module) string {
 		ids:        program.Ids,
 		identLevel: 0,
 	}
-	generator.DefaultVisitor.Specific = generator
+	generator.Walker.Visitor = generator
 
 	program.Visit(generator)
 

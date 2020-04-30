@@ -14,11 +14,11 @@ func (g *Generator) FunctionLiteral(fl *ast.FunctionLiteral) *ast.FunctionLitera
 
 	g.FunctionParameters(fl.Parameters)
 
-	g.str("){").indentInc().nl()
+	g.str("){")
 
 	g.Statement(fl.Body)
 
-	g.indentDec().nl().rune('}')
+	g.rune('}')
 
 	return fl
 }

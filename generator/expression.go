@@ -140,3 +140,9 @@ func (g *Generator) BracketExpression(be *ast.BracketExpression) *ast.BracketExp
 
 	return be
 }
+
+func (g *Generator) ThisExpression(te *ast.ThisExpression) *ast.ThisExpression {
+	g.str("this")
+
+	return te
+}

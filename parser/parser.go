@@ -42,6 +42,8 @@ type Parser struct {
 	err error
 
 	file *file.File
+
+	comments map[file.Idx][]ast.Comment // [fromIdx][toIdx]Comment
 }
 
 func newParser(filename, src string) *Parser {
