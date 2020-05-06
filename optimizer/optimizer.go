@@ -74,7 +74,7 @@ func (o *Optimizer) IdentifierBinder(vb *ast.IdentifierBinder) *ast.IdentifierBi
 	return vb
 }
 
-func (o *Optimizer) BlockStatement(bs *ast.BlockStatement) *ast.BlockStatement {
+func (o *Optimizer) BlockStatement(bs *ast.BlockStatement) ast.Statement {
 	o.pushRefScope()
 	defer o.popRefScope()
 

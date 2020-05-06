@@ -19,7 +19,7 @@ type (
 
 	ForStatement struct {
 		Loc         *file.Loc
-		Initializer *VariableStatement
+		Initializer Statement
 		Update      Expression
 		Test        Expression
 		Body        Statement

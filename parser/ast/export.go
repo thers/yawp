@@ -7,7 +7,7 @@ type (
 		_exportClauseNode()
 	}
 
-	ExportDeclaration struct {
+	ExportStatement struct {
 		Loc    *file.Loc
 		Clause ExportClause
 	}
@@ -56,7 +56,7 @@ type (
 	}
 )
 
-func (*ExportDeclaration) _statementNode()              {}
+func (*ExportStatement) _statementNode()                {}
 func (s *ExportNamespaceFromClause) _exportClauseNode() {}
 func (s *ExportNamedFromClause) _exportClauseNode()     {}
 func (s *ExportNamedClause) _exportClauseNode()         {}
@@ -65,4 +65,4 @@ func (s *ExportFunctionClause) _exportClauseNode()      {}
 func (s *ExportClassClause) _exportClauseNode()         {}
 func (s *ExportDefaultClause) _exportClauseNode()       {}
 
-func (s *ExportDeclaration) GetLoc() *file.Loc { return s.Loc }
+func (s *ExportStatement) GetLoc() *file.Loc { return s.Loc }

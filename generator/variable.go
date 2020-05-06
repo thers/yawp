@@ -15,7 +15,7 @@ func (g *Generator) VariableBinding(b *ast.VariableBinding) *ast.VariableBinding
 	return b
 }
 
-func (g *Generator) VariableStatement(stmt *ast.VariableStatement) *ast.VariableStatement {
+func (g *Generator) VariableStatement(stmt *ast.VariableStatement) ast.Statement {
 	g.str(stmt.Kind.String())
 	g.rune(' ')
 

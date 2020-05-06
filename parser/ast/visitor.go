@@ -5,36 +5,36 @@ type Visitor interface {
 
 	// statements
 	Statement(stmt Statement) Statement
-	ExportDeclaration(stmt *ExportDeclaration) *ExportDeclaration
-	ImportDeclaration(stmt *ImportDeclaration) *ImportDeclaration
+	ExportDeclaration(stmt *ExportStatement) Statement
+	ImportDeclaration(stmt *ImportStatement) Statement
 	FlowTypeStatement(stmt *FlowTypeStatement) *FlowTypeStatement
 	FlowInterfaceStatement(stmt *FlowInterfaceStatement) *FlowInterfaceStatement
-	BlockStatement(stmt *BlockStatement) *BlockStatement
-	ClassStatement(stmt *ClassStatement) *ClassStatement
-	ClassFieldStatement(stmt *ClassFieldStatement) *ClassFieldStatement
-	ClassAccessorStatement(stmt *ClassAccessorStatement) *ClassAccessorStatement
-	ClassMethodStatement(stmt *ClassMethodStatement) *ClassMethodStatement
-	LegacyDecoratorStatement(stmt *LegacyDecoratorStatement) *LegacyDecoratorStatement
-	ForInStatement(stmt *ForInStatement) *ForInStatement
-	ForOfStatement(stmt *ForOfStatement) *ForOfStatement
-	ForStatement(stmt *ForStatement) *ForStatement
-	BranchStatement(stmt *BranchStatement) *BranchStatement
-	CatchStatement(stmt *CatchStatement) *CatchStatement
-	DebuggerStatement(stmt *DebuggerStatement) *DebuggerStatement
-	DoWhileStatement(stmt *DoWhileStatement) *DoWhileStatement
-	EmptyStatement(stmt *EmptyStatement) *EmptyStatement
-	ExpressionStatement(stmt *ExpressionStatement) *ExpressionStatement
-	IfStatement(stmt *IfStatement) *IfStatement
-	LabelledStatement(stmt *LabelledStatement) *LabelledStatement
-	ReturnStatement(stmt *ReturnStatement) *ReturnStatement
-	SwitchStatement(stmt *SwitchStatement) *SwitchStatement
-	CaseStatement(stmt *CaseStatement) *CaseStatement
-	ThrowStatement(stmt *ThrowStatement) *ThrowStatement
-	TryStatement(stmt *TryStatement) *TryStatement
-	VariableStatement(stmt *VariableStatement) *VariableStatement
-	WhileStatement(stmt *WhileStatement) *WhileStatement
-	WithStatement(stmt *WithStatement) *WithStatement
-	YieldStatement(stmt *YieldStatement) *YieldStatement
+	BlockStatement(stmt *BlockStatement) Statement
+	ClassStatement(stmt *ClassStatement) Statement
+	ClassFieldStatement(stmt *ClassFieldStatement) Statement
+	ClassAccessorStatement(stmt *ClassAccessorStatement) Statement
+	ClassMethodStatement(stmt *ClassMethodStatement) Statement
+	LegacyDecoratorStatement(stmt *LegacyDecoratorStatement) Statement
+	ForInStatement(stmt *ForInStatement) Statement
+	ForOfStatement(stmt *ForOfStatement) Statement
+	ForStatement(stmt *ForStatement) Statement
+	BranchStatement(stmt *BranchStatement) Statement
+	CatchStatement(stmt *CatchStatement) Statement
+	DebuggerStatement(stmt *DebuggerStatement) Statement
+	DoWhileStatement(stmt *DoWhileStatement) Statement
+	EmptyStatement(stmt *EmptyStatement) Statement
+	ExpressionStatement(stmt *ExpressionStatement) Statement
+	IfStatement(stmt *IfStatement) Statement
+	LabelledStatement(stmt *LabelledStatement) Statement
+	ReturnStatement(stmt *ReturnStatement) Statement
+	SwitchStatement(stmt *SwitchStatement) Statement
+	CaseStatement(stmt *CaseStatement) Statement
+	ThrowStatement(stmt *ThrowStatement) Statement
+	TryStatement(stmt *TryStatement) Statement
+	VariableStatement(stmt *VariableStatement) Statement
+	WhileStatement(stmt *WhileStatement) Statement
+	WithStatement(stmt *WithStatement) Statement
+	YieldStatement(stmt *YieldStatement) Statement
 
 	// expressions
 	Expression(exp Expression) Expression
@@ -109,7 +109,6 @@ type Visitor interface {
 	ObjectPropertyValue(p *ObjectPropertyValue) *ObjectPropertyValue
 	ObjectPropertyName(n ObjectPropertyName) ObjectPropertyName
 	ComputedName(n *ComputedName) *ComputedName
-	LegacyDecoratorSubject(s LegacyDecoratorSubject) LegacyDecoratorSubject
 	ExportClause(c ExportClause) ExportClause
 	ExportNamespaceFromClause(c *ExportNamespaceFromClause) *ExportNamespaceFromClause
 	ExportNamedFromClause(c *ExportNamedFromClause) *ExportNamedFromClause
@@ -144,9 +143,9 @@ func (w *Walker) Statement(stmt Statement) Statement {
 	}
 
 	switch s := stmt.(type) {
-	case *ExportDeclaration:
+	case *ExportStatement:
 		stmt = w.Visitor.ExportDeclaration(s)
-	case *ImportDeclaration:
+	case *ImportStatement:
 		stmt = w.Visitor.ImportDeclaration(s)
 	case *FlowTypeStatement:
 		stmt = w.Visitor.FlowTypeStatement(s)
@@ -335,7 +334,7 @@ func (w *Walker) Js(js *Js) *Js {
 }
 
 
-func (w *Walker) ExportDeclaration(stmt *ExportDeclaration) *ExportDeclaration {
+func (w *Walker) ExportDeclaration(stmt *ExportStatement) Statement {
 	stmt.Clause = w.Visitor.ExportClause(stmt.Clause)
 
 	return stmt
@@ -399,7 +398,7 @@ func (w *Walker) ExportDefaultClause(c *ExportDefaultClause) *ExportDefaultClaus
 	panic("implement me")
 }
 
-func (w *Walker) ImportDeclaration(stmt *ImportDeclaration) *ImportDeclaration {
+func (w *Walker) ImportDeclaration(stmt *ImportStatement) Statement {
 	for index, i := range stmt.Imports {
 		stmt.Imports[index] = w.Visitor.ImportClause(i)
 	}
@@ -432,7 +431,7 @@ func (w *Walker) FlowTypeAssertion(exp *FlowTypeAssertion) *FlowTypeAssertion {
 	return exp
 }
 
-func (w *Walker) BlockStatement(block *BlockStatement) *BlockStatement {
+func (w *Walker) BlockStatement(block *BlockStatement) Statement {
 	for index, stmt := range block.List {
 		block.List[index] = w.Visitor.Statement(stmt)
 	}
@@ -440,13 +439,13 @@ func (w *Walker) BlockStatement(block *BlockStatement) *BlockStatement {
 	return block
 }
 
-func (w *Walker) ClassStatement(stmt *ClassStatement) *ClassStatement {
+func (w *Walker) ClassStatement(stmt *ClassStatement) Statement {
 	stmt.Expression = w.Visitor.ClassExpression(stmt.Expression)
 
 	return stmt
 }
 
-func (w *Walker) ClassFieldStatement(stmt *ClassFieldStatement) *ClassFieldStatement {
+func (w *Walker) ClassFieldStatement(stmt *ClassFieldStatement) Statement {
 	stmt.Initializer = w.Visitor.Expression(stmt.Initializer)
 	stmt.Name = w.Visitor.ClassFieldName(stmt.Name)
 
@@ -470,14 +469,14 @@ func (w *Walker) ComputedName(n *ComputedName) *ComputedName {
 	return n
 }
 
-func (w *Walker) ClassAccessorStatement(stmt *ClassAccessorStatement) *ClassAccessorStatement {
+func (w *Walker) ClassAccessorStatement(stmt *ClassAccessorStatement) Statement {
 	stmt.Body = w.Visitor.FunctionLiteral(stmt.Body)
 	stmt.Field = w.Visitor.ClassFieldName(stmt.Field)
 
 	return stmt
 }
 
-func (w *Walker) ClassMethodStatement(stmt *ClassMethodStatement) *ClassMethodStatement {
+func (w *Walker) ClassMethodStatement(stmt *ClassMethodStatement) Statement {
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 	stmt.Name = w.Visitor.ClassFieldName(stmt.Name)
 	stmt.Parameters = w.Visitor.FunctionParameters(stmt.Parameters)
@@ -485,31 +484,17 @@ func (w *Walker) ClassMethodStatement(stmt *ClassMethodStatement) *ClassMethodSt
 	return stmt
 }
 
-func (w *Walker) LegacyDecoratorStatement(stmt *LegacyDecoratorStatement) *LegacyDecoratorStatement {
+func (w *Walker) LegacyDecoratorStatement(stmt *LegacyDecoratorStatement) Statement {
 	for index, dec := range stmt.Decorators {
 		stmt.Decorators[index] = w.Visitor.Expression(dec)
 	}
 
-	stmt.Subject = w.Visitor.LegacyDecoratorSubject(stmt.Subject)
+	stmt.Subject = w.Visitor.Statement(stmt.Subject)
 
 	return stmt
 }
 
-func (w *Walker) LegacyDecoratorSubject(as LegacyDecoratorSubject) LegacyDecoratorSubject {
-	switch s := as.(type) {
-	case *ClassStatement:
-		return w.Visitor.ClassStatement(s)
-	case *ClassFieldStatement:
-		return w.Visitor.ClassFieldStatement(s)
-	case *ClassMethodStatement:
-		return w.Visitor.ClassMethodStatement(s)
-
-	default:
-		panic("Unknown legacy decorator subject type")
-	}
-}
-
-func (w *Walker) ForInStatement(stmt *ForInStatement) *ForInStatement {
+func (w *Walker) ForInStatement(stmt *ForInStatement) Statement {
 	stmt.Into = w.Visitor.Expression(stmt.Into)
 	stmt.Source = w.Visitor.Expression(stmt.Source)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
@@ -517,7 +502,7 @@ func (w *Walker) ForInStatement(stmt *ForInStatement) *ForInStatement {
 	return stmt
 }
 
-func (w *Walker) ForOfStatement(stmt *ForOfStatement) *ForOfStatement {
+func (w *Walker) ForOfStatement(stmt *ForOfStatement) Statement {
 	stmt.Binder = w.Visitor.Expression(stmt.Binder)
 	stmt.Iterator = w.Visitor.Expression(stmt.Iterator)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
@@ -525,8 +510,8 @@ func (w *Walker) ForOfStatement(stmt *ForOfStatement) *ForOfStatement {
 	return stmt
 }
 
-func (w *Walker) ForStatement(stmt *ForStatement) *ForStatement {
-	stmt.Initializer = w.Visitor.VariableStatement(stmt.Initializer)
+func (w *Walker) ForStatement(stmt *ForStatement) Statement {
+	stmt.Initializer = w.Visitor.Statement(stmt.Initializer)
 	stmt.Test = w.Visitor.Expression(stmt.Test)
 	stmt.Update = w.Visitor.Expression(stmt.Update)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
@@ -534,13 +519,13 @@ func (w *Walker) ForStatement(stmt *ForStatement) *ForStatement {
 	return stmt
 }
 
-func (w *Walker) BranchStatement(stmt *BranchStatement) *BranchStatement {
+func (w *Walker) BranchStatement(stmt *BranchStatement) Statement {
 	stmt.Label = w.Visitor.Identifier(stmt.Label)
 
 	return stmt
 }
 
-func (w *Walker) CatchStatement(stmt *CatchStatement) *CatchStatement {
+func (w *Walker) CatchStatement(stmt *CatchStatement) Statement {
 	if stmt == nil {
 		return nil
 	}
@@ -551,28 +536,28 @@ func (w *Walker) CatchStatement(stmt *CatchStatement) *CatchStatement {
 	return stmt
 }
 
-func (w *Walker) DebuggerStatement(stmt *DebuggerStatement) *DebuggerStatement {
+func (w *Walker) DebuggerStatement(stmt *DebuggerStatement) Statement {
 	return stmt
 }
 
-func (w *Walker) DoWhileStatement(stmt *DoWhileStatement) *DoWhileStatement {
+func (w *Walker) DoWhileStatement(stmt *DoWhileStatement) Statement {
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 	stmt.Test = w.Visitor.Expression(stmt.Test)
 
 	return stmt
 }
 
-func (w *Walker) EmptyStatement(stmt *EmptyStatement) *EmptyStatement {
+func (w *Walker) EmptyStatement(stmt *EmptyStatement) Statement {
 	return stmt
 }
 
-func (w *Walker) ExpressionStatement(stmt *ExpressionStatement) *ExpressionStatement {
+func (w *Walker) ExpressionStatement(stmt *ExpressionStatement) Statement {
 	stmt.Expression = w.Visitor.Expression(stmt.Expression)
 
 	return stmt
 }
 
-func (w *Walker) IfStatement(stmt *IfStatement) *IfStatement {
+func (w *Walker) IfStatement(stmt *IfStatement) Statement {
 	stmt.Test = w.Visitor.Expression(stmt.Test)
 	stmt.Consequent = w.Visitor.Statement(stmt.Consequent)
 	stmt.Alternate = w.Visitor.Statement(stmt.Alternate)
@@ -580,30 +565,30 @@ func (w *Walker) IfStatement(stmt *IfStatement) *IfStatement {
 	return stmt
 }
 
-func (w *Walker) LabelledStatement(stmt *LabelledStatement) *LabelledStatement {
+func (w *Walker) LabelledStatement(stmt *LabelledStatement) Statement {
 	stmt.Label = w.Visitor.Identifier(stmt.Label)
 	stmt.Statement = w.Visitor.Statement(stmt.Statement)
 
 	return stmt
 }
 
-func (w *Walker) ReturnStatement(stmt *ReturnStatement) *ReturnStatement {
+func (w *Walker) ReturnStatement(stmt *ReturnStatement) Statement {
 	stmt.Argument = w.Visitor.Expression(stmt.Argument)
 
 	return stmt
 }
 
-func (w *Walker) SwitchStatement(stmt *SwitchStatement) *SwitchStatement {
+func (w *Walker) SwitchStatement(stmt *SwitchStatement) Statement {
 	stmt.Discriminant = w.Visitor.Expression(stmt.Discriminant)
 
 	for index, c := range stmt.Body {
-		stmt.Body[index] = w.Visitor.CaseStatement(c)
+		stmt.Body[index] = w.Visitor.Statement(c)
 	}
 
 	return stmt
 }
 
-func (w *Walker) CaseStatement(s *CaseStatement) *CaseStatement {
+func (w *Walker) CaseStatement(s *CaseStatement) Statement {
 	s.Test = w.Visitor.Expression(s.Test)
 
 	for index, st := range s.Consequent {
@@ -613,21 +598,21 @@ func (w *Walker) CaseStatement(s *CaseStatement) *CaseStatement {
 	return s
 }
 
-func (w *Walker) ThrowStatement(stmt *ThrowStatement) *ThrowStatement {
+func (w *Walker) ThrowStatement(stmt *ThrowStatement) Statement {
 	stmt.Argument = w.Visitor.Expression(stmt.Argument)
 
 	return stmt
 }
 
-func (w *Walker) TryStatement(stmt *TryStatement) *TryStatement {
+func (w *Walker) TryStatement(stmt *TryStatement) Statement {
 	stmt.Body = w.Visitor.Statement(stmt.Body)
-	stmt.Catch = w.Visitor.CatchStatement(stmt.Catch)
+	stmt.Catch = w.Visitor.Statement(stmt.Catch)
 	stmt.Finally = w.Visitor.Statement(stmt.Finally)
 
 	return stmt
 }
 
-func (w *Walker) VariableStatement(stmt *VariableStatement) *VariableStatement {
+func (w *Walker) VariableStatement(stmt *VariableStatement) Statement {
 	for index, v := range stmt.List {
 		stmt.List[index] = w.Visitor.VariableBinding(v)
 	}
@@ -635,21 +620,21 @@ func (w *Walker) VariableStatement(stmt *VariableStatement) *VariableStatement {
 	return stmt
 }
 
-func (w *Walker) WhileStatement(stmt *WhileStatement) *WhileStatement {
+func (w *Walker) WhileStatement(stmt *WhileStatement) Statement {
 	stmt.Test = w.Visitor.Expression(stmt.Test)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 
 	return stmt
 }
 
-func (w *Walker) WithStatement(stmt *WithStatement) *WithStatement {
+func (w *Walker) WithStatement(stmt *WithStatement) Statement {
 	stmt.Object = w.Visitor.Expression(stmt.Object)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 
 	return stmt
 }
 
-func (w *Walker) YieldStatement(stmt *YieldStatement) *YieldStatement {
+func (w *Walker) YieldStatement(stmt *YieldStatement) Statement {
 	stmt.Expression = w.Visitor.YieldExpression(stmt.Expression)
 
 	return stmt

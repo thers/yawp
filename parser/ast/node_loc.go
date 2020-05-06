@@ -23,6 +23,7 @@ func (d *EmptyStatement) GetLoc() *file.Loc    { return d.Loc }
 func (d *DebuggerStatement) GetLoc() *file.Loc { return d.Loc }
 func (d *BranchStatement) GetLoc() *file.Loc   { return d.Loc }
 func (d *SwitchStatement) GetLoc() *file.Loc   { return d.Loc }
+func (d *CaseStatement) GetLoc() *file.Loc     { return d.Loc }
 func (d *WithStatement) GetLoc() *file.Loc     { return d.Loc }
 func (d *DoWhileStatement) GetLoc() *file.Loc  { return d.Loc.Add(d.Body.GetLoc()) }
 func (d *IfStatement) GetLoc() *file.Loc {
@@ -43,7 +44,7 @@ func (d *TryStatement) GetLoc() *file.Loc {
 	loc := d.Loc.Add(d.Body.GetLoc())
 
 	if d.Catch != nil {
-		loc = loc.Add(d.Catch.Loc)
+		loc = loc.Add(d.Catch.GetLoc())
 	}
 
 	if d.Finally != nil {

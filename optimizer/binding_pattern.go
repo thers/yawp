@@ -12,7 +12,7 @@ func (o *Optimizer) pushExtraVariableBinding(vb *ast.VariableBinding) {
 	o.extraVariableBindings = append(o.extraVariableBindings, vb)
 }
 
-func (o *Optimizer) VariableStatement(vs *ast.VariableStatement) *ast.VariableStatement {
+func (o *Optimizer) VariableStatement(vs *ast.VariableStatement) ast.Statement {
 	// resolve variable kind to ref kind early
 	o.bindingRefKind = o.resolveTokenToRefKind(vs.Kind)
 	defer func() {

@@ -9,7 +9,7 @@ func (g *Generator) Statement(s ast.Statement) ast.Statement {
 	return s
 }
 
-func (g *Generator) BlockStatement(bs *ast.BlockStatement) *ast.BlockStatement {
+func (g *Generator) BlockStatement(bs *ast.BlockStatement) ast.Statement {
 	g.rune('{').indentInc().nl()
 
 	for index, stmt := range bs.List {
@@ -25,13 +25,13 @@ func (g *Generator) BlockStatement(bs *ast.BlockStatement) *ast.BlockStatement {
 	return bs
 }
 
-func (g *Generator) ExpressionStatement(stmt *ast.ExpressionStatement) *ast.ExpressionStatement {
+func (g *Generator) ExpressionStatement(stmt *ast.ExpressionStatement) ast.Statement {
 	g.Expression(stmt.Expression)
 
 	return stmt
 }
 
-func (g *Generator) WhileStatement(stmt *ast.WhileStatement) *ast.WhileStatement {
+func (g *Generator) WhileStatement(stmt *ast.WhileStatement) ast.Statement {
 	g.str("while(")
 	g.Expression(stmt.Test)
 	g.str("){")
@@ -41,7 +41,7 @@ func (g *Generator) WhileStatement(stmt *ast.WhileStatement) *ast.WhileStatement
 	return stmt
 }
 
-func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) *ast.DebuggerStatement {
+func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) ast.Statement {
 	if !g.options.Minify {
 		g.str("debugger")
 		g.semicolon()
@@ -50,7 +50,7 @@ func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) *ast.DebuggerSt
 	return ds
 }
 
-func (g *Generator) IfStatement(stmt *ast.IfStatement) *ast.IfStatement {
+func (g *Generator) IfStatement(stmt *ast.IfStatement) ast.Statement {
 	g.str("if(")
 	g.Expression(stmt.Test)
 	g.str("){")
@@ -66,7 +66,7 @@ func (g *Generator) IfStatement(stmt *ast.IfStatement) *ast.IfStatement {
 	return stmt
 }
 
-func (g *Generator) ReturnStatement(rs *ast.ReturnStatement) *ast.ReturnStatement {
+func (g *Generator) ReturnStatement(rs *ast.ReturnStatement) ast.Statement {
 	g.str("return ")
 	g.Expression(rs.Argument)
 

@@ -189,7 +189,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			decorators := p.parseDecoratorsList()
 			statement := p.parseClassBodyStatement()
 
-			var subject ast.LegacyDecoratorSubject
+			var subject ast.Statement
 
 			switch refinedStatement := statement.(type) {
 			case *ast.ClassFieldStatement:

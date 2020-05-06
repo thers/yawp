@@ -99,12 +99,12 @@ func (p *Parser) parseExportDefaultClause() *ast.ExportDefaultClause {
 	return clause
 }
 
-func (p *Parser) parseExportDeclaration() *ast.ExportDeclaration {
+func (p *Parser) parseExportDeclaration() *ast.ExportStatement {
 	loc := p.loc()
 	p.consumeExpected(token.EXPORT)
 	p.allowToken(token.TYPE_TYPE)
 
-	declaration := &ast.ExportDeclaration{
+	declaration := &ast.ExportStatement{
 		Loc: loc,
 	}
 

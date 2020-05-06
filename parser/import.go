@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseImportDefaultClause(stmt *ast.ImportDeclaration) {
+func (p *Parser) parseImportDefaultClause(stmt *ast.ImportStatement) {
 	identifier := p.parseIdentifier()
 	moduleIdentifier := &ast.Identifier{
 		Loc:  identifier.Loc,
@@ -23,7 +23,7 @@ func (p *Parser) parseImportDefaultClause(stmt *ast.ImportDeclaration) {
 	stmt.HasDefaultClause = true
 }
 
-func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
+func (p *Parser) parseImportNamedClause(stmt *ast.ImportStatement) {
 	p.consumeExpected(token.LEFT_BRACE)
 
 	for !p.is(token.RIGHT_BRACE) {
@@ -51,7 +51,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportDeclaration) {
 	stmt.HasNamedClause = true
 }
 
-func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportDeclaration) {
+func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportStatement) {
 	exp := &ast.ImportClause{
 		Loc:              p.loc(),
 		Namespace:        true,
@@ -69,7 +69,7 @@ func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportDeclaration) {
 	stmt.HasNamespaceClause = true
 }
 
-func (p *Parser) parseImportFromClause(stmt *ast.ImportDeclaration) {
+func (p *Parser) parseImportFromClause(stmt *ast.ImportStatement) {
 	if p.is(token.STRING) {
 		stmt.From = p.literal
 		p.next()
@@ -79,11 +79,11 @@ func (p *Parser) parseImportFromClause(stmt *ast.ImportDeclaration) {
 	}
 }
 
-func (p *Parser) parseImportDeclaration() *ast.ImportDeclaration {
+func (p *Parser) parseImportDeclaration() *ast.ImportStatement {
 	loc := p.loc()
 
 	p.consumeExpected(token.IMPORT)
-	stmt := &ast.ImportDeclaration{
+	stmt := &ast.ImportStatement{
 		Loc:     loc,
 		Imports: make([]*ast.ImportClause, 0),
 	}

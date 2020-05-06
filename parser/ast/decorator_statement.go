@@ -3,19 +3,11 @@ package ast
 import "yawp/parser/file"
 
 type (
-	LegacyDecoratorSubject interface {
-		_legacyDecoratorSubject()
-	}
-
 	LegacyDecoratorStatement struct {
 		Decorators []Expression
-		Subject    LegacyDecoratorSubject
+		Subject    Statement
 	}
 )
-
-func (c *ClassStatement) _legacyDecoratorSubject()       {}
-func (c *ClassFieldStatement) _legacyDecoratorSubject()  {}
-func (c *ClassMethodStatement) _legacyDecoratorSubject() {}
 
 func (l *LegacyDecoratorStatement) _statementNode() {}
 

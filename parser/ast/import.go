@@ -12,7 +12,7 @@ type (
 		LocalIdentifier  *Identifier
 	}
 
-	ImportDeclaration struct {
+	ImportStatement struct {
 		Loc                *file.Loc
 		Kind               ImportKind
 		Imports            []*ImportClause
@@ -31,8 +31,8 @@ type (
 func (*ImportClause) _expressionNode() {}
 func (*ImportCall) _expressionNode()   {}
 
-func (*ImportDeclaration) _statementNode() {}
+func (*ImportStatement) _statementNode() {}
 
 func (i *ImportClause) GetLoc() *file.Loc      { return i.Loc }
-func (i *ImportCall) GetLoc() *file.Loc        { return i.Loc }
-func (i *ImportDeclaration) GetLoc() *file.Loc { return i.Loc }
+func (i *ImportCall) GetLoc() *file.Loc      { return i.Loc }
+func (i *ImportStatement) GetLoc() *file.Loc { return i.Loc }

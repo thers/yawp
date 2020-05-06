@@ -238,7 +238,7 @@ type (
 		Loc          *file.Loc
 		Discriminant Expression
 		Default      int
-		Body         []*CaseStatement
+		Body         []Statement
 	}
 
 	ThrowStatement struct {
@@ -249,7 +249,7 @@ type (
 	TryStatement struct {
 		Loc     *file.Loc
 		Body    Statement
-		Catch   *CatchStatement
+		Catch   Statement
 		Finally Statement
 	}
 
