@@ -119,26 +119,22 @@ func (g *Generator) CallExpression(c *ast.CallExpression) *ast.CallExpression {
 	return c
 }
 
-func (g *Generator) DotExpression(d *ast.DotExpression) *ast.DotExpression {
-	g.Expression(d.Left)
-
-	g.rune('.')
-	g.Identifier(d.Identifier)
-
-	return d
-}
-
-func (g *Generator) BracketExpression(be *ast.BracketExpression) *ast.BracketExpression {
+func (g *Generator) MemberExpression(me *ast.MemberExpression) ast.Expression {
 	wrapExpression := g.wrapExpression
 	g.wrapExpression = true
-	g.Expression(be.Left)
+	g.Expression(me.Left)
 	g.wrapExpression = wrapExpression
 
-	g.rune('[')
-	g.Expression(be.Member)
-	g.rune(']')
+	if me.Kind == ast.MKArray {
+		g.rune('[')
+		g.Expression(me.Right)
+		g.rune(']')
+	} else {
+		g.rune('.')
+		g.Expression(me.Right)
+	}
 
-	return be
+	return me
 }
 
 func (g *Generator) ThisExpression(te *ast.ThisExpression) *ast.ThisExpression {

@@ -39,6 +39,7 @@ type Visitor interface {
 	// expressions
 	Expression(exp Expression) Expression
 	Identifier(exp *Identifier) *Identifier
+	MemberExpression(exp *MemberExpression) Expression
 
 	ImportClause(exp *ImportClause) *ImportClause
 	ImportCall(exp *ImportCall) *ImportCall
@@ -68,9 +69,7 @@ type Visitor interface {
 	NewTargetExpression(exp *NewTargetExpression) *NewTargetExpression
 	AssignExpression(exp *AssignExpression) *AssignExpression
 	BinaryExpression(exp *BinaryExpression) *BinaryExpression
-	BracketExpression(exp *BracketExpression) *BracketExpression
 	CallExpression(exp *CallExpression) *CallExpression
-	DotExpression(exp *DotExpression) *DotExpression
 	SpreadExpression(exp *SpreadExpression) *SpreadExpression
 	NewExpression(exp *NewExpression) *NewExpression
 	SequenceExpression(exp *SequenceExpression) *SequenceExpression
@@ -86,7 +85,6 @@ type Visitor interface {
 	YieldExpression(exp *YieldExpression) *YieldExpression
 
 	// others
-	MemberExpression(exp MemberExpression) MemberExpression
 	ClassFieldName(name ClassFieldName) ClassFieldName
 	PatternBinder(binder PatternBinder) PatternBinder
 	IdentifierBinder(b *IdentifierBinder) *IdentifierBinder
@@ -135,7 +133,6 @@ func (w *Walker) Body(stmts []Statement) []Statement {
 
 	return stmts
 }
-
 
 func (w *Walker) Statement(stmt Statement) Statement {
 	if stmt == nil {
@@ -211,7 +208,7 @@ func (w *Walker) Statement(stmt Statement) Statement {
 	}
 
 	if w.ReplacementStatement != nil {
-		defer func(){
+		defer func() {
 			w.ReplacementStatement = nil
 		}()
 
@@ -229,6 +226,8 @@ func (w *Walker) Expression(exp Expression) Expression {
 	switch s := exp.(type) {
 	case *Identifier:
 		exp = w.Visitor.Identifier(s)
+	case *MemberExpression:
+		exp = w.Visitor.MemberExpression(s)
 	case *ImportClause:
 		exp = w.Visitor.ImportClause(s)
 	case *ImportCall:
@@ -279,12 +278,8 @@ func (w *Walker) Expression(exp Expression) Expression {
 		exp = w.Visitor.AssignExpression(s)
 	case *BinaryExpression:
 		exp = w.Visitor.BinaryExpression(s)
-	case *BracketExpression:
-		exp = w.Visitor.BracketExpression(s)
 	case *CallExpression:
 		exp = w.Visitor.CallExpression(s)
-	case *DotExpression:
-		exp = w.Visitor.DotExpression(s)
 	case *SpreadExpression:
 		exp = w.Visitor.SpreadExpression(s)
 	case *NewExpression:
@@ -319,7 +314,7 @@ func (w *Walker) Expression(exp Expression) Expression {
 	}
 
 	if w.ReplacementExpression != nil {
-		defer func(){
+		defer func() {
 			w.ReplacementExpression = nil
 		}()
 
@@ -332,7 +327,6 @@ func (w *Walker) Expression(exp Expression) Expression {
 func (w *Walker) Js(js *Js) *Js {
 	return js
 }
-
 
 func (w *Walker) ExportDeclaration(stmt *ExportStatement) Statement {
 	stmt.Clause = w.Visitor.ExportClause(stmt.Clause)
@@ -782,28 +776,14 @@ func (w *Walker) VariableBinding(exp *VariableBinding) *VariableBinding {
 
 func (w *Walker) ClassExpression(exp *ClassExpression) *ClassExpression {
 	exp.Name = w.Visitor.Identifier(exp.Name)
-	exp.SuperClass = w.Visitor.MemberExpression(exp.SuperClass)
+	exp.SuperClass = w.Visitor.Expression(exp.SuperClass)
 	exp.Body = w.Visitor.Statement(exp.Body)
 
 	return exp
 }
 
-func (w *Walker) MemberExpression(exp MemberExpression) MemberExpression {
-	if exp == nil {
-		return nil
-	}
-
-	switch e := exp.(type) {
-	case *BracketExpression:
-		return w.Visitor.BracketExpression(e)
-	case *DotExpression:
-		return w.Visitor.DotExpression(e)
-	case *Identifier:
-		return w.Visitor.Identifier(e)
-
-	default:
-		panic("Unknown member expression type")
-	}
+func (w *Walker) MemberExpression(exp *MemberExpression) Expression {
+	return exp
 }
 
 func (w *Walker) ClassSuperExpression(exp *ClassSuperExpression) *ClassSuperExpression {
@@ -855,26 +835,12 @@ func (w *Walker) BinaryExpression(exp *BinaryExpression) *BinaryExpression {
 	return exp
 }
 
-func (w *Walker) BracketExpression(exp *BracketExpression) *BracketExpression {
-	exp.Left = w.Visitor.Expression(exp.Left)
-	exp.Member = w.Visitor.Expression(exp.Member)
-
-	return exp
-}
-
 func (w *Walker) CallExpression(exp *CallExpression) *CallExpression {
 	exp.Callee = w.Visitor.Expression(exp.Callee)
 
 	for index, arg := range exp.ArgumentList {
 		exp.ArgumentList[index] = w.Visitor.Expression(arg)
 	}
-
-	return exp
-}
-
-func (w *Walker) DotExpression(exp *DotExpression) *DotExpression {
-	exp.Left = w.Visitor.Expression(exp.Left)
-	exp.Identifier = w.Visitor.Identifier(exp.Identifier)
 
 	return exp
 }

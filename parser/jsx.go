@@ -59,9 +59,10 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 			stringName += "." + member.Name
 
 			// left.member
-			left = &ast.DotExpression{
-				Left:       left,
-				Identifier: member,
+			left = &ast.MemberExpression{
+				Left:  left,
+				Right: member,
+				Kind:  ast.MKObject,
 			}
 
 			continue

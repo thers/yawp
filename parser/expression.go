@@ -136,9 +136,10 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 		return nil
 	}
 
-	return &ast.DotExpression{
-		Left:       left,
-		Identifier: identifier,
+	return &ast.MemberExpression{
+		Left:  left,
+		Right: identifier,
+		Kind:  ast.MKObject,
 	}
 }
 
@@ -147,9 +148,10 @@ func (p *Parser) parseBracketMember(left ast.Expression) ast.Expression {
 	member := p.parseExpression()
 	p.consumeExpected(token.RIGHT_BRACKET)
 
-	return &ast.BracketExpression{
-		Left:   left,
-		Member: member,
+	return &ast.MemberExpression{
+		Left:  left,
+		Right: member,
+		Kind:  ast.MKArray,
 	}
 }
 
@@ -169,7 +171,7 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 		p.next()
 
 		switch operand.(type) {
-		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
+		case *ast.Identifier, *ast.MemberExpression:
 		default:
 			p.error(loc, "Invalid left-hand side in assignment")
 		}
@@ -209,7 +211,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 
 		operand := p.parseUnaryExpression()
 		switch operand.(type) {
-		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
+		case *ast.Identifier, *ast.MemberExpression:
 		default:
 			p.error(loc, "Invalid left-hand side in assignment")
 		}

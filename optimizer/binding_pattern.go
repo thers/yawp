@@ -137,9 +137,10 @@ func (o *Optimizer) es5ArrayBinding(ab *ast.ArrayBinding, vb *ast.VariableBindin
 }
 
 func (o *Optimizer) es5ObjectPropertyBinder(opb *ast.ObjectPropertyBinder, vb *ast.VariableBinding) *ast.VariableBinding {
-	vb.Initializer = &ast.DotExpression{
-		Left:       vb.Initializer,
-		Identifier: opb.Id.Clone(),
+	vb.Initializer = &ast.MemberExpression{
+		Left:  vb.Initializer,
+		Right: opb.Id.Clone(),
+		Kind:  ast.MKObject,
 	}
 
 	if opb.DefaultValue != nil {
@@ -157,11 +158,12 @@ func (o *Optimizer) es5ObjectPropertyBinder(opb *ast.ObjectPropertyBinder, vb *a
 }
 
 func (o *Optimizer) es5ArrayItemBinder(aib *ast.ArrayItemBinder, vb *ast.VariableBinding) *ast.VariableBinding {
-	vb.Initializer = &ast.BracketExpression{
+	vb.Initializer = &ast.MemberExpression{
 		Left: vb.Initializer,
-		Member: &ast.NumberLiteral{
+		Right: &ast.NumberLiteral{
 			Literal: strconv.Itoa(aib.Index),
 		},
+		Kind: ast.MKArray,
 	}
 
 	if aib.DefaultValue != nil {

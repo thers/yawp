@@ -11,7 +11,7 @@ type (
 		Loc                *file.Loc
 		Name               *Identifier
 		TypeParameters     []*FlowTypeParameter
-		SuperClass         MemberExpression
+		SuperClass         Expression
 		SuperTypeArguments []FlowType
 		Body               Statement
 	}

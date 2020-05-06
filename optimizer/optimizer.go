@@ -87,26 +87,14 @@ func (o *Optimizer) Identifier(id *ast.Identifier) *ast.Identifier {
 	return id
 }
 
-func (o *Optimizer) DotExpression(de *ast.DotExpression) *ast.DotExpression {
-	if leftIdentifier, ok := de.Left.(*ast.Identifier); ok {
-		de.Left = o.Identifier(leftIdentifier)
+func (o *Optimizer) MemberExpression(me *ast.MemberExpression) ast.Expression {
+	if leftIdentifier, ok := me.Left.(*ast.Identifier); ok {
+		me.Left = o.Identifier(leftIdentifier)
 	} else {
-		de.Left = o.Expression(de.Left)
+		me.Left = o.Expression(me.Left)
 	}
 
-	return de
-}
-
-func (o *Optimizer) BracketExpression(be *ast.BracketExpression) *ast.BracketExpression {
-	if leftIdentifier, ok := be.Left.(*ast.Identifier); ok {
-		be.Left = o.Identifier(leftIdentifier)
-	} else {
-		be.Left = o.Expression(be.Left)
-	}
-
-	be.Member = o.Expression(be.Member)
-
-	return be
+	return me
 }
 
 func (o *Optimizer) FunctionLiteral(fl *ast.FunctionLiteral) *ast.FunctionLiteral {

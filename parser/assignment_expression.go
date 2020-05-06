@@ -43,7 +43,7 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 		p.next()
 
 		switch left.(type) {
-		case *ast.Identifier, *ast.DotExpression, *ast.BracketExpression:
+		case *ast.Identifier, *ast.MemberExpression:
 			// these are the only valid types of left expression
 		default:
 			p.error(left.GetLoc(), "Invalid left-hand side in assignment")

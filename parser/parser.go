@@ -34,8 +34,9 @@ type Parser struct {
 	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon bool // An implicit semicolon exists
 
-	genericTypeParametersMode         bool
-	forbidUnparenthesizedFunctionType bool
+	genericTypeParametersMode                  bool
+	forbidUnparenthesizedFunctionType          bool
+	allowPatternBindingLeftHandSideExpressions bool
 
 	jsxTextParseFrom int
 

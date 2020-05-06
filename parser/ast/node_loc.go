@@ -60,8 +60,6 @@ func (d *BinaryExpression) GetLoc() *file.Loc {
 func (d *AssignExpression) GetLoc() *file.Loc {
 	return d.Left.GetLoc().Add(d.Right.GetLoc())
 }
-func (b *BracketExpression) GetLoc() *file.Loc { return b.Left.GetLoc().Add(b.Member.GetLoc()) }
-func (d *DotExpression) GetLoc() *file.Loc     { return d.Left.GetLoc().Add(d.Identifier.GetLoc()) }
 func (d *CallExpression) GetLoc() *file.Loc {
 	if len(d.ArgumentList) < 1 {
 		return d.Callee.GetLoc()

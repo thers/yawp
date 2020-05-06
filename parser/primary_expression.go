@@ -82,7 +82,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.LEFT_BRACE:
 		return p.parseObjectLiteralOrObjectPatternAssignment()
 	case token.LEFT_BRACKET:
-		return p.parseArrayLiteralOrArrayBinding()
+		return p.parseArrayLiteralOrArrayPatternAssignment()
 	case token.LEFT_PARENTHESIS:
 		return p.parseArrowFunctionOrSequenceExpression(false)
 	case token.THIS:

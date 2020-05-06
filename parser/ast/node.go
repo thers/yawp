@@ -39,20 +39,10 @@ type (
 		Literal string
 	}
 
-	BracketExpression struct {
-		Left   Expression
-		Member Expression
-	}
-
 	CallExpression struct {
 		Callee        Expression
 		TypeArguments []FlowType
 		ArgumentList  []Expression
-	}
-
-	DotExpression struct {
-		Left       Expression
-		Identifier *Identifier
 	}
 
 	Identifier struct {
@@ -148,9 +138,7 @@ type (
 func (*AssignExpression) _expressionNode()        {}
 func (*BinaryExpression) _expressionNode()        {}
 func (*BooleanLiteral) _expressionNode()          {}
-func (*BracketExpression) _expressionNode()       {}
 func (*CallExpression) _expressionNode()          {}
-func (*DotExpression) _expressionNode()           {}
 func (*Identifier) _expressionNode()              {}
 func (*NewExpression) _expressionNode()           {}
 func (*NullLiteral) _expressionNode()             {}
@@ -314,7 +302,7 @@ type (
 
 	ClassDeclaration struct {
 		Name    *Identifier
-		Extends MemberExpression
+		Extends Expression
 	}
 )
 

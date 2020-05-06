@@ -112,8 +112,7 @@ func (p *Parser) parseForOrForInStatement() ast.Statement {
 	if p.is(token.IN) {
 		switch intoExpression.(type) {
 		case *ast.Identifier:
-		case *ast.DotExpression:
-		case *ast.BracketExpression:
+		case *ast.MemberExpression:
 			// These are all acceptable
 		default:
 			p.error(start, "Invalid left-hand side in for-in")
