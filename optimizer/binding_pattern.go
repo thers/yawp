@@ -139,7 +139,7 @@ func (o *Optimizer) es5ArrayBinding(ab *ast.ArrayBinding, vb *ast.VariableBindin
 func (o *Optimizer) es5ObjectPropertyBinder(opb *ast.ObjectPropertyBinder, vb *ast.VariableBinding) *ast.VariableBinding {
 	vb.Initializer = &ast.MemberExpression{
 		Left:  vb.Initializer,
-		Right: opb.Id.Clone(),
+		Right: o.Expression(opb.Id),
 		Kind:  ast.MKObject,
 	}
 
@@ -190,9 +190,7 @@ func (o *Optimizer) es5ArrayRestBinder(arb *ast.ArrayRestBinder, vb *ast.Variabl
 			},
 		},
 	}
-	vb.Binder = o.IdentifierBinder(&ast.IdentifierBinder{
-		Id: arb.Id,
-	})
+	vb.Binder = o.PatternBinder(arb.Binder)
 
 	return vb
 }
@@ -209,20 +207,20 @@ func (o *Optimizer) es5ObjectRestBinder(orb *ast.ObjectRestBinder, vb *ast.Varia
 			},
 		},
 	}
-	vb.Binder = o.IdentifierBinder(&ast.IdentifierBinder{
-		Id: orb.Id,
-	})
+	vb.Binder = o.PatternBinder(orb.Binder)
 
 	return vb
 }
 
-func propertiesToStrings(list []*ast.Identifier) []ast.Expression {
-	strs := make([]ast.Expression, len(list))
+func propertiesToStrings(list []ast.ObjectPropertyName) []ast.Expression {
+	strs := make([]ast.Expression, 0, len(list))
 
-	for index, id := range list {
-		strs[index] = &ast.StringLiteral{
-			Literal: id.Name,
-			Raw:     true,
+	for _, id := range list {
+		if identifier, ok := id.(*ast.Identifier); ok {
+			strs = append(strs, &ast.StringLiteral{
+				Literal: identifier.Name,
+				Raw:     true,
+			})
 		}
 	}
 

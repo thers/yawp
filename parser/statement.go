@@ -89,7 +89,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.WHILE:
 		return p.parseWhileStatement()
 	case token.FOR:
-		return p.parseForOrForInStatement()
+		return p.parseForStatement()
 	case token.BREAK:
 		return p.parseBreakStatement()
 	case token.CONTINUE:

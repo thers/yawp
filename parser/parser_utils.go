@@ -54,6 +54,12 @@ func (p *Parser) allowToken(value token.Token) {
 	}
 }
 
+func (p *Parser) isAllowed(value token.Token) bool {
+	p.allowToken(value)
+
+	return p.is(value)
+}
+
 func (p *Parser) isAny(values ...token.Token) bool {
 	for _, value := range values {
 		if value == p.token {
@@ -97,32 +103,6 @@ func (p *Parser) shouldBe(value token.Token) {
 	}
 }
 
-func lineCount(str string) (int, int) {
-	return 0, 0
-
-	//line, last := 0, -1
-	//pair := false
-	//for index, chr := range str {
-	//	switch chr {
-	//	case '\r':
-	//		line += 1
-	//		last = index
-	//		pair = true
-	//		continue
-	//	case '\n':
-	//		if !pair {
-	//			line += 1
-	//		}
-	//		last = index
-	//	case '\u2028', '\u2029':
-	//		line += 1
-	//		last = index + 2
-	//	}
-	//	pair = false
-	//}
-	//return line, last
-}
-
 func (p *Parser) loc() *file.Loc {
 	return &file.Loc{
 		From: p.idx,
@@ -130,21 +110,4 @@ func (p *Parser) loc() *file.Loc {
 		Line: p.line,
 		Col:  p.col,
 	}
-}
-
-func (p *Parser) position(idx file.Idx) file.Pos {
-	position := file.Pos{}
-
-	offset := int(idx)
-	str := p.src[:offset]
-
-	line, last := lineCount(str)
-	position.Line = 1 + line
-	if last >= 0 {
-		position.Column = offset - last
-	} else {
-		position.Column = 1 + len(str)
-	}
-
-	return position
 }

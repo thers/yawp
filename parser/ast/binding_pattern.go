@@ -10,23 +10,27 @@ type (
 		_patternBinder()
 	}
 
+	ExpressionBinder struct {
+		Expression Expression
+	}
+
 	IdentifierBinder struct {
 		Id *Identifier
 	}
 
 	ObjectRestBinder struct {
-		Id             *Identifier
-		OmitProperties []*Identifier
+		Binder         PatternBinder
+		OmitProperties []ObjectPropertyName
 	}
 
 	ArrayRestBinder struct {
-		Id        *Identifier
+		Binder    PatternBinder
 		FromIndex int
 	}
 
 	ObjectPropertyBinder struct {
 		Binder       PatternBinder
-		Id           *Identifier
+		Id           ObjectPropertyName
 		DefaultValue Expression
 	}
 
@@ -62,6 +66,7 @@ func (*ObjectRestBinder) _patternBinder()     {}
 func (*ArrayRestBinder) _patternBinder()      {}
 func (*ObjectPropertyBinder) _patternBinder() {}
 func (*ArrayItemBinder) _patternBinder()      {}
+func (*ExpressionBinder) _patternBinder()     {}
 
 func (*ArrayBinding) _expressionNode()    {}
 func (*ObjectBinding) _expressionNode()   {}

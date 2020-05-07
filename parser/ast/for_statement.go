@@ -4,17 +4,17 @@ import "yawp/parser/file"
 
 type (
 	ForInStatement struct {
-		Loc    *file.Loc
-		Into   Expression
-		Source Expression
-		Body   Statement
+		Loc   *file.Loc
+		Left  Statement
+		Right Expression
+		Body  Statement
 	}
 
 	ForOfStatement struct {
-		Loc      *file.Loc
-		Binder   Expression
-		Iterator Expression
-		Body     Statement
+		Loc   *file.Loc
+		Left  Statement
+		Right Expression
+		Body  Statement
 	}
 
 	ForStatement struct {

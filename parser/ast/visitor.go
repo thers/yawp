@@ -489,16 +489,16 @@ func (w *Walker) LegacyDecoratorStatement(stmt *LegacyDecoratorStatement) Statem
 }
 
 func (w *Walker) ForInStatement(stmt *ForInStatement) Statement {
-	stmt.Into = w.Visitor.Expression(stmt.Into)
-	stmt.Source = w.Visitor.Expression(stmt.Source)
+	stmt.Left = w.Visitor.Statement(stmt.Left)
+	stmt.Right = w.Visitor.Expression(stmt.Right)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 
 	return stmt
 }
 
 func (w *Walker) ForOfStatement(stmt *ForOfStatement) Statement {
-	stmt.Binder = w.Visitor.Expression(stmt.Binder)
-	stmt.Iterator = w.Visitor.Expression(stmt.Iterator)
+	stmt.Left = w.Visitor.Statement(stmt.Left)
+	stmt.Right = w.Visitor.Expression(stmt.Right)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 
 	return stmt
@@ -1040,19 +1040,19 @@ func (w *Walker) IdentifierBinder(b *IdentifierBinder) *IdentifierBinder {
 }
 
 func (w *Walker) ObjectRestBinder(b *ObjectRestBinder) *ObjectRestBinder {
-	b.Id = w.Visitor.Identifier(b.Id)
+	b.Binder = w.Visitor.PatternBinder(b.Binder)
 
 	return b
 }
 
 func (w *Walker) ArrayRestBinder(b *ArrayRestBinder) *ArrayRestBinder {
-	b.Id = w.Visitor.Identifier(b.Id)
+	b.Binder = w.Visitor.PatternBinder(b.Binder)
 
 	return b
 }
 
 func (w *Walker) ObjectPropertyBinder(b *ObjectPropertyBinder) *ObjectPropertyBinder {
-	b.Id = w.Visitor.Identifier(b.Id)
+	b.Id = w.Visitor.ObjectPropertyName(b.Id)
 	b.Binder = w.Visitor.PatternBinder(b.Binder)
 	b.DefaultValue = w.Visitor.Expression(b.DefaultValue)
 

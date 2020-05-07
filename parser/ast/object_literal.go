@@ -37,6 +37,7 @@ type (
 	}
 
 	ObjectPropertyName interface {
+		Expression
 		_objectPropertyName()
 	}
 )

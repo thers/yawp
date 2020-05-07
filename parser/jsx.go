@@ -245,7 +245,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 }
 
 func (p *Parser) maybeParseJSXElement() ast.Expression {
-	defer recover()
+	defer func(){ _ = recover() }()
 
 	p.genericTypeParametersMode = true
 	jsx := p.parseJSXElement()
