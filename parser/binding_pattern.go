@@ -28,24 +28,6 @@ func (p *Parser) parseBindingMemberExpressionOrIdentifier() ast.PatternBinder {
 	}
 }
 
-func (p *Parser) parseRestBinder() ast.PatternBinder {
-	if p.allowPatternBindingLeftHandSideExpressions {
-		return &ast.ExpressionBinder{
-			Expression: p.parseMemberExpressionOrIdentifier(),
-		}
-	}
-
-	if p.is(token.IDENTIFIER) {
-		return &ast.IdentifierBinder{
-			Id: p.parseIdentifier(),
-		}
-	}
-
-	p.unexpectedToken()
-
-	return nil
-}
-
 func (p *Parser) parseBinder() ast.PatternBinder {
 	switch p.token {
 	case token.IDENTIFIER:
@@ -94,35 +76,31 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 			p.consumeExpected(token.DOTDOTDOT)
 
 			pattern.List = append(pattern.List, &ast.ObjectRestBinder{
-				Binder:         p.parseRestBinder(),
+				Binder:         p.parseBinder(),
 				OmitProperties: boundProperties,
 			})
 			break
 		}
 
-		property := &ast.ObjectPropertyBinder{}
 		propertyLoc := p.loc()
-
-		if p.is(token.LEFT_BRACKET) {
-			property.Id = p.parseObjectPropertyComputedName()
-		} else {
-			property.Id = p.parseIdentifierIncludingKeywords()
+		property := &ast.ObjectPropertyBinder{
+			PropertyName: p.parseObjectPropertyName(),
 		}
 
-		if property.Id == nil {
+		if property.PropertyName == nil {
 			p.unexpectedToken()
 
 			return nil
 		}
 
-		boundProperties = append(boundProperties, property.Id)
+		boundProperties = append(boundProperties, property.PropertyName)
 
 		if p.is(token.COLON) {
 			p.consumeExpected(token.COLON)
 
 			property.Binder = p.parseBinder()
 		} else {
-			switch propertyId := property.Id.(type) {
+			switch propertyId := property.PropertyName.(type) {
 			case *ast.Identifier:
 				if _, isKeyword := token.IsKeyword(propertyId.Name); isKeyword {
 					p.unexpectedTokenAt(propertyLoc)
@@ -168,7 +146,7 @@ func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
 			p.consumeExpected(token.DOTDOTDOT)
 
 			pattern.List = append(pattern.List, &ast.ArrayRestBinder{
-				Binder:    p.parseRestBinder(),
+				Binder:    p.parseBinder(),
 				FromIndex: itemIndex,
 			})
 			break

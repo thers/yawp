@@ -18,11 +18,9 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		}
 
 		p.next()
-		arguments, _, end := p.parseArgumentList()
 
-		return &ast.ClassSuperExpression{
-			Loc:       loc.End(end),
-			Arguments: arguments,
+		return &ast.SuperExpression{
+			Loc: loc,
 		}
 	case token.CLASS:
 		return p.parseClassExpression()
@@ -64,19 +62,9 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.TEMPLATE_QUOTE:
 		return p.parseTemplateExpression()
 	case token.STRING:
-		p.next()
-
-		return &ast.StringLiteral{
-			Loc:     loc,
-			Literal: literal,
-		}
+		return p.parseString()
 	case token.NUMBER:
-		p.next()
-
-		return &ast.NumberLiteral{
-			Loc:     loc,
-			Literal: literal,
-		}
+		return p.parseNumber()
 	case token.SLASH, token.QUOTIENT_ASSIGN:
 		return p.parseRegExpLiteral()
 	case token.LEFT_BRACE:

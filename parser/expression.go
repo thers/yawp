@@ -13,6 +13,25 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	return id
 }
 
+func (p *Parser) parseString() *ast.StringLiteral {
+	defer p.next()
+
+	return &ast.StringLiteral{
+		Loc:     p.loc(),
+		Literal: p.literal,
+	}
+}
+
+
+func (p *Parser) parseNumber() *ast.NumberLiteral {
+	defer p.next()
+
+	return &ast.NumberLiteral{
+		Loc:     p.loc(),
+		Literal: p.literal,
+	}
+}
+
 func (p *Parser) currentIdentifier() *ast.Identifier {
 	return &ast.Identifier{
 		Loc:  p.loc(),

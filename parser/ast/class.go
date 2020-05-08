@@ -16,9 +16,8 @@ type (
 		Body               Statement
 	}
 
-	ClassSuperExpression struct {
-		Loc       *file.Loc
-		Arguments []Expression
+	SuperExpression struct {
+		Loc *file.Loc
 	}
 
 	ClassFieldName interface {
@@ -60,15 +59,16 @@ func (*ClassFieldStatement) _statementNode()    {}
 func (*ClassAccessorStatement) _statementNode() {}
 func (*ClassMethodStatement) _statementNode()   {}
 
-func (*ClassExpression) _expressionNode()      {}
-func (*ClassSuperExpression) _expressionNode() {}
+func (*ClassExpression) _expressionNode() {}
+func (*SuperExpression) _expressionNode() {}
 
-func (*Identifier) _classFieldName()   {}
-func (*ComputedName) _classFieldName() {}
+func (*Identifier) _classFieldName()    {}
+func (*StringLiteral) _classFieldName() {}
+func (*ComputedName) _classFieldName()  {}
 
 func (c *ClassStatement) GetLoc() *file.Loc         { return c.Expression.GetLoc() }
 func (c *ClassExpression) GetLoc() *file.Loc        { return c.Loc }
-func (c *ClassSuperExpression) GetLoc() *file.Loc   { return c.Loc }
+func (c *SuperExpression) GetLoc() *file.Loc        { return c.Loc }
 func (c *ClassFieldStatement) GetLoc() *file.Loc    { return c.Loc }
 func (c *ClassAccessorStatement) GetLoc() *file.Loc { return c.Loc }
 func (c *ClassMethodStatement) GetLoc() *file.Loc   { return c.Loc }

@@ -18,11 +18,7 @@ func TestPlayground(t *testing.T) {
 	parserStart := time.Now()
 	// language=js
 	prog, err := parser.ParseModule("", `
-		function warnForUnmatchedText(textNode, text) {
-  {
-    warnForTextDifference(textNode.nodeValue, text);
-  }
-}
+({a:(b.c)} = 1)
 	`)
 	fmt.Println("Parser pass took:", time.Since(parserStart))
 

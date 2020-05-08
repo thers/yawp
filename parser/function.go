@@ -76,7 +76,8 @@ func (p *Parser) parseObjectDestructureParameter() *ast.ObjectPatternParameter {
 	p.next()
 
 	if p.is(token.RIGHT_BRACE) {
-		p.unexpectedToken()
+		p.next()
+		return &ast.ObjectPatternParameter{}
 	}
 
 	param := &ast.ObjectPatternParameter{
@@ -100,7 +101,8 @@ func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
 	p.next()
 
 	if p.is(token.RIGHT_BRACKET) {
-		p.unexpectedToken()
+		p.next()
+		return &ast.ArrayPatternParameter{}
 	}
 
 	param := &ast.ArrayPatternParameter{
@@ -179,6 +181,12 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 
 func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 	loc := p.loc()
+
+	wasAllowYield := p.scope.allowYield
+	p.scope.allowYield = false
+	defer func(){
+		p.scope.allowYield = wasAllowYield
+	}()
 
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	var list []ast.FunctionParameter

@@ -48,11 +48,39 @@ func isIdentifierPart(chr rune) bool {
 	return unicode.Is(idContinue, chr)
 }
 
+func (p *Parser) skipEscapeSequence() {
+	p.read()
+
+	if p.chr != 'u' {
+		p.error(p.loc(), "Invalid unicode escape sequence")
+
+		return
+	}
+
+	p.read()
+	// \u has been read now
+
+	if p.chr == '{' {
+		p.read()
+
+		for p.chr != '}' {
+			p.read()
+		}
+		p.read()
+	}
+}
+
 func (p *Parser) scanIdentifier() (string, error) {
 	offset := p.chrOffset
 
-	for isIdentifierPart(p.chr) {
-		p.read()
+	for {
+		if isIdentifierPart(p.chr) {
+			p.read()
+		} else if p.chr == '\\' {
+			p.skipEscapeSequence()
+		} else {
+			break
+		}
 	}
 
 	return p.src[offset:p.chrOffset], nil

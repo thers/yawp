@@ -61,7 +61,7 @@ type Visitor interface {
 	VariableBinding(exp *VariableBinding) *VariableBinding
 
 	ClassExpression(exp *ClassExpression) *ClassExpression
-	ClassSuperExpression(exp *ClassSuperExpression) *ClassSuperExpression
+	SuperExpression(exp *SuperExpression) Expression
 	CoalesceExpression(exp *CoalesceExpression) *CoalesceExpression
 	ConditionalExpression(exp *ConditionalExpression) *ConditionalExpression
 	JsxElement(exp *JSXElement) *JSXElement
@@ -262,8 +262,8 @@ func (w *Walker) Expression(exp Expression) Expression {
 		exp = w.Visitor.VariableBinding(s)
 	case *ClassExpression:
 		exp = w.Visitor.ClassExpression(s)
-	case *ClassSuperExpression:
-		exp = w.Visitor.ClassSuperExpression(s)
+	case *SuperExpression:
+		exp = w.Visitor.SuperExpression(s)
 	case *CoalesceExpression:
 		exp = w.Visitor.CoalesceExpression(s)
 	case *ConditionalExpression:
@@ -786,11 +786,7 @@ func (w *Walker) MemberExpression(exp *MemberExpression) Expression {
 	return exp
 }
 
-func (w *Walker) ClassSuperExpression(exp *ClassSuperExpression) *ClassSuperExpression {
-	for index, arg := range exp.Arguments {
-		exp.Arguments[index] = w.Visitor.Expression(arg)
-	}
-
+func (w *Walker) SuperExpression(exp *SuperExpression) Expression {
 	return exp
 }
 
@@ -1052,7 +1048,7 @@ func (w *Walker) ArrayRestBinder(b *ArrayRestBinder) *ArrayRestBinder {
 }
 
 func (w *Walker) ObjectPropertyBinder(b *ObjectPropertyBinder) *ObjectPropertyBinder {
-	b.Id = w.Visitor.ObjectPropertyName(b.Id)
+	b.PropertyName = w.Visitor.ObjectPropertyName(b.PropertyName)
 	b.Binder = w.Visitor.PatternBinder(b.Binder)
 	b.DefaultValue = w.Visitor.Expression(b.DefaultValue)
 

@@ -25,6 +25,8 @@ func (p *Parser) parseClassFieldName() ast.ClassFieldName {
 		p.consumeExpected(token.RIGHT_BRACKET)
 
 		return identifier
+	} else if p.is(token.STRING) {
+		return p.parseString()
 	} else {
 		identifier = p.parseIdentifierIncludingKeywords()
 	}
@@ -208,6 +210,8 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 		} else {
 			stmts = append(stmts, p.parseClassBodyStatement())
 		}
+
+		p.consumePossible(token.SEMICOLON)
 	}
 
 	return stmts

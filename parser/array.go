@@ -46,12 +46,9 @@ func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
 	p.allowPatternBindingLeftHandSideExpressions = true
 
 	defer func() {
-		p.allowPatternBindingLeftHandSideExpressions = wasLeftHandSideAllowed
+		_ = recover()
 
-		err := recover()
-		if err != nil {
-			return
-		}
+		p.allowPatternBindingLeftHandSideExpressions = wasLeftHandSideAllowed
 	}()
 
 	return p.parseArrayBinding(), true
@@ -79,6 +76,25 @@ func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.Expression {
 }
 
 func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.Statement {
+	loc := p.loc()
+	snapshot := p.snapshot()
+
+	arrayBinding, success := p.maybeParseArrayBinding()
+
+	if success && p.is(token.ASSIGN) {
+		p.consumeExpected(token.ASSIGN)
+
+		return &ast.ExpressionStatement{
+			Expression: &ast.VariableBinding{
+				Loc:         loc,
+				Binder:      arrayBinding,
+				Initializer: p.parseAssignmentExpression(),
+			},
+		}
+	}
+
+	p.toSnapshot(snapshot)
+
 	return &ast.ExpressionStatement{
 		Expression: p.parseAssignmentExpression(),
 	}

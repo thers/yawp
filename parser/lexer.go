@@ -399,12 +399,10 @@ func (p *Parser) read() {
 	if p.advanceLine {
 		p.advanceLine = false
 		p.line++
-
-		// shouldn't ever be the case as it's for \n rune
-		//p.chrCol = 0
-	} else {
-		p.chrCol += p.nextChrOffset - p.chrOffset
+		p.chrCol = 0
 	}
+
+	p.chrCol += p.nextChrOffset - p.chrOffset
 
 	if p.nextChrOffset < p.length {
 		p.chrOffset = p.nextChrOffset
@@ -422,7 +420,6 @@ func (p *Parser) read() {
 
 		switch chr {
 		case '\n', '\u2028', '\u2029':
-			p.chrCol = 0
 			p.advanceLine = true
 			p.newLineBeforeCurrentToken = true
 		}

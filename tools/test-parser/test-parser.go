@@ -77,5 +77,5 @@ func readDir(subdir string) []string {
 }
 
 func printFile(fileContent []byte) {
-	fmt.Printf("File content:\n\n\t%s\n\n", fileContent)
+	fmt.Printf("File content:\n\n%s\n\n", fileContent)
 }

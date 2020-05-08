@@ -49,7 +49,9 @@ func (*ObjectPropertyGetter) _objectProperty() {}
 func (*ObjectPropertyValue) _objectProperty()  {}
 func (*ObjectSpread) _objectProperty()         {}
 
-func (*Identifier) _objectPropertyName()   {}
-func (*ComputedName) _objectPropertyName() {}
+func (*Identifier) _objectPropertyName()    {}
+func (*ComputedName) _objectPropertyName()  {}
+func (*StringLiteral) _objectPropertyName() {}
+func (*NumberLiteral) _objectPropertyName() {}
 
 func (o *ObjectLiteral) GetLoc() *file.Loc { return o.Loc }

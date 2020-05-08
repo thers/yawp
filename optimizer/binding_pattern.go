@@ -139,7 +139,7 @@ func (o *Optimizer) es5ArrayBinding(ab *ast.ArrayBinding, vb *ast.VariableBindin
 func (o *Optimizer) es5ObjectPropertyBinder(opb *ast.ObjectPropertyBinder, vb *ast.VariableBinding) *ast.VariableBinding {
 	vb.Initializer = &ast.MemberExpression{
 		Left:  vb.Initializer,
-		Right: o.Expression(opb.Id),
+		Right: o.Expression(opb.PropertyName),
 		Kind:  ast.MKObject,
 	}
 

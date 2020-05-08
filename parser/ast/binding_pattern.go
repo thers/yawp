@@ -30,7 +30,7 @@ type (
 
 	ObjectPropertyBinder struct {
 		Binder       PatternBinder
-		Id           ObjectPropertyName
+		PropertyName ObjectPropertyName
 		DefaultValue Expression
 	}
 

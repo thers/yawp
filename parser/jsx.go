@@ -10,15 +10,6 @@ func areElementNamesEqual(a, b *ast.JSXElementName) bool {
 	return a.StringName == b.StringName
 }
 
-func (p *Parser) parseString() *ast.StringLiteral {
-	p.next()
-
-	return &ast.StringLiteral{
-		Loc:     p.loc(),
-		Literal: p.literal,
-	}
-}
-
 func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 	var left ast.Expression
 

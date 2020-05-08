@@ -70,7 +70,12 @@ func (p *Parser) parseFor(loc *file.Loc, initializer ast.Statement) *ast.ForStat
 }
 
 func (p *Parser) maybeParseLeftHandSideExpression() ast.Expression {
-	defer func(){ _ = recover() }()
+	wasAllowIn := p.scope.allowIn
+	p.scope.allowIn = false
+	defer func(){
+		_ = recover()
+		p.scope.allowIn = wasAllowIn
+	}()
 
 	return p.parseAssignmentExpression()
 }

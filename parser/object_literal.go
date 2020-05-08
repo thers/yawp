@@ -6,6 +6,27 @@ import (
 	"yawp/parser/token"
 )
 
+func (p *Parser) parseObjectPropertyName() ast.ObjectPropertyName {
+	switch p.token {
+	case token.LEFT_BRACKET:
+		return p.parseObjectPropertyComputedName()
+	case token.STRING:
+		return p.parseString()
+	case token.NUMBER:
+		return p.parseNumber()
+	default:
+		id := p.parseIdentifierIncludingKeywords()
+
+		if id == nil {
+			return nil
+		}
+
+		return id
+	}
+
+	return nil
+}
+
 func (p *Parser) parseObjectPropertyComputedName() ast.ObjectPropertyName {
 	p.consumeExpected(token.LEFT_BRACKET)
 
@@ -111,54 +132,8 @@ consider these valid examples:
 
 */
 func (p *Parser) parseObjectProperty() ast.ObjectProperty {
-	var propertyName ast.ObjectPropertyName
-
-	loc := p.loc()
-
-	// start with easy variants
-	switch p.token {
-	case token.NUMBER:
-		name := p.literal
-		p.next()
-
-		propertyName = &ast.Identifier{
-			Loc:  loc,
-			Name: name,
-		}
-
-		p.consumeExpected(token.COLON)
-
-		return &ast.ObjectPropertyValue{
-			PropertyName: propertyName,
-			Value:        p.parseAssignmentExpression(),
-		}
-
-	case token.STRING:
-		name := p.literal[1 : len(p.literal)-1]
-		p.next()
-
-		propertyName = &ast.Identifier{
-			Loc:  loc,
-			Name: name,
-		}
-
-		p.consumeExpected(token.COLON)
-
-		return &ast.ObjectPropertyValue{
-			PropertyName: propertyName,
-			Value:        p.parseAssignmentExpression(),
-		}
-
-	case token.LEFT_BRACKET:
-		// computed property name
-		propertyName = p.parseObjectPropertyComputedName()
-
-		property := p.parseObjectPropertyValue(loc, propertyName)
-		if property != nil {
-			return property
-		}
-
-	case token.DOTDOTDOT:
+	// handle spreads first as the easiest variant
+	if p.is(token.DOTDOTDOT) {
 		p.consumeExpected(token.DOTDOTDOT)
 
 		return &ast.ObjectSpread{
@@ -166,76 +141,102 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		}
 	}
 
-	// now that easy variants are all gone
-	// let the show of identifiers and keywords begin
-	if p.isIdentifierOrKeyword() {
-		possibleAsync := p.is(token.ASYNC)
-		shouldConsumeNext := true
+	loc := p.loc()
 
-		if p.literal == "get" || p.literal == "set" {
+	propertyName := p.parseObjectPropertyName()
+
+	// easy variants when it's string/number/computedName
+	if propertyName != nil {
+		switch id := propertyName.(type) {
+		// could be:
+		// 'foo'(){} / 'foo': ...
+		// 0(){}     / 0: ...
+		// [...](){} / [...]: ...
+		case *ast.StringLiteral, *ast.NumberLiteral, *ast.ComputedName:
+			switch p.token {
+			case token.LEFT_PARENTHESIS:
+				return p.parseObjectPropertyMethodShorthand(loc, false, propertyName)
+			case token.COLON:
+				p.next()
+
+				return &ast.ObjectPropertyValue{
+					PropertyName: propertyName,
+					Value:        p.parseAssignmentExpression(),
+				}
+
+			default:
+				p.unexpectedToken()
+
+				return nil
+			}
+
+		// could be just a shorthand for foo: foo
+		// or a fucking rabbit hole of possibilities
+		case *ast.Identifier:
+			if p.isAny(token.COMMA, token.RIGHT_BRACE) || p.newLineBeforeCurrentToken {
+				return p.parseObjectPropertyFromShorthand(propertyName)
+			}
+
+			literal := id.Name
+			possibleAsync := literal == "async"
+
+			if literal == "get" || literal == "set" {
+				loc = p.loc()
+				accessor := id.Name
+
+				// we have parsed set or get by now
+				// if next is valid property identifier then it's an accessor
+				if p.isIdentifierOrKeyword() {
+					propertyName = p.parseIdentifierIncludingKeywords()
+					parameterList := p.parseFunctionParameterList()
+
+					functionLiteral := &ast.FunctionLiteral{
+						Loc:        loc,
+						Parameters: parameterList,
+					}
+					p.parseFunctionBlock(functionLiteral)
+
+					if accessor == "set" {
+						return &ast.ObjectPropertySetter{
+							PropertyName: propertyName,
+							Setter:       functionLiteral,
+						}
+					} else {
+						return &ast.ObjectPropertyGetter{
+							PropertyName: propertyName,
+							Getter:       functionLiteral,
+						}
+					}
+				}
+			}
+
 			loc = p.loc()
-			accessor := p.literal
 
-			p.next()
-			shouldConsumeNext = false
+			// now that we have first two tokens we can start to disambiguate
+			if possibleAsync {
+				// `async blah` can only end with `() {}`, so a method shorthand
+				if p.isIdentifierOrKeyword() {
+					propertyName = p.parseIdentifierIncludingKeywords()
 
-			// we have parsed set or get by now
-			// if next is valid property identifier then it's an accessor
-			if p.isIdentifierOrKeyword() {
-				propertyName = p.parseIdentifierIncludingKeywords()
-				parameterList := p.parseFunctionParameterList()
-
-				functionLiteral := &ast.FunctionLiteral{
-					Loc:        loc,
-					Parameters: parameterList,
+					return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
 				}
-				p.parseFunctionBlock(functionLiteral)
 
-				if accessor == "set" {
-					return &ast.ObjectPropertySetter{
-						PropertyName: propertyName,
-						Setter:       functionLiteral,
-					}
-				} else {
-					return &ast.ObjectPropertyGetter{
-						PropertyName: propertyName,
-						Getter:       functionLiteral,
-					}
+				// `async []() {}`
+				if p.is(token.LEFT_BRACKET) {
+					propertyName = p.parseObjectPropertyComputedName()
+
+					return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
 				}
 			}
-		}
 
-		loc = p.loc()
-		propertyName = p.currentIdentifier()
+			property := p.parseObjectPropertyValue(loc, propertyName)
 
-		if shouldConsumeNext {
-			p.next()
-		}
-
-		// now that we have first two tokens we can start to disambiguate
-		if possibleAsync {
-			// `async blah` can only end with `() {}`, so a method shorthand
-			if p.isIdentifierOrKeyword() {
-				propertyName = p.parseIdentifierIncludingKeywords()
-
-				return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
+			if property == nil {
+				return p.parseObjectPropertyFromShorthand(propertyName)
 			}
 
-			// `async []() {}`
-			if p.is(token.LEFT_BRACKET) {
-				propertyName = p.parseObjectPropertyComputedName()
-
-				return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
-			}
+			return property
 		}
-
-		property := p.parseObjectPropertyValue(loc, propertyName)
-
-		if property == nil {
-			return p.parseObjectPropertyFromShorthand(propertyName)
-		}
-
-		return property
 	}
 
 	p.unexpectedToken()

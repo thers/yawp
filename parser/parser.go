@@ -53,7 +53,7 @@ type Parser struct {
 func newParser(filename, src string) *Parser {
 	return &Parser{
 		chr:    ' ', // This is set so we can start scanning by skipping whitespace
-		chrCol: 0,
+		chrCol: 1,
 		line:   1,
 		src:    src,
 		length: len(src),
