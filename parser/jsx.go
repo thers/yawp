@@ -90,7 +90,7 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 			exp = p.parseAssignmentExpression()
 		}
 
-		p.jsxTextParseFrom = int(p.idx)
+		p.jsxTextParseFrom = int(p.tokenOffset)
 		p.consumeExpected(token.RIGHT_BRACE)
 
 		return &ast.JSXChildExpression{
@@ -154,7 +154,7 @@ func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
 		} else if p.is(token.LEFT_BRACE) {
 			// attributes spreading
 			p.consumeExpected(token.LEFT_BRACE)
-			start := p.idx
+			start := p.tokenOffset
 			p.consumeExpected(token.DOTDOTDOT)
 
 			attrs = append(attrs, &ast.JSXSpreadAttribute{
@@ -220,7 +220,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	}
 
 	// end of element >
-	p.jsxTextParseFrom = int(p.idx)
+	p.jsxTextParseFrom = int(p.tokenOffset)
 	p.consumeExpected(token.GREATER)
 
 	// until </

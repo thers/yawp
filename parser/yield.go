@@ -23,12 +23,16 @@ func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 		exp.Delegate = true
 	}
 
-	if p.implicitSemicolon {
-		p.error(exp.Loc, "No line terminator allowed after yield keyword")
-		return nil
+	if p.newLineBeforeCurrentToken {
+		return exp
 	}
 
-	exp.Expression = p.parseAssignmentExpression()
+	switch p.token {
+	case token.RIGHT_BRACE, token.RIGHT_BRACKET, token.RIGHT_PARENTHESIS:
+		return exp
+	}
+
+	exp.Argument = p.parseAssignmentExpression()
 
 	return exp
 }

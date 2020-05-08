@@ -73,7 +73,7 @@ func (p *Parser) parseImportFromClause(stmt *ast.ImportStatement) {
 	if p.is(token.STRING) {
 		stmt.From = p.literal
 		p.next()
-		stmt.Loc.End(p.idx)
+		stmt.Loc.End(p.tokenOffset)
 	} else {
 		p.unexpectedToken()
 	}

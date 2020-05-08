@@ -4,9 +4,9 @@ import "yawp/parser/file"
 
 type (
 	YieldExpression struct {
-		Loc        *file.Loc
-		Delegate   bool
-		Expression Expression
+		Loc      *file.Loc
+		Delegate bool
+		Argument Expression
 	}
 
 	YieldStatement struct {

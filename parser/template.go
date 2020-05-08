@@ -66,7 +66,7 @@ func (p *Parser) parseTemplateExpression() *ast.TemplateExpression {
 	// reading past last ` so we can normally back to "tokens" mode
 	p.read()
 	exp.Strings = append(exp.Strings, currentString)
-	exp.Loc.End(p.idx)
+	exp.Loc.End(p.tokenOffset)
 
 	// advance to the next token
 	p.next()

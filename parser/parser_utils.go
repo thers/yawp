@@ -6,7 +6,7 @@ import (
 )
 
 func (p *Parser) now() (token.Token, string, file.Idx) {
-	return p.token, p.literal, p.idx
+	return p.token, p.literal, p.tokenOffset
 }
 
 func (p *Parser) optionalSemicolon() {
@@ -34,10 +34,6 @@ func (p *Parser) semicolon() {
 
 		p.consumeExpected(token.SEMICOLON)
 	}
-}
-
-func (p *Parser) idxOf(offset int) file.Idx {
-	return file.Idx(offset)
 }
 
 func (p *Parser) is(value token.Token) bool {
@@ -88,7 +84,7 @@ func (p *Parser) consumeExpected(value token.Token) file.Idx {
 }
 
 func (p *Parser) consumePossible(value token.Token) file.Idx {
-	idx := p.idx
+	idx := p.tokenOffset
 
 	if p.token == value {
 		p.next()
@@ -105,9 +101,9 @@ func (p *Parser) shouldBe(value token.Token) {
 
 func (p *Parser) loc() *file.Loc {
 	return &file.Loc{
-		From: p.idx,
+		From: p.tokenOffset,
 		To:   file.Idx(p.nextChrOffset),
 		Line: p.line,
-		Col:  p.col,
+		Col:  p.tokenCol,
 	}
 }

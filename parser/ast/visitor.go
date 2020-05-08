@@ -939,7 +939,7 @@ func (w *Walker) TaggedTemplateExpression(exp *TaggedTemplateExpression) *Tagged
 }
 
 func (w *Walker) YieldExpression(exp *YieldExpression) *YieldExpression {
-	exp.Expression = w.Visitor.Expression(exp.Expression)
+	exp.Argument = w.Visitor.Expression(exp.Argument)
 
 	return exp
 }

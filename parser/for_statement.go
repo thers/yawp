@@ -72,7 +72,7 @@ func (p *Parser) parseFor(loc *file.Loc, initializer ast.Statement) *ast.ForStat
 func (p *Parser) maybeParseLeftHandSideExpression() ast.Expression {
 	defer func(){ _ = recover() }()
 
-	return p.parseLeftHandSideExpression()
+	return p.parseAssignmentExpression()
 }
 
 func (p *Parser) getForKind() (isForIn, isForOf, isFor bool) {

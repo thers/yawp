@@ -8,6 +8,6 @@
 
   "scripts": {
     "build": "go build -o build/main main.go",
-    "test-parser": "go run test-parser.go"
+    "test-parser": "go run tools/test-parser/test-parser.go"
   }
 }

@@ -247,7 +247,7 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 	if p.is(token.EXTENDS) {
 		p.next()
 
-		exp.SuperClass = p.parseMemberExpressionOrIdentifier()
+		exp.SuperClass = p.parseLeftHandSideExpression()
 
 		if p.isFlowTypeArgumentsStart() {
 			exp.SuperTypeArguments = p.parseFlowTypeArguments()

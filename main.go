@@ -5,8 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
-	"yawp/optimizer"
-	"yawp/options"
+	_ "yawp/optimizer"
 	"yawp/parser"
 )
 
@@ -21,10 +20,10 @@ func main() {
 		filename = "test/short.js"
 	}
 
-	opt := &options.Options{
-		Target: options.ES2020,
-		Minify: true,
-	}
+	//opt := &options.Options{
+	//	Target: options.ES2020,
+	//	Minify: true,
+	//}
 
 	src, _ := ioutil.ReadFile(filename)
 
@@ -42,8 +41,7 @@ func main() {
 	}
 
 	ops := time.Now()
-	o := optimizer.NewOptimizer(ast, opt)
-	ast.Visit(o)
+	//optimizer.Optimize(ast, opt)
 	fmt.Println("Optimizer pass took: ", time.Since(ops))
 
 	fmt.Printf("Parser pass took: %s\n", time.Since(start))

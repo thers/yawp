@@ -2,61 +2,58 @@ package parser
 
 import (
 	"unicode"
-	"unicode/utf8"
 )
 
+// These functions are copies of
+// https://github.com/evanw/esbuild/blob/766e48876293dfe6bb92cce906b1d4db4811b792/internal/lexer/lexer.go#L489
+
 func isIdentifierStart(chr rune) bool {
-	return chr == '$' || chr == '_' || chr == '\\' ||
-		'a' <= chr && chr <= 'z' || 'A' <= chr && chr <= 'Z' ||
-		chr >= utf8.RuneSelf && unicode.IsLetter(chr)
+	switch chr {
+	case '_', '$',
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+		'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
+		return true
+	}
+
+	// All ASCII identifier start code points are listed above
+	if chr < 0x7F {
+		return false
+	}
+
+	return unicode.Is(idStart, chr)
 }
 
 func isIdentifierPart(chr rune) bool {
-	return chr == '$' || chr == '_' || chr == '\\' ||
-		'a' <= chr && chr <= 'z' || 'A' <= chr && chr <= 'Z' ||
-		'0' <= chr && chr <= '9' ||
-		chr >= utf8.RuneSelf && (unicode.IsLetter(chr) || unicode.IsDigit(chr))
+	switch chr {
+	case '_', '$', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+		'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
+		return true
+	}
+
+	// All ASCII identifier start code points are listed above
+	if chr < 0x7F {
+		return false
+	}
+
+	// ZWNJ and ZWJ are allowed in identifiers
+	if chr == 0x200C || chr == 0x200D {
+		return true
+	}
+
+	return unicode.Is(idContinue, chr)
 }
 
 func (p *Parser) scanIdentifier() (string, error) {
 	offset := p.chrOffset
-	//parse := false
 
 	for isIdentifierPart(p.chr) {
-		//if p.chr == '\\' {
-		//	distance := p.chrOffset - offset
-		//	p.read()
-		//	if p.chr != 'u' {
-		//		return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
-		//	}
-		//	parse = true
-		//	var value rune
-		//	for j := 0; j < 4; j++ {
-		//		p.read()
-		//		decimal, ok := hex2decimal(byte(p.chr))
-		//		if !ok {
-		//			return "", fmt.Errorf("Invalid identifier escape character: %c (%s)", p.chr, string(p.chr))
-		//		}
-		//		value = value<<4 | decimal
-		//	}
-		//	if value == '\\' {
-		//		return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-		//	} else if distance == 0 {
-		//		if !isIdentifierStart(value) {
-		//			return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-		//		}
-		//	} else if distance > 0 {
-		//		if !isIdentifierPart(value) {
-		//			return "", fmt.Errorf("Invalid identifier escape value: %c (%s)", value, string(value))
-		//		}
-		//	}
-		//}
 		p.read()
 	}
 
 	return p.src[offset:p.chrOffset], nil
-	//if parse {
-	//	return parseStringLiteral(literal)
-	//}
-	//return literal, nil
 }

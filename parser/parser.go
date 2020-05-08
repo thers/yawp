@@ -16,23 +16,26 @@ type Parser struct {
 	src       string
 	length    int
 
-	col        int // column of the current char
-	line       int // line of the current char
-	lineOffset int
+	chrCol int // column of the current char
+	line   int // current line
 
 	chr           rune // The current character
 	chrOffset     int  // The offset of current character
 	nextChrOffset int  // The nextChrOffset after current character (may be greater than 1)
 
-	idx            file.Idx    // location of token
-	token          token.Token // token itself
 	literal        string      // literal of a token, if any
+	token          token.Token // token itself
+	tokenCol       int         // column of the token
+	tokenOffset    file.Idx    // location of token
 	tokenIsKeyword bool        // is current token a keyword
 
 	scope *Scope
 
-	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
-	implicitSemicolon bool // An implicit semicolon exists
+	insertSemicolon           bool // If we see a newline, then insert an implicit semicolon
+	implicitSemicolon         bool // An implicit semicolon exists
+	newLineBeforeCurrentToken bool
+
+	advanceLine     bool
 
 	genericTypeParametersMode                  bool
 	forbidUnparenthesizedFunctionType          bool
@@ -49,13 +52,12 @@ type Parser struct {
 
 func newParser(filename, src string) *Parser {
 	return &Parser{
-		chr:        ' ', // This is set so we can start scanning by skipping whitespace
-		col:        1,
-		line:       1,
-		lineOffset: -1,
-		src:        src,
-		length:     len(src),
-		file:       file.NewFile(filename, src),
+		chr:    ' ', // This is set so we can start scanning by skipping whitespace
+		chrCol: 0,
+		line:   1,
+		src:    src,
+		length: len(src),
+		file:   file.NewFile(filename, src),
 	}
 }
 
@@ -118,9 +120,8 @@ func (p *Parser) parse() (*ast.Module, error) {
 }
 
 func (p *Parser) next() (idx file.Idx) {
-	idx = p.idx
-	p.token, p.literal, p.idx = p.scan()
-	p.col = int(p.idx) - p.lineOffset
+	idx = p.tokenOffset
+	p.token, p.literal, p.tokenOffset = p.scan()
 	return
 }
 

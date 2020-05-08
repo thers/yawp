@@ -6,11 +6,14 @@ import (
 )
 
 type ParserSnapshot struct {
-	idx               file.Idx
+	wasNewLine        bool
+	tokenOffset       file.Idx
 	token             token.Token
-	offset            int
+	line              int
+	col               int
+	nextChrOffset     int
 	chrOffset         int
-	nextChr           rune
+	chr               rune
 	literal           string
 	parsedStr         string
 	insertSemicolon   bool
@@ -19,11 +22,14 @@ type ParserSnapshot struct {
 
 func (p *Parser) snapshot() *ParserSnapshot {
 	return &ParserSnapshot{
-		idx:               p.idx,
+		wasNewLine:        p.advanceLine,
+		line:              p.line,
+		col:               p.chrCol,
+		tokenOffset:       p.tokenOffset,
 		token:             p.token,
-		offset:            p.nextChrOffset,
+		nextChrOffset:     p.nextChrOffset,
 		chrOffset:         p.chrOffset,
-		nextChr:           p.chr,
+		chr:               p.chr,
 		literal:           p.literal,
 		parsedStr:         p.parsedSrc,
 		insertSemicolon:   p.insertSemicolon,
@@ -32,11 +38,14 @@ func (p *Parser) snapshot() *ParserSnapshot {
 }
 
 func (p *Parser) toSnapshot(state *ParserSnapshot) {
-	p.idx = state.idx
+	p.advanceLine = state.wasNewLine
+	p.line = state.line
+	p.chrCol = state.col
+	p.tokenOffset = state.tokenOffset
 	p.token = state.token
-	p.nextChrOffset = state.offset
+	p.nextChrOffset = state.nextChrOffset
 	p.chrOffset = state.chrOffset
-	p.chr = state.nextChr
+	p.chr = state.chr
 	p.literal = state.literal
 	p.parsedSrc = state.parsedStr
 	p.insertSemicolon = state.insertSemicolon

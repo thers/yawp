@@ -132,7 +132,7 @@ func (p *Parser) parseStatement() ast.Statement {
 
 	if identifier, isIdentifier := expression.(*ast.Identifier); isIdentifier && p.is(token.COLON) {
 		// LabelledStatement
-		colon := p.idx
+		colon := p.tokenOffset
 		p.next() // :
 		label := identifier.Name
 		for _, value := range p.scope.labels {

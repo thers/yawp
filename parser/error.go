@@ -18,7 +18,33 @@ type SyntaxError struct {
 }
 
 func (se SyntaxError) Error() error {
-	return fmt.Errorf("%d:%d %s", se.Loc.Line, se.Loc.Col, se.error)
+	return fmt.Errorf(
+		"%d:%d %s",
+		se.Loc.Line,
+		se.Loc.Col,
+		se.error,
+	)
+}
+
+func (p *Parser) calcRealPos(at file.Idx) (line, col int) {
+	line = 1
+	col = 1
+
+	for index, chr := range p.src {
+		if index == int(at) {
+			return
+		}
+
+		switch chr {
+		case '\n', '\u2028', '\u2029':
+			line++
+			col = 1
+		default:
+			col++
+		}
+	}
+
+	return
 }
 
 

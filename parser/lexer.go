@@ -64,11 +64,13 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
 	p.tokenIsKeyword = false
 	p.implicitSemicolon = false
+	p.newLineBeforeCurrentToken = false
 
 	for {
 		p.skipWhiteSpace()
 
-		idx = p.idxOf(p.chrOffset)
+		p.tokenCol = p.chrCol
+		idx = file.Idx(p.chrOffset)
 		insertSemicolon := false
 
 		switch chr := p.chr; {
@@ -394,43 +396,42 @@ func (p *Parser) peekChr() rune {
 func (p *Parser) read() {
 	p.parsedSrc = p.src[:p.nextChrOffset]
 
+	if p.advanceLine {
+		p.advanceLine = false
+		p.line++
+
+		// shouldn't ever be the case as it's for \n rune
+		//p.chrCol = 0
+	} else {
+		p.chrCol += p.nextChrOffset - p.chrOffset
+	}
+
 	if p.nextChrOffset < p.length {
 		p.chrOffset = p.nextChrOffset
 		chr, width := rune(p.src[p.nextChrOffset]), 1
+
 		if chr >= utf8.RuneSelf { // !ASCII
 			chr, width = utf8.DecodeRuneInString(p.src[p.nextChrOffset:])
 			if chr == utf8.RuneError && width == 1 {
 				p.error(p.loc(), "Invalid UTF-8 character")
 			}
 		}
-		p.col += width
+
 		p.nextChrOffset += width
 		p.chr = chr
+
+		switch chr {
+		case '\n', '\u2028', '\u2029':
+			p.chrCol = 0
+			p.advanceLine = true
+			p.newLineBeforeCurrentToken = true
+		}
 	} else {
 		p.chrOffset = p.length
 		p.chr = -1 // EOF
 	}
 
 	return
-}
-
-// This is here since the functions are so similar
-func (self *_RegExp_parser) read() {
-	if self.offset < self.length {
-		self.chrOffset = self.offset
-		chr, width := rune(self.str[self.offset]), 1
-		if chr >= utf8.RuneSelf { // !ASCII
-			chr, width = utf8.DecodeRuneInString(self.str[self.offset:])
-			if chr == utf8.RuneError && width == 1 {
-				self.error(self.chrOffset, "Invalid UTF-8 character")
-			}
-		}
-		self.offset += width
-		self.chr = chr
-	} else {
-		self.chrOffset = self.length
-		self.chr = -1 // EOF
-	}
 }
 
 func (p *Parser) skipSingleLineComment() {
@@ -468,9 +469,6 @@ func (p *Parser) skipWhiteSpace() {
 			}
 			fallthrough
 		case '\u2028', '\u2029', '\n':
-			p.line++
-			p.lineOffset = p.chrOffset
-
 			if p.insertSemicolon {
 				return
 			}
