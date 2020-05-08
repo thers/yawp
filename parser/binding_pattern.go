@@ -152,6 +152,12 @@ func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
 			break
 		}
 
+		if p.is(token.COMMA) {
+			itemIndex++
+			p.next()
+			continue
+		}
+
 		item := &ast.ArrayItemBinder{
 			Binder:       p.parseBinder(),
 			Index:        itemIndex,

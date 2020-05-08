@@ -186,6 +186,11 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 	stmts := make([]ast.Statement, 0)
 
 	for p.until(token.RIGHT_BRACE) {
+		if p.is(token.SEMICOLON) {
+			p.next()
+			continue
+		}
+
 		if p.is(token.AT) {
 			loc := p.loc()
 			decorators := p.parseDecoratorsList()

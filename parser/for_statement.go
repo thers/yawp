@@ -69,7 +69,7 @@ func (p *Parser) parseFor(loc *file.Loc, initializer ast.Statement) *ast.ForStat
 	}
 }
 
-func (p *Parser) maybeParseLeftHandSideExpression() ast.Expression {
+func (p *Parser) maybeParseExpression() ast.Expression {
 	wasAllowIn := p.scope.allowIn
 	p.scope.allowIn = false
 	defer func(){
@@ -77,7 +77,7 @@ func (p *Parser) maybeParseLeftHandSideExpression() ast.Expression {
 		p.scope.allowIn = wasAllowIn
 	}()
 
-	return p.parseAssignmentExpression()
+	return p.parseExpression()
 }
 
 func (p *Parser) getForKind() (isForIn, isForOf, isFor bool) {
@@ -145,7 +145,7 @@ func (p *Parser) parseForStatement() ast.Statement {
 	left := &ast.ExpressionStatement{}
 	snapshot := p.snapshot()
 
-	lhs := p.maybeParseLeftHandSideExpression()
+	lhs := p.maybeParseExpression()
 	if lhs == nil {
 		// already found binding pattern it seems
 		p.toSnapshot(snapshot)

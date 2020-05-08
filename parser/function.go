@@ -18,135 +18,26 @@ func (p *Parser) parseRestParameterFollowedBy(value token.Token) *ast.RestParame
 	return restParameter
 }
 
-func (p *Parser) parseObjectDestructureIdentifierParameter() *ast.ObjectPatternIdentifierParameter {
-	var parameter ast.FunctionParameter
-	var propertyName string
-
-	// Rest parameter
-	if p.is(token.DOTDOTDOT) {
-		parameter = p.parseRestParameterFollowedBy(token.RIGHT_BRACE)
-	} else {
-		if p.is(token.IDENTIFIER) {
-			identifier := p.parseIdentifier()
-
-			parameter = &ast.IdentifierParameter{
-				Id: identifier,
-			}
-			propertyName = identifier.Name
-
-			if p.is(token.COLON) {
-				p.next()
-
-				// property rename
-				parameter = &ast.IdentifierParameter{
-					Id: p.parseIdentifier(),
-				}
-			}
-		}
-
-		// array destructure
-		if p.is(token.LEFT_BRACKET) {
-			parameter = p.parseArrayDestructureParameter()
-		}
-
-		// object destructure
-		if p.is(token.LEFT_BRACE) {
-			parameter = p.parseObjectDestructureParameter()
-		}
-
-		// Parsing default value
-		if p.is(token.ASSIGN) {
-			p.next()
-
-			parameter.SetDefaultValue(p.parseAssignmentExpression())
-		}
-	}
-
-	if !p.is(token.RIGHT_BRACE) {
-		p.consumeExpected(token.COMMA)
-	}
-
-	return &ast.ObjectPatternIdentifierParameter{
-		Parameter:    parameter,
-		PropertyName: propertyName,
-	}
-}
-
-func (p *Parser) parseObjectDestructureParameter() *ast.ObjectPatternParameter {
-	p.next()
-
-	if p.is(token.RIGHT_BRACE) {
-		p.next()
-		return &ast.ObjectPatternParameter{}
-	}
-
-	param := &ast.ObjectPatternParameter{
-		List:         make([]*ast.ObjectPatternIdentifierParameter, 0, 1),
-		DefaultValue: nil,
-	}
-
-	for !p.is(token.RIGHT_BRACE) && !p.is(token.EOF) {
-		param.List = append(
-			param.List,
-			p.parseObjectDestructureIdentifierParameter(),
-		)
-	}
-
-	p.consumeExpected(token.RIGHT_BRACE)
-
-	return param
-}
-
-func (p *Parser) parseArrayDestructureParameter() *ast.ArrayPatternParameter {
-	p.next()
-
-	if p.is(token.RIGHT_BRACKET) {
-		p.next()
-		return &ast.ArrayPatternParameter{}
-	}
-
-	param := &ast.ArrayPatternParameter{
-		List:         make([]ast.FunctionParameter, 0, 1),
-		DefaultValue: nil,
-	}
-
-	for !p.is(token.RIGHT_BRACKET) && !p.is(token.EOF) {
-		param.List = append(
-			param.List,
-			p.parseFunctionParameterEndingBy(token.RIGHT_BRACKET),
-		)
-	}
-
-	p.consumeExpected(token.RIGHT_BRACKET)
-
-	return param
-}
-
 func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.FunctionParameter {
 	var parameter ast.FunctionParameter
 	loc := p.loc()
 
-	// Rest parameter
-	if p.is(token.DOTDOTDOT) {
+	switch p.token {
+	case token.DOTDOTDOT:
 		parameter = p.parseRestParameterFollowedBy(ending)
-	} else {
-		if p.is(token.IDENTIFIER) {
-			// simple argument binding
-			parameter = &ast.IdentifierParameter{
-				Id:           p.parseIdentifier(),
-				DefaultValue: nil,
-			}
-		} else if p.is(token.LEFT_BRACKET) {
-			// array destructure
-			parameter = p.parseArrayDestructureParameter()
-		} else if p.is(token.LEFT_BRACE) {
-			// object destructure
-			parameter = p.parseObjectDestructureParameter()
-		} else {
-			p.unexpectedToken()
-
-			return nil
+	case token.IDENTIFIER:
+		parameter = &ast.IdentifierParameter{
+			Id:           p.parseIdentifier(),
+			DefaultValue: nil,
 		}
+	case token.LEFT_BRACKET, token.LEFT_BRACE:
+		parameter = &ast.PatternParameter{
+			Binder: p.parseBinder(),
+		}
+	default:
+		p.unexpectedToken()
+
+		return nil
 	}
 
 	if parameter == nil {
@@ -184,7 +75,7 @@ func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 
 	wasAllowYield := p.scope.allowYield
 	p.scope.allowYield = false
-	defer func(){
+	defer func() {
 		p.scope.allowYield = wasAllowYield
 	}()
 

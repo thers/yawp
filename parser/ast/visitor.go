@@ -98,9 +98,7 @@ type Visitor interface {
 	FunctionParameter(param FunctionParameter) FunctionParameter
 	IdentifierParameter(p *IdentifierParameter) *IdentifierParameter
 	RestParameter(p *RestParameter) *RestParameter
-	ObjectPatternParameter(p *ObjectPatternParameter) *ObjectPatternParameter
-	ObjectPatternIdentifierParameter(p *ObjectPatternIdentifierParameter) *ObjectPatternIdentifierParameter
-	ArrayPatternParameter(p *ArrayPatternParameter) *ArrayPatternParameter
+	PatternParameter(p *PatternParameter) *PatternParameter
 	ObjectProperty(p ObjectProperty) ObjectProperty
 	ObjectPropertySetter(p *ObjectPropertySetter) *ObjectPropertySetter
 	ObjectPropertyGetter(p *ObjectPropertyGetter) *ObjectPropertyGetter
@@ -954,10 +952,8 @@ func (w *Walker) FunctionParameter(param FunctionParameter) FunctionParameter {
 		return w.Visitor.IdentifierParameter(p)
 	case *RestParameter:
 		return w.Visitor.RestParameter(p)
-	case *ObjectPatternParameter:
-		return w.Visitor.ObjectPatternParameter(p)
-	case *ArrayPatternParameter:
-		return w.Visitor.ArrayPatternParameter(p)
+	case *PatternParameter:
+		return w.Visitor.PatternParameter(p)
 
 	default:
 		panic("Unknown function parameter type")
@@ -971,34 +967,15 @@ func (w *Walker) IdentifierParameter(p *IdentifierParameter) *IdentifierParamete
 	return p
 }
 
+func (w *Walker) PatternParameter(p *PatternParameter) *PatternParameter {
+	p.Binder = w.Visitor.PatternBinder(p.Binder)
+	p.DefaultValue = w.Visitor.Expression(p.DefaultValue)
+
+	return p
+}
+
 func (w *Walker) RestParameter(p *RestParameter) *RestParameter {
 	p.Binder = w.Visitor.PatternBinder(p.Binder)
-
-	return p
-}
-
-func (w *Walker) ObjectPatternParameter(p *ObjectPatternParameter) *ObjectPatternParameter {
-	p.DefaultValue = w.Visitor.Expression(p.DefaultValue)
-
-	for index, prop := range p.List {
-		p.List[index] = w.Visitor.ObjectPatternIdentifierParameter(prop)
-	}
-
-	return p
-}
-
-func (w *Walker) ObjectPatternIdentifierParameter(p *ObjectPatternIdentifierParameter) *ObjectPatternIdentifierParameter {
-	p.Parameter = w.Visitor.FunctionParameter(p.Parameter)
-
-	return p
-}
-
-func (w *Walker) ArrayPatternParameter(p *ArrayPatternParameter) *ArrayPatternParameter {
-	p.DefaultValue = w.Visitor.Expression(p.DefaultValue)
-
-	for index, item := range p.List {
-		p.List[index] = w.Visitor.FunctionParameter(item)
-	}
 
 	return p
 }

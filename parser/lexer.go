@@ -667,19 +667,30 @@ func (p *Parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 			}
 
 			goto binary
+		} else if p.chr == 'o' || p.chr == 'O' {
+			// Octal
+			p.read()
+			if isDigit(p.chr, 8) {
+				p.read()
+			} else {
+				return token.ILLEGAL, p.src[offset:p.chrOffset]
+			}
+			p.scanNumberRemainder(8)
+
+			if p.chrOffset-offset <= 2 {
+				// Only "0o" or "0O"
+				p.error(p.loc(), "Illegal octal number")
+			}
+
+			goto octal
 		} else if p.chr == '.' {
 			// Float
 			goto float
-		} else {
-			// Octal, Float
-			if p.chr == 'e' || p.chr == 'E' {
-				goto exponent
-			}
-			p.scanNumberRemainder(8)
-			if p.chr == '8' || p.chr == '9' {
-				return token.ILLEGAL, p.src[offset:p.chrOffset]
-			}
-			goto octal
+		} else if p.chr == 'e' || p.chr == 'E' {
+			// Exponent form
+			goto exponent
+		} else if isDigit(p.chr, 8) {
+			return token.ILLEGAL, p.src[offset:p.chrOffset]
 		}
 	}
 

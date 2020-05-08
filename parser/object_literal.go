@@ -62,12 +62,14 @@ func (p *Parser) parseObjectPropertyFromShorthand(propertyName ast.ObjectPropert
 func (p *Parser) parseObjectPropertyMethodShorthand(
 	loc *file.Loc,
 	async bool,
+	generator bool,
 	propertyName ast.ObjectPropertyName,
 ) *ast.ObjectPropertyValue {
 	parameterList := p.parseFunctionParameterList()
 	functionLiteral := &ast.FunctionLiteral{
 		Loc:        loc,
 		Async:      async,
+		Generator:  generator,
 		Parameters: parameterList,
 	}
 
@@ -132,16 +134,23 @@ consider these valid examples:
 
 */
 func (p *Parser) parseObjectProperty() ast.ObjectProperty {
+	loc := p.loc()
+
 	// handle spreads first as the easiest variant
 	if p.is(token.DOTDOTDOT) {
-		p.consumeExpected(token.DOTDOTDOT)
+		p.next()
 
 		return &ast.ObjectSpread{
 			Expression: p.parseAssignmentExpression(),
 		}
 	}
 
-	loc := p.loc()
+	// generator method is also an easy variant
+	if p.is(token.MULTIPLY) {
+		p.next()
+
+		return p.parseObjectPropertyMethodShorthand(loc, false, true, p.parseObjectPropertyName())
+	}
 
 	propertyName := p.parseObjectPropertyName()
 
@@ -155,7 +164,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		case *ast.StringLiteral, *ast.NumberLiteral, *ast.ComputedName:
 			switch p.token {
 			case token.LEFT_PARENTHESIS:
-				return p.parseObjectPropertyMethodShorthand(loc, false, propertyName)
+				return p.parseObjectPropertyMethodShorthand(loc, false, false, propertyName)
 			case token.COLON:
 				p.next()
 
@@ -218,14 +227,14 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 				if p.isIdentifierOrKeyword() {
 					propertyName = p.parseIdentifierIncludingKeywords()
 
-					return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
+					return p.parseObjectPropertyMethodShorthand(loc, true, false, propertyName)
 				}
 
 				// `async []() {}`
 				if p.is(token.LEFT_BRACKET) {
 					propertyName = p.parseObjectPropertyComputedName()
 
-					return p.parseObjectPropertyMethodShorthand(loc, true, propertyName)
+					return p.parseObjectPropertyMethodShorthand(loc, true, false, propertyName)
 				}
 			}
 
@@ -267,11 +276,13 @@ func (p *Parser) parseObjectLiteral() *ast.ObjectLiteral {
 }
 
 func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
+	wasLeftHandSideAllowed := p.allowPatternBindingLeftHandSideExpressions
+	p.allowPatternBindingLeftHandSideExpressions = true
+
 	defer func() {
-		err := recover()
-		if err != nil {
-			return
-		}
+		_ = recover()
+
+		p.allowPatternBindingLeftHandSideExpressions = wasLeftHandSideAllowed
 	}()
 
 	return p.parseObjectBinding(), true

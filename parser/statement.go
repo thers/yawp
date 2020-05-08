@@ -118,8 +118,6 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseExportDeclaration()
 	case token.AT:
 		return p.parseLegacyClassDecoratorStatement()
-	case token.YIELD:
-		return p.parseYieldStatement()
 	case token.TYPE_TYPE, token.TYPE_OPAQUE:
 		if p.scope.inModuleRoot() {
 			return p.parseFlowTypeStatement()
@@ -378,12 +376,6 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 	if p.is(token.IDENTIFIER) {
 		identifier := p.parseIdentifier()
 
-		if !p.scope.hasLabel(identifier.Name) {
-			p.error(loc, "Undefined label '%s'", identifier.Name)
-
-			return nil
-		}
-
 		p.semicolon()
 
 		return &ast.BranchStatement{
@@ -425,11 +417,7 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 
 	if p.is(token.IDENTIFIER) {
 		identifier := p.parseIdentifier()
-		if !p.scope.hasLabel(identifier.Name) {
-			p.error(loc, "Undefined label '%s'", identifier.Name)
 
-			return nil
-		}
 		if !p.scope.inIteration {
 			goto illegal
 		}

@@ -67,7 +67,7 @@ func (p *Parser) isAny(values ...token.Token) bool {
 }
 
 func (p *Parser) isIdentifierOrKeyword() bool {
-	return p.is(token.IDENTIFIER) || p.tokenIsKeyword
+	return p.isAny(token.IDENTIFIER, token.NULL, token.BOOLEAN) || p.tokenIsKeyword
 }
 
 func (p *Parser) until(value token.Token) bool {
