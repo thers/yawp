@@ -180,12 +180,6 @@ type (
 		Consequent []Statement
 	}
 
-	CatchStatement struct {
-		Loc       *file.Loc
-		Parameter *Identifier
-		Body      Statement
-	}
-
 	DebuggerStatement struct {
 		Loc *file.Loc
 	}
@@ -234,13 +228,6 @@ type (
 		Argument Expression
 	}
 
-	TryStatement struct {
-		Loc     *file.Loc
-		Body    Statement
-		Catch   Statement
-		Finally Statement
-	}
-
 	VariableStatement struct {
 		Loc  *file.Loc
 		Kind token.Token
@@ -265,7 +252,6 @@ type (
 func (*BlockStatement) _statementNode()      {}
 func (*BranchStatement) _statementNode()     {}
 func (*CaseStatement) _statementNode()       {}
-func (*CatchStatement) _statementNode()      {}
 func (*DebuggerStatement) _statementNode()   {}
 func (*DoWhileStatement) _statementNode()    {}
 func (*EmptyStatement) _statementNode()      {}
@@ -275,7 +261,6 @@ func (*LabelledStatement) _statementNode()   {}
 func (*ReturnStatement) _statementNode()     {}
 func (*SwitchStatement) _statementNode()     {}
 func (*ThrowStatement) _statementNode()      {}
-func (*TryStatement) _statementNode()        {}
 func (*VariableStatement) _statementNode()   {}
 func (*WhileStatement) _statementNode()      {}
 func (*WithStatement) _statementNode()       {}

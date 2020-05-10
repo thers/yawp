@@ -20,13 +20,9 @@ type (
 		Loc *file.Loc
 	}
 
-	ClassFieldName interface {
-		_classFieldName()
-	}
-
 	ClassFieldStatement struct {
 		Loc         *file.Loc
-		Name        ClassFieldName
+		Name        ObjectPropertyName
 		Static      bool
 		Private     bool
 		Type        FlowType
@@ -35,14 +31,14 @@ type (
 
 	ClassAccessorStatement struct {
 		Loc   *file.Loc
-		Field ClassFieldName
+		Field ObjectPropertyName
 		Kind  string
 		Body  *FunctionLiteral
 	}
 
 	ClassMethodStatement struct {
 		Loc            *file.Loc
-		Name           ClassFieldName
+		Name           ObjectPropertyName
 		Static         bool
 		Private        bool
 		Async          bool
@@ -61,10 +57,6 @@ func (*ClassMethodStatement) _statementNode()   {}
 
 func (*ClassExpression) _expressionNode() {}
 func (*SuperExpression) _expressionNode() {}
-
-func (*Identifier) _classFieldName()    {}
-func (*StringLiteral) _classFieldName() {}
-func (*ComputedName) _classFieldName()  {}
 
 func (c *ClassStatement) GetLoc() *file.Loc         { return c.Expression.GetLoc() }
 func (c *ClassExpression) GetLoc() *file.Loc        { return c.Loc }

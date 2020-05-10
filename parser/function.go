@@ -95,6 +95,11 @@ func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 }
 
 func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast.FunctionLiteral {
+	wasAllowYield := p.scope.allowYield
+	wasAllowAwait := p.scope.allowAwait
+	p.scope.allowYield = false
+	p.scope.allowAwait = false
+
 	p.consumeExpected(token.FUNCTION)
 
 	generator := false
@@ -116,6 +121,9 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 		// Use consumeExpected error handling
 		p.consumeExpected(token.IDENTIFIER)
 	}
+
+	p.scope.allowYield = wasAllowYield
+	p.scope.allowAwait = wasAllowAwait
 
 	// type parameters
 	if p.is(token.LESS) {

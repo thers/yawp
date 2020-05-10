@@ -132,48 +132,6 @@ func (p *Parser) parseCallExpression(left ast.Expression, typeArguments []ast.Fl
 	}
 }
 
-func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
-	p.consumeExpected(token.PERIOD)
-
-	// this.#bla
-	if p.is(token.HASH) && p.scope.inClass {
-		if leftThisExp, ok := left.(*ast.ThisExpression); ok {
-			p.consumeExpected(token.HASH)
-
-			leftThisExp.Private = true
-		} else {
-			p.unexpectedToken()
-			p.next()
-		}
-	}
-
-	identifier := p.parseIdentifierIncludingKeywords()
-
-	if identifier == nil {
-		p.unexpectedToken()
-
-		return nil
-	}
-
-	return &ast.MemberExpression{
-		Left:  left,
-		Right: identifier,
-		Kind:  ast.MKObject,
-	}
-}
-
-func (p *Parser) parseBracketMember(left ast.Expression) ast.Expression {
-	p.consumeExpected(token.LEFT_BRACKET)
-	member := p.parseExpression()
-	p.consumeExpected(token.RIGHT_BRACKET)
-
-	return &ast.MemberExpression{
-		Left:  left,
-		Right: member,
-		Kind:  ast.MKArray,
-	}
-}
-
 func (p *Parser) parsePostfixExpression() ast.Expression {
 	operand := p.parseLeftHandSideExpressionAllowCall()
 

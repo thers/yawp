@@ -60,11 +60,18 @@ func isLineTerminator(chr rune) bool {
 	return false
 }
 
+func isLineTerminatorContinuation(chr rune) bool {
+	switch chr {
+	case '\n', '\u2028', '\u2029':
+		return true
+	}
+	return false
+}
+
 func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
 	p.tokenIsKeyword = false
 	p.implicitSemicolon = false
-	p.newLineBeforeCurrentToken = false
 
 	for {
 		p.skipWhiteSpace()
@@ -158,6 +165,13 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				case token.YIELD:
 					p.insertSemicolon = true
 					if !p.scope.allowYield {
+						tkn = token.IDENTIFIER
+					}
+					return
+
+				case token.IN:
+					if !p.scope.allowIn {
+						p.insertSemicolon = true
 						tkn = token.IDENTIFIER
 					}
 					return
@@ -400,6 +414,10 @@ func (p *Parser) read() {
 		p.advanceLine = false
 		p.line++
 		p.chrCol = 0
+
+		if p.insertSemicolon {
+			p.implicitSemicolon = true
+		}
 	}
 
 	p.chrCol += p.nextChrOffset - p.chrOffset
@@ -421,7 +439,6 @@ func (p *Parser) read() {
 		switch chr {
 		case '\n', '\u2028', '\u2029':
 			p.advanceLine = true
-			p.newLineBeforeCurrentToken = true
 		}
 	} else {
 		p.chrOffset = p.length
@@ -443,6 +460,12 @@ func (p *Parser) skipSingleLineComment() {
 func (p *Parser) skipMultiLineComment() {
 	p.read()
 	for p.chr >= 0 {
+		if isLineTerminatorContinuation(p.chr) {
+			if p.insertSemicolon {
+				p.implicitSemicolon = true
+			}
+		}
+
 		chr := p.chr
 		p.read()
 		if chr == '*' && p.chr == '/' {

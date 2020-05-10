@@ -6,6 +6,14 @@ import (
 	"yawp/parser/token"
 )
 
+func (p *Parser) isObjectPropertyNameStart() bool {
+	if p.isAny(token.LEFT_BRACKET, token.STRING, token.NUMBER) {
+		return true
+	}
+
+	return p.isIdentifierOrKeyword()
+}
+
 func (p *Parser) parseObjectPropertyName() ast.ObjectPropertyName {
 	switch p.token {
 	case token.LEFT_BRACKET:
@@ -182,7 +190,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		// could be just a shorthand for foo: foo
 		// or a fucking rabbit hole of possibilities
 		case *ast.Identifier:
-			if p.isAny(token.COMMA, token.RIGHT_BRACE) || p.newLineBeforeCurrentToken {
+			if p.isAny(token.COMMA, token.RIGHT_BRACE) || p.implicitSemicolon {
 				return p.parseObjectPropertyFromShorthand(propertyName)
 			}
 
@@ -195,8 +203,8 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 
 				// we have parsed set or get by now
 				// if next is valid property identifier then it's an accessor
-				if p.isIdentifierOrKeyword() {
-					propertyName = p.parseIdentifierIncludingKeywords()
+				if p.isObjectPropertyNameStart() {
+					propertyName = p.parseObjectPropertyName()
 					parameterList := p.parseFunctionParameterList()
 
 					functionLiteral := &ast.FunctionLiteral{

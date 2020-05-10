@@ -18,19 +18,13 @@ func (p *Parser) parseTryStatement() ast.Statement {
 		catchLoc := p.loc()
 		p.next()
 
-		var parameter *ast.Identifier
+		var parameter ast.PatternBinder
 
 		if p.is(token.LEFT_PARENTHESIS) {
 			p.consumeExpected(token.LEFT_PARENTHESIS)
 
-			if !p.is(token.IDENTIFIER) {
-				p.unexpectedToken()
-
-				return nil
-			} else {
-				parameter = p.parseIdentifier()
-				p.consumeExpected(token.RIGHT_PARENTHESIS)
-			}
+			parameter = p.parseBinder()
+			p.consumeExpected(token.RIGHT_PARENTHESIS)
 		}
 
 		node.Catch = &ast.CatchStatement{

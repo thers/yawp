@@ -12,33 +12,6 @@ func (p *Parser) parseClassMethodBody(generator bool, async bool) *ast.BlockStat
 	return p.parseBlockStatement()
 }
 
-func (p *Parser) parseClassFieldName() ast.ClassFieldName {
-	var identifier ast.ClassFieldName
-
-	if p.is(token.LEFT_BRACKET) {
-		p.consumeExpected(token.LEFT_BRACKET)
-
-		identifier = &ast.ComputedName{
-			Expression: p.parseAssignmentExpression(),
-		}
-
-		p.consumeExpected(token.RIGHT_BRACKET)
-
-		return identifier
-	} else if p.is(token.STRING) {
-		return p.parseString()
-	} else {
-		identifier = p.parseIdentifierIncludingKeywords()
-	}
-
-	if identifier == nil {
-		p.unexpectedToken()
-		p.next()
-	}
-
-	return identifier
-}
-
 func (p *Parser) parseClassBodyStatement() ast.Statement {
 	loc := p.loc()
 	async := false
@@ -66,7 +39,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		p.next()
 	}
 
-	identifier := p.parseClassFieldName()
+	identifier := p.parseObjectPropertyName()
 
 	p.insertSemicolon = true
 
@@ -80,7 +53,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 
 			kind := accessor.Name
 
-			if field := p.parseClassFieldName(); field != nil {
+			if field := p.parseObjectPropertyName(); field != nil {
 				node := &ast.FunctionLiteral{
 					Loc:        loc,
 					Parameters: p.parseFunctionParameterList(),

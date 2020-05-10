@@ -9,33 +9,6 @@ func (p *Parser) now() (token.Token, string, file.Idx) {
 	return p.token, p.literal, p.tokenOffset
 }
 
-func (p *Parser) optionalSemicolon() {
-	if p.is(token.SEMICOLON) {
-		p.next()
-		return
-	}
-
-	if p.implicitSemicolon {
-		p.implicitSemicolon = false
-		return
-	}
-
-	if !p.is(token.EOF) && !p.is(token.RIGHT_BRACE) {
-		p.consumeExpected(token.SEMICOLON)
-	}
-}
-
-func (p *Parser) semicolon() {
-	if !p.is(token.RIGHT_PARENTHESIS) && !p.is(token.RIGHT_BRACE) {
-		if p.implicitSemicolon {
-			p.implicitSemicolon = false
-			return
-		}
-
-		p.consumeExpected(token.SEMICOLON)
-	}
-}
-
 func (p *Parser) is(value token.Token) bool {
 	return p.token == value
 }

@@ -17,11 +17,11 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 		Loc: loc,
 	}
 
-	if !p.implicitSemicolon && !p.is(token.SEMICOLON) && !p.is(token.RIGHT_BRACE) && !p.is(token.EOF) {
+	if !p.consumePossibleSemicolon() {
 		node.Argument = p.parseExpression()
-	}
 
-	p.semicolon()
+		p.semicolon()
+	}
 
 	return node
 }

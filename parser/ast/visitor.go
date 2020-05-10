@@ -85,7 +85,6 @@ type Visitor interface {
 	YieldExpression(exp *YieldExpression) *YieldExpression
 
 	// others
-	ClassFieldName(name ClassFieldName) ClassFieldName
 	PatternBinder(binder PatternBinder) PatternBinder
 	IdentifierBinder(b *IdentifierBinder) *IdentifierBinder
 	ObjectRestBinder(b *ObjectRestBinder) *ObjectRestBinder
@@ -439,21 +438,9 @@ func (w *Walker) ClassStatement(stmt *ClassStatement) Statement {
 
 func (w *Walker) ClassFieldStatement(stmt *ClassFieldStatement) Statement {
 	stmt.Initializer = w.Visitor.Expression(stmt.Initializer)
-	stmt.Name = w.Visitor.ClassFieldName(stmt.Name)
+	stmt.Name = w.Visitor.ObjectPropertyName(stmt.Name)
 
 	return stmt
-}
-
-func (w *Walker) ClassFieldName(name ClassFieldName) ClassFieldName {
-	switch n := name.(type) {
-	case *ComputedName:
-		return w.Visitor.ComputedName(n)
-	case *Identifier:
-		return w.Visitor.Identifier(n)
-
-	default:
-		return n
-	}
 }
 
 func (w *Walker) ComputedName(n *ComputedName) *ComputedName {
@@ -463,14 +450,14 @@ func (w *Walker) ComputedName(n *ComputedName) *ComputedName {
 
 func (w *Walker) ClassAccessorStatement(stmt *ClassAccessorStatement) Statement {
 	stmt.Body = w.Visitor.FunctionLiteral(stmt.Body)
-	stmt.Field = w.Visitor.ClassFieldName(stmt.Field)
+	stmt.Field = w.Visitor.ObjectPropertyName(stmt.Field)
 
 	return stmt
 }
 
 func (w *Walker) ClassMethodStatement(stmt *ClassMethodStatement) Statement {
 	stmt.Body = w.Visitor.Statement(stmt.Body)
-	stmt.Name = w.Visitor.ClassFieldName(stmt.Name)
+	stmt.Name = w.Visitor.ObjectPropertyName(stmt.Name)
 	stmt.Parameters = w.Visitor.FunctionParameters(stmt.Parameters)
 
 	return stmt
@@ -522,7 +509,7 @@ func (w *Walker) CatchStatement(stmt *CatchStatement) Statement {
 		return nil
 	}
 
-	stmt.Parameter = w.Visitor.Identifier(stmt.Parameter)
+	stmt.Parameter = w.Visitor.PatternBinder(stmt.Parameter)
 	stmt.Body = w.Visitor.Statement(stmt.Body)
 
 	return stmt

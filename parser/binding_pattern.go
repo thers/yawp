@@ -30,31 +30,23 @@ func (p *Parser) parseBindingMemberExpressionOrIdentifier() ast.PatternBinder {
 
 func (p *Parser) parseBinder() ast.PatternBinder {
 	switch p.token {
-	case token.IDENTIFIER:
-		if p.allowPatternBindingLeftHandSideExpressions {
-			return p.parseBindingMemberExpressionOrIdentifier()
-		}
-
-		return &ast.IdentifierBinder{
-			Id: p.parseIdentifier(),
-		}
 	case token.LEFT_BRACKET:
 		return p.parseArrayBinding()
 	case token.LEFT_BRACE:
 		return p.parseObjectBinding()
-	case token.LEFT_PARENTHESIS:
-		if p.allowPatternBindingLeftHandSideExpressions {
-			return p.parseBindingMemberExpressionOrIdentifier()
-		} else {
-			p.unexpectedToken()
-
-			return nil
-		}
-	default:
-		p.unexpectedToken()
-
-		return nil
 	}
+
+	if p.allowPatternBindingLeftHandSideExpressions {
+		return p.parseBindingMemberExpressionOrIdentifier()
+	} else {
+		if p.is(token.IDENTIFIER) {
+			return &ast.IdentifierBinder{
+				Id: p.parseIdentifier(),
+			}
+		}
+	}
+
+	p.unexpectedToken()
 
 	return nil
 }

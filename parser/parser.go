@@ -33,7 +33,6 @@ type Parser struct {
 
 	insertSemicolon           bool // If we see a newline, then insert an implicit semicolon
 	implicitSemicolon         bool // An implicit semicolon exists
-	newLineBeforeCurrentToken bool
 
 	advanceLine     bool
 
@@ -58,6 +57,7 @@ func newParser(filename, src string) *Parser {
 		src:    src,
 		length: len(src),
 		file:   file.NewFile(filename, src),
+		scope: &Scope{},
 	}
 }
 

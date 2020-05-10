@@ -8,6 +8,10 @@ import (
 // https://github.com/evanw/esbuild/blob/766e48876293dfe6bb92cce906b1d4db4811b792/internal/lexer/lexer.go#L489
 
 func isIdentifierStart(chr rune) bool {
+	if isEscapeSequenceStart(chr) {
+		return true
+	}
+
 	switch chr {
 	case '_', '$',
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -46,6 +50,10 @@ func isIdentifierPart(chr rune) bool {
 	}
 
 	return unicode.Is(idContinue, chr)
+}
+
+func isEscapeSequenceStart(chr rune) bool {
+	return chr == '\\'
 }
 
 func (p *Parser) skipEscapeSequence() {
