@@ -16,7 +16,6 @@ func TestErrorsLocations(t *testing.T) {
 func TestErrors(t *testing.T) {
 	assert := makeAssert(t)
 
-	assert("!{ *a(b, b){} };", "1:4 Unexpected token *")
 	assert("var x, ;", "1:8 Unexpected token ;")
 	assert("function*g() { try {} catch (yield) {} }", "1:30 Unexpected token yield")
 }
