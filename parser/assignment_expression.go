@@ -23,6 +23,8 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 		operator = token.SLASH
 	case token.REMAINDER_ASSIGN:
 		operator = token.REMAINDER
+	case token.EXPONENTIATION_ASSIGN:
+		operator = token.EXPONENTIATION_ASSIGN
 	case token.AND_ASSIGN:
 		operator = token.AND
 	case token.AND_NOT_ASSIGN:

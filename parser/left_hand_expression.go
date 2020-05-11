@@ -60,11 +60,12 @@ func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
 				break
 			}
 
-			if !p.is(token.LEFT_PARENTHESIS) {
-				p.unexpectedToken()
+			if p.is(token.LEFT_PARENTHESIS) {
+				left = p.parseCallExpression(left, typeArguments)
+			} else {
+				p.toSnapshot(snapshot)
+				break
 			}
-
-			left = p.parseCallExpression(left, typeArguments)
 		} else if p.is(token.LEFT_PARENTHESIS) {
 			left = p.parseCallExpression(left, nil)
 		} else if p.is(token.TEMPLATE_QUOTE) {

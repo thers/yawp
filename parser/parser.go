@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-
 	"yawp/parser/ast"
 	"yawp/parser/file"
 	"yawp/parser/token"
@@ -113,10 +112,21 @@ func ParseModule(filename string, src interface{}) (*ast.Module, error) {
 }
 
 func (p *Parser) parse() (*ast.Module, error) {
-	p.next()
+	if !p.tryNext() {
+		return nil, p.err
+	}
+
 	program := p.parseProgram()
 
 	return program, p.err
+}
+
+func (p *Parser) tryNext() bool {
+	defer p.recover()
+
+	p.next()
+
+	return true
 }
 
 func (p *Parser) next() (idx file.Idx) {

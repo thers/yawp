@@ -17,8 +17,8 @@ type SyntaxError struct {
 	error error
 }
 
-func (se SyntaxError) Error() error {
-	return fmt.Errorf(
+func (se *SyntaxError) Error() string {
+	return fmt.Sprintf(
 		"%d:%d %s",
 		se.Loc.Line,
 		se.Loc.Col,
@@ -96,4 +96,19 @@ func (p *Parser) unexpectedToken() {
 
 func (p *Parser) unexpectedTokenAt(at *file.Loc) {
 	p.errorUnexpectedTokenAt(p.token, at)
+}
+
+func (p *Parser) recover() {
+	err := recover()
+
+	if err == nil {
+		return
+	}
+
+	switch terr := err.(type) {
+	case error:
+		p.err = terr
+	default:
+		panic(terr)
+	}
 }

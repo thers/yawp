@@ -34,11 +34,12 @@ const (
 	UNSIGNED_SHIFT_RIGHT // >>>
 	AND_NOT              // &^
 
-	ADD_ASSIGN       // +=
-	SUBTRACT_ASSIGN  // -=
-	MULTIPLY_ASSIGN  // *=
-	QUOTIENT_ASSIGN  // /=
-	REMAINDER_ASSIGN // %=
+	ADD_ASSIGN            // +=
+	SUBTRACT_ASSIGN       // -=
+	MULTIPLY_ASSIGN       // *=
+	QUOTIENT_ASSIGN       // /=
+	REMAINDER_ASSIGN      // %=
+	EXPONENTIATION_ASSIGN // **=
 
 	AND_ASSIGN                  // &=
 	OR_ASSIGN                   // |=
@@ -191,6 +192,7 @@ var token2string = [...]string{
 	MULTIPLY_ASSIGN:             "*=",
 	QUOTIENT_ASSIGN:             "/=",
 	REMAINDER_ASSIGN:            "%=",
+	EXPONENTIATION_ASSIGN:       "**=",
 	AND_ASSIGN:                  "&=",
 	OR_ASSIGN:                   "|=",
 	EXCLUSIVE_OR_ASSIGN:         "^=",

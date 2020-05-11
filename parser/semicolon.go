@@ -12,7 +12,7 @@ func (p *Parser) consumePossibleSemicolon() bool {
 		return true
 	}
 
-	if p.isAny(token.RIGHT_PARENTHESIS, token.RIGHT_BRACE) {
+	if p.isAny(token.RIGHT_PARENTHESIS, token.RIGHT_BRACE, token.RIGHT_BRACKET) {
 		return true
 	}
 

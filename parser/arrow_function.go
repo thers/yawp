@@ -15,9 +15,11 @@ func (p *Parser) maybeParseArrowFunctionParameterList() *ast.FunctionParameters 
 }
 
 func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
-	// arrow function could not be generators
+	// arrow function can not be generators
 	closeFunctionScope := p.openFunctionScope(false, async)
 	defer closeFunctionScope()
+
+	p.consumeExpected(token.ARROW)
 
 	if p.is(token.LEFT_BRACE) {
 		return p.parseBlockStatement()
@@ -34,8 +36,6 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 
 	if p.is(token.ARROW) {
 		// Parsing arrow function
-		p.next()
-
 		return &ast.ArrowFunctionExpression{
 			Loc:   identifier.GetLoc(),
 			Async: async,
@@ -79,7 +79,6 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	// If no errors occurred while parsing parameters
 	// And next token is => then it's an arrow function
 	if parameters != nil && p.is(token.ARROW) {
-		p.next()
 		return &ast.ArrowFunctionExpression{
 			Loc:        parameters.Loc,
 			Async:      async,
@@ -117,7 +116,6 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 		}
 
 		identifier := p.parseIdentifier()
-		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
 			Loc:            loc,
@@ -153,8 +151,6 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 			return p.parseAssignmentExpression()
 		}
 
-		p.consumeExpected(token.ARROW)
-
 		return &ast.ArrowFunctionExpression{
 			Loc:            sloc,
 			Async:          true,
@@ -183,8 +179,6 @@ func (p *Parser) parseParametrizedArrowFunction() *ast.ArrowFunctionExpression {
 			returnType = p.parseFlowTypeAnnotation()
 			p.forbidUnparenthesizedFunctionType = false
 		}
-
-		p.consumeExpected(token.ARROW)
 
 		return &ast.ArrowFunctionExpression{
 			Loc:            loc,

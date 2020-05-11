@@ -27,6 +27,11 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportStatement) {
 	p.consumeExpected(token.LEFT_BRACE)
 
 	for !p.is(token.RIGHT_BRACE) {
+		if !p.is(token.IDENTIFIER) {
+			p.unexpectedToken()
+			return
+		}
+
 		localIdentifier := p.parseIdentifier()
 		moduleIdentifier := localIdentifier
 
@@ -62,6 +67,11 @@ func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportStatement) {
 	p.consumeExpected(token.MULTIPLY)
 	p.allowToken(token.AS)
 	p.consumeExpected(token.AS)
+
+	if !p.is(token.IDENTIFIER) {
+		p.unexpectedToken()
+		return
+	}
 
 	exp.LocalIdentifier = p.parseIdentifier()
 

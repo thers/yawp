@@ -13,23 +13,6 @@ func (p *Parser) parseSourceElement() ast.Statement {
 func (p *Parser) parseSourceElements() []ast.Statement {
 	body := make([]ast.Statement, 0)
 
-	defer func() {
-		err := recover()
-
-		if err == nil {
-			return
-		}
-
-		switch terr := err.(type) {
-		case error:
-			p.err = terr
-		case *SyntaxError:
-			p.err = terr.Error()
-		default:
-			panic(terr)
-		}
-	}()
-
 	for !p.is(token.EOF) {
 		stmt := p.parseStatement()
 
@@ -42,6 +25,8 @@ func (p *Parser) parseSourceElements() []ast.Statement {
 }
 
 func (p *Parser) parseProgram() *ast.Module {
+	defer p.recover()
+
 	p.openScope()
 	defer p.closeScope()
 	return &ast.Module{

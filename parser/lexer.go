@@ -90,8 +90,7 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			}
 			if len(literal) > 1 {
 				// Keywords are longer than 1 character, avoid lookup otherwise
-				var strict bool
-				tkn, strict = token.IsKeyword(literal)
+				tkn, _ = token.IsKeyword(literal)
 
 				p.tokenIsKeyword = tkn > 0
 
@@ -109,11 +108,8 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 					}
 
 				case token.KEYWORD:
+					p.insertSemicolon = true
 					tkn = token.KEYWORD
-					if strict {
-						// TODO If strict and in strict mode, then this is not a break
-						break
-					}
 					return
 
 				case
@@ -158,13 +154,6 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				case token.AWAIT:
 					p.insertSemicolon = true
 					if !p.scope.allowAwait {
-						tkn = token.IDENTIFIER
-					}
-					return
-
-				case token.YIELD:
-					p.insertSemicolon = true
-					if !p.scope.allowYield {
 						tkn = token.IDENTIFIER
 					}
 					return
@@ -260,7 +249,12 @@ func (p *Parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			case '*':
 				if p.chr == '*' {
 					p.read()
-					tkn = token.EXPONENTIATION
+					if p.chr == '=' {
+						p.read()
+						tkn = token.EXPONENTIATION_ASSIGN
+					} else {
+						tkn = token.EXPONENTIATION
+					}
 				} else {
 					tkn = p.switchAssignment2(token.MULTIPLY, token.MULTIPLY_ASSIGN)
 				}

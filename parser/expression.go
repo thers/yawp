@@ -7,6 +7,11 @@ import (
 )
 
 func (p *Parser) parseIdentifier() *ast.Identifier {
+	if !p.is(token.IDENTIFIER) {
+		p.unexpectedToken()
+		return nil
+	}
+
 	id := p.currentIdentifier()
 	p.next()
 

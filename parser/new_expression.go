@@ -10,11 +10,11 @@ func (p *Parser) parseNewExpression() ast.Expression {
 	p.consumeExpected(token.NEW)
 
 	if p.is(token.PERIOD) {
-		p.consumeExpected(token.PERIOD)
+		periodLoc := p.loc()
+		p.next()
 
-		if !p.is(token.IDENTIFIER) && p.literal != "target" {
-			p.unexpectedToken()
-			p.next()
+		if !p.is(token.IDENTIFIER) || p.literal != "target" {
+			p.error(periodLoc, "Unexpected period")
 			return nil
 		}
 

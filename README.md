@@ -2,7 +2,12 @@
 
 Supports ES2020, Flow, JSX
 
+In order to simplify parser we always assume strict mode.
+
 ---
+### Parser problems left to solve
+- [ ] yield sometimes isn't a keyword and allowed to be used as identifier
+
 ### Optimizer progress
 - [x] identifiers mangling
 - [x] const/let transformation

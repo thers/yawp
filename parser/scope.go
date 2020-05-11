@@ -35,9 +35,11 @@ func (p *Parser) closeScope() {
 }
 
 func (p *Parser) openClassScope() func() {
+	wasAllowYield := p.scope.allowYield
 	p.openScope()
 	wasInClass := p.scope.inClass
 	p.scope.inClass = true
+	p.scope.allowYield = wasAllowYield
 
 	return func() {
 		p.scope.inClass = wasInClass
