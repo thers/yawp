@@ -14,7 +14,7 @@ func (p *Parser) maybeParseArrowFunctionParameterList() *ast.FunctionParameters 
 	return p.parseFunctionParameterList()
 }
 
-func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
+func (p *Parser) parseArrowFunctionBody(async bool) *ast.FunctionBody {
 	// arrow function can not be generators
 	closeFunctionScope := p.openFunctionScope(false, async)
 	defer closeFunctionScope()
@@ -22,12 +22,17 @@ func (p *Parser) parseArrowFunctionBody(async bool) ast.Statement {
 	p.consumeExpected(token.ARROW)
 
 	if p.is(token.LEFT_BRACE) {
-		return p.parseBlockStatement()
+		return p.parseFunctionBody(false, async)
 	}
 
-	return &ast.ReturnStatement{
+	returnStatement := &ast.ReturnStatement{
 		Loc:      p.loc(),
 		Argument: p.parseAssignmentExpression(),
+	}
+
+	return &ast.FunctionBody{
+		Loc:  returnStatement.Loc,
+		List: ast.Statements{returnStatement},
 	}
 }
 

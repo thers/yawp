@@ -1,4 +1,4 @@
-package optimizer
+package transpiler
 
 import (
 	"yawp/ids"
@@ -8,30 +8,30 @@ import (
 
 const ghostIdName = ""
 
-func (o *Optimizer) pushRefScope() *RefScope {
-	parentRefScope := o.refScope
+func (t *Transpiler) pushRefScope() *RefScope {
+	parentRefScope := t.refScope
 
-	o.refScope = &RefScope{
+	t.refScope = &RefScope{
 		Parent: parentRefScope,
 		Refs:   make(map[string]*ast.Ref, 0),
-		ids:    o.ids,
-		minify: o.options.Minify,
+		ids:    t.ids,
+		minify: t.options.Minify,
 	}
 
-	return o.refScope
+	return t.refScope
 }
 
-func (o *Optimizer) popRefScope() *RefScope {
-	refScope := o.refScope
+func (t *Transpiler) popRefScope() *RefScope {
+	refScope := t.refScope
 
-	if o.refScope.Parent != nil {
-		o.refScope = o.refScope.Parent
+	if t.refScope.Parent != nil {
+		t.refScope = t.refScope.Parent
 	}
 
 	return refScope
 }
 
-func (o *Optimizer) resolveTokenToRefKind(tkn token.Token) (kind ast.RefKind) {
+func (t *Transpiler) resolveTokenToRefKind(tkn token.Token) (kind ast.RefKind) {
 	switch tkn {
 	case token.VAR:
 		kind = ast.RVar

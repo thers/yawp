@@ -16,7 +16,7 @@ func (g *Generator) FunctionLiteral(fl *ast.FunctionLiteral) *ast.FunctionLitera
 
 	g.str("){")
 
-	g.Statement(fl.Body)
+	g.FunctionBody(fl.Body)
 
 	g.rune('}')
 

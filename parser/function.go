@@ -48,7 +48,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 	// optional
 	if p.is(token.QUESTION_MARK) {
 		p.next()
-		parameter.SetOptional(true)
+		parameter.SetFlowTypeOptional(true)
 	}
 
 	// type annotation
@@ -137,7 +137,7 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 		node.ReturnType = p.parseFlowTypeAnnotation()
 	}
 
-	p.parseFunctionBlock(node)
+	p.parseFunctionNodeBody(node)
 
 	return node
 }

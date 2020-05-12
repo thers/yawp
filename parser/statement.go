@@ -154,11 +154,23 @@ func (p *Parser) parseParameterList() (list []string) {
 	return
 }
 
-func (p *Parser) parseFunctionBlock(node *ast.FunctionLiteral) {
-	closeFunctionScope := p.openFunctionScope(node.Generator, node.Async)
+func (p *Parser) parseFunctionBody(generator, async bool) *ast.FunctionBody {
+	closeFunctionScope := p.openFunctionScope(generator, async)
 	defer closeFunctionScope()
 
-	node.Body = p.parseBlockStatement()
+	body := &ast.FunctionBody{
+		Loc:  p.loc(),
+	}
+
+	p.consumeExpected(token.LEFT_BRACE)
+	body.List = p.parseStatementList()
+	body.Loc.End(p.consumeExpected(token.RIGHT_BRACE))
+
+	return body
+}
+
+func (p *Parser) parseFunctionNodeBody(node *ast.FunctionLiteral) {
+	node.Body = p.parseFunctionBody(node.Generator, node.Async)
 }
 
 func (p *Parser) parseDebuggerStatement() ast.Statement {

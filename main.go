@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
-	_ "yawp/optimizer"
+	_ "yawp/transpiler"
 	"yawp/parser"
 )
 
@@ -41,8 +41,8 @@ func main() {
 	}
 
 	ops := time.Now()
-	//optimizer.Optimize(ast, opt)
-	fmt.Println("Optimizer pass took: ", time.Since(ops))
+	//transpiler.Transpile(ast, opt)
+	fmt.Println("Transpiler pass took: ", time.Since(ops))
 
 	fmt.Printf("Parser pass took: %s\n", time.Since(start))
 	fmt.Println(len(ast.Body))

@@ -6,18 +6,27 @@ import (
 
 const emptyString = ""
 
+var Arguments = &ast.Identifier{
+	Ref:  &ast.Ref{
+		Name: "arguments",
+		Kind: ast.RBuiltin,
+		Mangled: true,
+	},
+	Name: "arguments",
+}
+
 var SlicedArrayRest = &ast.Identifier{
 	Ref: &ast.Ref{
-		Name: emptyString,
+		Name: "@slicedArrayRest",
 		Kind: ast.RBuiltin,
 	},
-	Name: emptyString,
+	Name: "@slicedArrayRest",
 }
 
 var ObjectRest = &ast.Identifier{
 	Ref: &ast.Ref{
-		Name: emptyString,
+		Name: "@objectRest",
 		Kind: ast.RBuiltin,
 	},
-	Name: emptyString,
+	Name: "@objectRest",
 }

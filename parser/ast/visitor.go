@@ -5,6 +5,7 @@ type Visitor interface {
 
 	// statements
 	Statement(stmt Statement) Statement
+	Statements(stmt Statements) Statements
 	ExportDeclaration(stmt *ExportStatement) Statement
 	ImportDeclaration(stmt *ImportStatement) Statement
 	FlowTypeStatement(stmt *FlowTypeStatement) *FlowTypeStatement
@@ -38,6 +39,7 @@ type Visitor interface {
 
 	// expressions
 	Expression(exp Expression) Expression
+	Expressions(exps Expressions) Expressions
 	Identifier(exp *Identifier) *Identifier
 	MemberExpression(exp *MemberExpression) Expression
 
@@ -93,16 +95,20 @@ type Visitor interface {
 	ArrayItemBinder(b *ArrayItemBinder) *ArrayItemBinder
 	ArrayBinding(b *ArrayBinding) *ArrayBinding
 	ObjectBinding(b *ObjectBinding) *ObjectBinding
+
+	FunctionBody(fb *FunctionBody) *FunctionBody
 	FunctionParameters(params *FunctionParameters) *FunctionParameters
 	FunctionParameter(param FunctionParameter) FunctionParameter
-	IdentifierParameter(p *IdentifierParameter) *IdentifierParameter
-	RestParameter(p *RestParameter) *RestParameter
-	PatternParameter(p *PatternParameter) *PatternParameter
+	IdentifierParameter(ip *IdentifierParameter) FunctionParameter
+	RestParameter(rp *RestParameter) FunctionParameter
+	PatternParameter(pp *PatternParameter) FunctionParameter
+
 	ObjectProperty(p ObjectProperty) ObjectProperty
 	ObjectPropertySetter(p *ObjectPropertySetter) *ObjectPropertySetter
 	ObjectPropertyGetter(p *ObjectPropertyGetter) *ObjectPropertyGetter
 	ObjectPropertyValue(p *ObjectPropertyValue) *ObjectPropertyValue
 	ObjectPropertyName(n ObjectPropertyName) ObjectPropertyName
+
 	ComputedName(n *ComputedName) *ComputedName
 	ExportClause(c ExportClause) ExportClause
 	ExportNamespaceFromClause(c *ExportNamespaceFromClause) *ExportNamespaceFromClause
@@ -131,12 +137,22 @@ func (w *Walker) Body(stmts []Statement) []Statement {
 	return stmts
 }
 
+func (w *Walker) Statements(statements Statements) Statements {
+	for index, statement := range statements {
+		statements[index] = w.Visitor.Statement(statement)
+	}
+
+	return statements
+}
+
 func (w *Walker) Statement(stmt Statement) Statement {
 	if stmt == nil {
 		return nil
 	}
 
 	switch s := stmt.(type) {
+	case Statements:
+		stmt = w.Visitor.Statements(s)
 	case *ExportStatement:
 		stmt = w.Visitor.ExportDeclaration(s)
 	case *ImportStatement:
@@ -215,12 +231,22 @@ func (w *Walker) Statement(stmt Statement) Statement {
 	return stmt
 }
 
+func (w *Walker) Expressions(exps Expressions) Expressions {
+	for index, exp := range exps {
+		exps[index] = w.Visitor.Expression(exp)
+	}
+
+	return exps
+}
+
 func (w *Walker) Expression(exp Expression) Expression {
 	if exp == nil {
 		return nil
 	}
 
 	switch s := exp.(type) {
+	case Expressions:
+		exp = w.Visitor.Expressions(s)
 	case *Identifier:
 		exp = w.Visitor.Identifier(s)
 	case *MemberExpression:
@@ -630,9 +656,17 @@ func (w *Walker) Identifier(exp *Identifier) *Identifier {
 func (w *Walker) FunctionLiteral(stmt *FunctionLiteral) *FunctionLiteral {
 	stmt.Id = w.Visitor.Identifier(stmt.Id)
 	stmt.Parameters = w.Visitor.FunctionParameters(stmt.Parameters)
-	stmt.Body = w.Visitor.Statement(stmt.Body)
+	stmt.Body = w.Visitor.FunctionBody(stmt.Body)
 
 	return stmt
+}
+
+func (w *Walker) FunctionBody(fb *FunctionBody) *FunctionBody {
+	for index, statement := range fb.List {
+		fb.List[index] = w.Visitor.Statement(statement)
+	}
+
+	return fb
 }
 
 func (w *Walker) StringLiteral(exp *StringLiteral) *StringLiteral {
@@ -865,7 +899,7 @@ func (w *Walker) ArrowFunctionExpression(exp *ArrowFunctionExpression) *ArrowFun
 		return nil
 	}
 
-	exp.Body = w.Visitor.Statement(exp.Body)
+	exp.Body = w.Visitor.FunctionBody(exp.Body)
 
 	for index, param := range exp.Parameters {
 		exp.Parameters[index] = w.Visitor.FunctionParameter(param)
@@ -947,24 +981,24 @@ func (w *Walker) FunctionParameter(param FunctionParameter) FunctionParameter {
 	}
 }
 
-func (w *Walker) IdentifierParameter(p *IdentifierParameter) *IdentifierParameter {
-	p.Id = w.Visitor.Identifier(p.Id)
-	p.DefaultValue = w.Visitor.Expression(p.DefaultValue)
+func (w *Walker) IdentifierParameter(ip *IdentifierParameter) FunctionParameter {
+	ip.Id = w.Visitor.Identifier(ip.Id)
+	ip.DefaultValue = w.Visitor.Expression(ip.DefaultValue)
 
-	return p
+	return ip
 }
 
-func (w *Walker) PatternParameter(p *PatternParameter) *PatternParameter {
-	p.Binder = w.Visitor.PatternBinder(p.Binder)
-	p.DefaultValue = w.Visitor.Expression(p.DefaultValue)
+func (w *Walker) PatternParameter(pp *PatternParameter) FunctionParameter {
+	pp.Binder = w.Visitor.PatternBinder(pp.Binder)
+	pp.DefaultValue = w.Visitor.Expression(pp.DefaultValue)
 
-	return p
+	return pp
 }
 
-func (w *Walker) RestParameter(p *RestParameter) *RestParameter {
-	p.Binder = w.Visitor.PatternBinder(p.Binder)
+func (w *Walker) RestParameter(rp *RestParameter) FunctionParameter {
+	rp.Binder = w.Visitor.PatternBinder(rp.Binder)
 
-	return p
+	return rp
 }
 
 func (w *Walker) PatternBinder(p PatternBinder) PatternBinder {

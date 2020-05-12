@@ -81,7 +81,7 @@ func (p *Parser) parseObjectPropertyMethodShorthand(
 		Parameters: parameterList,
 	}
 
-	p.parseFunctionBlock(functionLiteral)
+	p.parseFunctionNodeBody(functionLiteral)
 
 	return &ast.ObjectPropertyValue{
 		PropertyName: propertyName,
@@ -98,7 +98,7 @@ func (p *Parser) parseObjectPropertyValue(loc *file.Loc, propertyName ast.Object
 			Parameters: parameterList,
 		}
 
-		p.parseFunctionBlock(functionLiteral)
+		p.parseFunctionNodeBody(functionLiteral)
 
 		return &ast.ObjectPropertyValue{
 			PropertyName: propertyName,
@@ -211,7 +211,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 						Loc:        loc,
 						Parameters: parameterList,
 					}
-					p.parseFunctionBlock(functionLiteral)
+					p.parseFunctionNodeBody(functionLiteral)
 
 					if accessor == "set" {
 						return &ast.ObjectPropertySetter{

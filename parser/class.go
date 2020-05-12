@@ -59,7 +59,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 					Parameters: p.parseFunctionParameterList(),
 				}
 
-				p.parseFunctionBlock(node)
+				p.parseFunctionNodeBody(node)
 
 				return &ast.ClassAccessorStatement{
 					Loc:   loc,

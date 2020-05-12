@@ -21,6 +21,8 @@ type (
 		_expressionNode()
 	}
 
+	Expressions []Expression
+
 	AssignExpression struct {
 		Operator token.Token
 		Left     Expression
@@ -83,11 +85,6 @@ type (
 		Literal string
 	}
 
-	FunctionParameters struct {
-		Loc  *file.Loc
-		List []FunctionParameter
-	}
-
 	RegExpLiteral struct {
 		Loc     *file.Loc
 		Literal string
@@ -123,7 +120,7 @@ type (
 		TypeParameters []*FlowTypeParameter
 		ReturnType     FlowType
 		Parameters     []FunctionParameter
-		Body           Statement
+		Body           *FunctionBody
 		Async          bool
 	}
 
@@ -134,6 +131,9 @@ type (
 )
 
 // _expressionNode
+
+func (Expressions) _expressionNode()    {}
+func (e Expressions) GetLoc() *file.Loc { return e[0].GetLoc() }
 
 func (*AssignExpression) _expressionNode()        {}
 func (*BinaryExpression) _expressionNode()        {}
@@ -162,6 +162,8 @@ type (
 		Node
 		_statementNode()
 	}
+
+	Statements []Statement
 
 	BlockStatement struct {
 		Loc  *file.Loc
@@ -248,6 +250,9 @@ type (
 )
 
 // _statementNode
+
+func (Statements) _statementNode()     {}
+func (s Statements) GetLoc() *file.Loc { return s[0].GetLoc() }
 
 func (*BlockStatement) _statementNode()      {}
 func (*BranchStatement) _statementNode()     {}

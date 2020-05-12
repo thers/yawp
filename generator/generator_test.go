@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
-	"yawp/optimizer"
+	"yawp/transpiler"
 	"yawp/options"
 	"yawp/parser"
 )
@@ -12,13 +12,13 @@ import (
 func TestPlayground(t *testing.T) {
 	opt := &options.Options{
 		Target: options.ES5,
-		Minify: false,
+		Minify: true,
 	}
 
 	parserStart := time.Now()
 	// language=js
 	prog, err := parser.ParseModule("", `
-\u12
+function test(...a) {return a}
 	`)
 	fmt.Println("Parser pass took:", time.Since(parserStart))
 
@@ -27,8 +27,8 @@ func TestPlayground(t *testing.T) {
 	}
 
 	optimizerStart := time.Now()
-	optimizer.Optimize(prog, opt)
-	fmt.Println("Optimizer pass took: ", time.Since(optimizerStart))
+	transpiler.Transpile(prog, opt)
+	fmt.Println("Transpiler pass took: ", time.Since(optimizerStart))
 
 	generatorStart := time.Now()
 	str := Generate(opt, prog)
