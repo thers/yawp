@@ -18,7 +18,7 @@ func TestPlayground(t *testing.T) {
 	parserStart := time.Now()
 	// language=js
 	prog, err := parser.ParseModule("", `
-function test(...a) {return a}
+function test([b] = 1, ...a) {return a + b}
 	`)
 	fmt.Println("Parser pass took:", time.Since(parserStart))
 
