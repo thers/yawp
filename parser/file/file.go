@@ -34,6 +34,10 @@ func (l *Loc) Add(loc *Loc) *Loc {
 }
 
 func (l *Loc) Copy() *Loc {
+	if l == nil {
+		return &Loc{}
+	}
+
 	return &Loc{
 		From: l.From,
 		To:   l.To,

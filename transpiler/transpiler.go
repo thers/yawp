@@ -51,10 +51,10 @@ func (t *Transpiler) pushFunctionScope() func() {
 	}
 }
 
-func (t *Transpiler) Body(stmts []ast.Statement) []ast.Statement {
+func (t *Transpiler) Body(stmts []ast.IStmt) []ast.IStmt {
 	stmts = t.Walker.Body(stmts)
 
-	extras := make([]ast.Statement, 0)
+	extras := make([]ast.IStmt, 0)
 
 	if t.thisScope.ThisInitializer != nil {
 		extras = append(extras, &ast.VariableStatement{
@@ -74,14 +74,14 @@ func (t *Transpiler) Body(stmts []ast.Statement) []ast.Statement {
 	return append(extras, stmts...)
 }
 
-func (t *Transpiler) BlockStatement(bs *ast.BlockStatement) ast.Statement {
+func (t *Transpiler) BlockStatement(bs *ast.BlockStatement) ast.IStmt {
 	t.pushRefScope()
 	defer t.popRefScope()
 
 	return t.Walker.BlockStatement(bs)
 }
 
-func (t *Transpiler) MemberExpression(me *ast.MemberExpression) ast.Expression {
+func (t *Transpiler) MemberExpression(me *ast.MemberExpression) ast.IExpr {
 	if leftIdentifier, ok := me.Left.(*ast.Identifier); ok {
 		me.Left = t.Identifier(leftIdentifier)
 	} else {

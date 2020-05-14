@@ -94,7 +94,7 @@ func (g *Generator) BinaryExpression(b *ast.BinaryExpression) *ast.BinaryExpress
 	return b
 }
 
-func (g *Generator) AssignExpression(a *ast.AssignExpression) *ast.AssignExpression {
+func (g *Generator) AssignExpression(a *ast.AssignmentExpression) *ast.AssignmentExpression {
 	g.Expression(a.Left)
 	g.str(a.Operator.String())
 	g.Expression(a.Right)
@@ -119,7 +119,7 @@ func (g *Generator) CallExpression(c *ast.CallExpression) *ast.CallExpression {
 	return c
 }
 
-func (g *Generator) MemberExpression(me *ast.MemberExpression) ast.Expression {
+func (g *Generator) MemberExpression(me *ast.MemberExpression) ast.IExpr {
 	wrapExpression := g.wrapExpression
 	g.wrapExpression = true
 	g.Expression(me.Left)

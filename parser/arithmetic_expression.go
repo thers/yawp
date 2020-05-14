@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseMultiplicativeExpression() ast.Expression {
+func (p *Parser) parseMultiplicativeExpression() ast.IExpr {
 	next := p.parseUnaryExpression
 	left := next()
 
@@ -23,7 +23,7 @@ func (p *Parser) parseMultiplicativeExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseAdditiveExpression() ast.Expression {
+func (p *Parser) parseAdditiveExpression() ast.IExpr {
 	next := p.parseMultiplicativeExpression
 	left := next()
 

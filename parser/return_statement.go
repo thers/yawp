@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseReturnStatement() ast.Statement {
+func (p *Parser) parseReturnStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.RETURN)
 
@@ -14,7 +14,7 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 	}
 
 	node := &ast.ReturnStatement{
-		Loc: loc,
+		StmtNode: p.stmtNodeAt(loc),
 	}
 
 	if !p.consumePossibleSemicolon() {

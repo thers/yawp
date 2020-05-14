@@ -7,7 +7,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseIterationStatement() ast.Statement {
+func (p *Parser) parseIterationStatement() ast.IStmt {
 	inIteration := p.scope.inIteration
 	p.scope.inIteration = true
 	defer func() {
@@ -16,39 +16,39 @@ func (p *Parser) parseIterationStatement() ast.Statement {
 	return p.parseStatement()
 }
 
-func (p *Parser) parseForIn(loc *file.Loc, into ast.Statement) *ast.ForInStatement {
+func (p *Parser) parseForIn(loc *file.Loc, into ast.IStmt) *ast.ForInStatement {
 	// Already have consumed "<into> in"
 
 	source := p.parseExpression()
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
 	return &ast.ForInStatement{
-		Loc:   loc,
-		Left:  into,
-		Right: source,
-		Body:  p.parseIterationStatement(),
+		StmtNode: p.stmtNodeAt(loc),
+		Left:     into,
+		Right:    source,
+		Body:     p.parseIterationStatement(),
 	}
 }
 
-func (p *Parser) parseForOf(loc *file.Loc, into ast.Statement) *ast.ForOfStatement {
+func (p *Parser) parseForOf(loc *file.Loc, into ast.IStmt) *ast.ForOfStatement {
 	// Already have consumed "<into> of"
 
 	source := p.parseExpression()
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
 	return &ast.ForOfStatement{
-		Loc:   loc,
-		Left:  into,
-		Right: source,
-		Body:  p.parseIterationStatement(),
+		StmtNode: p.stmtNodeAt(loc),
+		Left:     into,
+		Right:    source,
+		Body:     p.parseIterationStatement(),
 	}
 }
 
-func (p *Parser) parseFor(loc *file.Loc, initializer ast.Statement) *ast.ForStatement {
+func (p *Parser) parseFor(loc *file.Loc, initializer ast.IStmt) *ast.ForStatement {
 
 	// Already have consumed "<initializer> ;"
 
-	var test, update ast.Expression
+	var test, update ast.IExpr
 
 	if !p.is(token.SEMICOLON) {
 		test = p.parseExpression()
@@ -61,7 +61,7 @@ func (p *Parser) parseFor(loc *file.Loc, initializer ast.Statement) *ast.ForStat
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
 	return &ast.ForStatement{
-		Loc:         loc,
+		StmtNode:    p.stmtNodeAt(loc),
 		Initializer: initializer,
 		Test:        test,
 		Update:      update,
@@ -69,10 +69,10 @@ func (p *Parser) parseFor(loc *file.Loc, initializer ast.Statement) *ast.ForStat
 	}
 }
 
-func (p *Parser) maybeParseExpression() ast.Expression {
+func (p *Parser) maybeParseExpression() ast.IExpr {
 	wasAllowIn := p.scope.allowIn
 	p.scope.allowIn = false
-	defer func(){
+	defer func() {
 		_ = recover()
 		p.scope.allowIn = wasAllowIn
 	}()
@@ -88,7 +88,7 @@ func (p *Parser) getForKind() (isForIn, isForOf, isFor bool) {
 	return
 }
 
-func (p *Parser) parseForStatement() ast.Statement {
+func (p *Parser) parseForStatement() ast.IStmt {
 	start := p.loc()
 	p.consumeExpected(token.FOR)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
@@ -107,9 +107,9 @@ func (p *Parser) parseForStatement() ast.Statement {
 		p.next()
 
 		left := &ast.VariableStatement{
-			Loc:  loc,
-			Kind: kind,
-			List: p.parseVariableDeclarationList(kind),
+			StmtNode: p.stmtNodeAt(loc),
+			Kind:     kind,
+			List:     p.parseVariableDeclarationList(kind),
 		}
 
 		isForIn, isForOf, isFor := p.getForKind()
@@ -153,13 +153,13 @@ func (p *Parser) parseForStatement() ast.Statement {
 		switch p.token {
 		case token.LEFT_BRACE:
 			left.Expression = &ast.VariableBinding{
-				Loc:    p.loc(),
-				Binder: p.parseObjectBindingAllowLHS(),
+				ExprNode: p.exprNode(),
+				Binder:   p.parseObjectBindingAllowLHS(),
 			}
 		case token.LEFT_BRACKET:
 			left.Expression = &ast.VariableBinding{
-				Loc:    p.loc(),
-				Binder: p.parseArrayBindingAllowLHS(),
+				ExprNode: p.exprNode(),
+				Binder:   p.parseArrayBindingAllowLHS(),
 			}
 		default:
 			p.unexpectedToken()
@@ -182,7 +182,7 @@ func (p *Parser) parseForStatement() ast.Statement {
 		switch leftExp := left.Expression.(type) {
 		case *ast.Identifier:
 			left.Expression = &ast.VariableBinding{
-				Loc: leftExp.GetLoc(),
+				ExprNode: leftExp.ExprNode,
 				Binder: &ast.IdentifierBinder{
 					Id: leftExp,
 				},
@@ -190,15 +190,15 @@ func (p *Parser) parseForStatement() ast.Statement {
 		case *ast.ArrayLiteral:
 			p.toSnapshot(snapshot)
 			left.Expression = &ast.VariableBinding{
-				Loc:    leftExp.GetLoc(),
-				Binder: p.parseArrayBindingAllowLHS(),
+				ExprNode: leftExp.ExprNode,
+				Binder:   p.parseArrayBindingAllowLHS(),
 			}
 			p.next()
 		case *ast.ObjectLiteral:
 			p.toSnapshot(snapshot)
 			left.Expression = &ast.VariableBinding{
-				Loc:    leftExp.GetLoc(),
-				Binder: p.parseObjectBindingAllowLHS(),
+				ExprNode: leftExp.ExprNode,
+				Binder:   p.parseObjectBindingAllowLHS(),
 			}
 			p.next()
 		}

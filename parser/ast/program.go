@@ -11,7 +11,7 @@ type ModuleAdditions struct {
 
 type Module struct {
 	File *file.File
-	Body []Statement
+	Body []IStmt
 
 	Ids       *ids.Ids
 	Additions ModuleAdditions

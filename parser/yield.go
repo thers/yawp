@@ -13,7 +13,7 @@ func (p *Parser) parseYieldExpression() *ast.YieldExpression {
 	}
 
 	exp := &ast.YieldExpression{
-		Loc: p.loc(),
+		ExprNode: p.exprNode(),
 	}
 
 	p.consumeExpected(token.YIELD)

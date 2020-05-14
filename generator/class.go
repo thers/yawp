@@ -5,7 +5,7 @@ import (
 	"yawp/parser/ast"
 )
 
-func (g *Generator) ClassStatement(c *ast.ClassStatement) ast.Statement {
+func (g *Generator) ClassStatement(c *ast.ClassStatement) ast.IStmt {
 	g.ClassExpression(c.Expression)
 
 	return c

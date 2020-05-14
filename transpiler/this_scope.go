@@ -13,7 +13,7 @@ type ThisScope struct {
 	NeedsReplacement bool
 
 	ThisId          *ast.Identifier
-	ThisInitializer ast.Expression
+	ThisInitializer ast.IExpr
 }
 
 func (t *Transpiler) pushThisScope() {
@@ -42,7 +42,7 @@ func (t *Transpiler) getThisReplacement() *ast.Identifier {
 	return t.thisScope.ThisId
 }
 
-func (t *Transpiler) getThisDeclaration() ast.Statement {
+func (t *Transpiler) getThisDeclaration() ast.IStmt {
 	if t.thisScope.ThisInitializer == nil {
 		return nil
 	}

@@ -12,7 +12,7 @@ func (t *Transpiler) pushExtraVariableBinding(vb *ast.VariableBinding) {
 	t.extraVariables = append(t.extraVariables, vb)
 }
 
-func (t *Transpiler) VariableStatement(vs *ast.VariableStatement) ast.Statement {
+func (t *Transpiler) VariableStatement(vs *ast.VariableStatement) ast.IStmt {
 	// resolve variable kind to ref kind early
 	t.bindingRefKind = t.resolveTokenToRefKind(vs.Kind)
 	defer func() {
@@ -72,7 +72,7 @@ func (t *Transpiler) forkVariableBinding(vb *ast.VariableBinding) {
 	ghostId := t.refScope.GhostId()
 
 	t.pushExtraVariableBinding(&ast.VariableBinding{
-		Loc:  vb.GetLoc(),
+		ExprNode: vb.ExprNode.Copy(),
 		Kind: token.VAR,
 		Binder: &ast.IdentifierBinder{
 			Id: ghostId,
@@ -106,7 +106,7 @@ func (t *Transpiler) es5PatternBinder(pb ast.PatternBinder, vb *ast.VariableBind
 
 func (t *Transpiler) es5ObjectBinding(ob *ast.ObjectBinding, vb *ast.VariableBinding) *ast.VariableBinding {
 	for index, propBinder := range ob.List {
-		nvb := t.es5PatternBinder(propBinder, vb.Clone())
+		nvb := t.es5PatternBinder(propBinder, vb.Copy())
 
 		// last one should be returned
 		if index == len(ob.List)-1 {
@@ -122,7 +122,7 @@ func (t *Transpiler) es5ObjectBinding(ob *ast.ObjectBinding, vb *ast.VariableBin
 
 func (t *Transpiler) es5ArrayBinding(ab *ast.ArrayBinding, vb *ast.VariableBinding) *ast.VariableBinding {
 	for index, propBinder := range ab.List {
-		nvb := t.es5PatternBinder(propBinder, vb.Clone())
+		nvb := t.es5PatternBinder(propBinder, vb.Copy())
 
 		// last one should be returned
 		if index == len(ab.List)-1 {
@@ -192,7 +192,7 @@ func (t *Transpiler) es5ObjectRestBinder(orb *ast.ObjectRestBinder, vb *ast.Vari
 
 	vb.Initializer = &ast.CallExpression{
 		Callee: builtins.ObjectRest,
-		ArgumentList: []ast.Expression{
+		ArgumentList: []ast.IExpr{
 			vb.Initializer,
 			&ast.ArrayLiteral{
 				List: propertiesToStrings(orb.OmitProperties),
@@ -204,8 +204,8 @@ func (t *Transpiler) es5ObjectRestBinder(orb *ast.ObjectRestBinder, vb *ast.Vari
 	return vb
 }
 
-func propertiesToStrings(list []ast.ObjectPropertyName) []ast.Expression {
-	strs := make([]ast.Expression, 0, len(list))
+func propertiesToStrings(list []ast.ObjectPropertyName) []ast.IExpr {
+	strs := make([]ast.IExpr, 0, len(list))
 
 	for _, id := range list {
 		if identifier, ok := id.(*ast.Identifier); ok {

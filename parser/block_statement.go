@@ -7,7 +7,7 @@ import (
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	node := &ast.BlockStatement{
-		Loc: p.loc(),
+		StmtNode: p.stmtNode(),
 	}
 
 	p.consumeExpected(token.LEFT_BRACE)
@@ -17,7 +17,7 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	return node
 }
 
-func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
+func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.IStmt {
 	loc := p.loc()
 	snapshot := p.snapshot()
 
@@ -27,8 +27,9 @@ func (p *Parser) parseBlockStatementOrObjectPatternBinding() ast.Statement {
 		p.consumeExpected(token.ASSIGN)
 
 		return &ast.ExpressionStatement{
+			StmtNode: p.stmtNode(),
 			Expression: &ast.VariableBinding{
-				Loc:         loc,
+				ExprNode:    p.exprNodeAt(loc),
 				Binder:      objectBinding,
 				Initializer: p.parseAssignmentExpression(),
 			},

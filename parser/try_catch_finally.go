@@ -5,13 +5,13 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseTryStatement() ast.Statement {
+func (p *Parser) parseTryStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.TRY)
 
 	node := &ast.TryStatement{
-		Loc:  loc,
-		Body: p.parseBlockStatement(),
+		StmtNode: p.stmtNodeAt(loc),
+		Body:     p.parseBlockStatement(),
 	}
 
 	if p.is(token.CATCH) {
@@ -28,7 +28,7 @@ func (p *Parser) parseTryStatement() ast.Statement {
 		}
 
 		node.Catch = &ast.CatchStatement{
-			Loc:       catchLoc,
+			StmtNode:  p.stmtNodeAt(catchLoc),
 			Parameter: parameter,
 			Body:      p.parseBlockStatement(),
 		}

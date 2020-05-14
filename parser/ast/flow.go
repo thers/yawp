@@ -6,23 +6,8 @@ import (
 )
 
 type (
-	FlowTypeStatement struct {
-		Loc            *file.Loc
-		Name           *FlowIdentifier
-		Opaque         bool
-		Type           FlowType
-		TypeParameters []*FlowTypeParameter
-	}
-
-	FlowInterfaceStatement struct {
-		Loc            *file.Loc
-		Name           *FlowIdentifier
-		TypeParameters []*FlowTypeParameter
-		Body           []FlowInterfaceBodyStatement
-	}
-
 	FlowType interface {
-		Node
+		INode
 		_flowType()
 	}
 
@@ -110,11 +95,6 @@ type (
 	FlowTypeOfType struct {
 		Loc        *file.Loc
 		Identifier *FlowIdentifier
-	}
-
-	FlowTypeAssertion struct {
-		Left     Expression
-		FlowType FlowType
 	}
 
 	FlowOptionalType struct {
@@ -205,19 +185,8 @@ func (*FlowNamedObjectProperty) _flowInterfaceBodyStatement()   {}
 func (*FlowIndexerObjectProperty) _flowInterfaceBodyStatement() {}
 func (*FlowInterfaceMethod) _flowInterfaceBodyStatement()       {}
 
-func (*FlowTypeAssertion) _expressionNode() {}
-
-func (*FlowTypeStatement) _statementNode()      {}
-func (*FlowInterfaceStatement) _statementNode() {}
-
 func (*FlowTypeStatement) _exportClauseNode()      {}
 func (*FlowInterfaceStatement) _exportClauseNode() {}
-
-func (f *FlowTypeAssertion) GetLoc() *file.Loc {
-	return f.Left.GetLoc().Add(f.FlowType.GetLoc())
-}
-func (f *FlowTypeStatement) GetLoc() *file.Loc      { return f.Loc }
-func (f *FlowInterfaceStatement) GetLoc() *file.Loc { return f.Loc }
 
 func (f *FlowPrimitiveType) GetLoc() *file.Loc     { return f.Loc }
 func (f *FlowTrueType) GetLoc() *file.Loc          { return f.Loc }
@@ -247,7 +216,27 @@ func (f *FlowGenericType) GetLoc() *file.Loc {
 
 func (fi *FlowIdentifier) Identifier() *Identifier {
 	return &Identifier{
-		Loc:  fi.Loc,
+		ExprNode: ExprNode{
+			Loc: fi.Loc,
+		},
 		Name: fi.Name,
 	}
 }
+
+func (f *FlowPrimitiveType) GetNode() *Node     { return nil }
+func (f *FlowTrueType) GetNode() *Node          { return nil }
+func (f *FlowFalseType) GetNode() *Node         { return nil }
+func (f *FlowStringLiteralType) GetNode() *Node { return nil }
+func (f *FlowNumberLiteralType) GetNode() *Node { return nil }
+func (f *FlowIdentifier) GetNode() *Node        { return nil }
+func (f *FlowTypeOfType) GetNode() *Node        { return nil }
+func (f *FlowOptionalType) GetNode() *Node      { return nil }
+func (f *FlowInexactObject) GetNode() *Node     { return nil }
+func (f *FlowExactObject) GetNode() *Node       { return nil }
+func (f *FlowTupleType) GetNode() *Node         { return nil }
+func (f *FlowExistentialType) GetNode() *Node   { return nil }
+func (f *FlowFunctionType) GetNode() *Node      { return nil }
+func (f *FlowUnionType) GetNode() *Node         { return nil }
+func (f *FlowIntersectionType) GetNode() *Node  { return nil }
+func (f *FlowGenericType) GetNode() *Node       { return nil }
+func (f *FlowArrayType) GetNode() *Node         { return nil }

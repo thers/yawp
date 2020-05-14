@@ -84,7 +84,7 @@ func ReadSource(filename string, src interface{}) ([]byte, error) {
 }
 
 // ParseModule parses the source code of a single JavaScript/ECMAScript source file and returns
-// the corresponding ast.Module node.
+// the corresponding ast.Module exprNode.
 //
 // If fileSet == nil, ParseModule parses source without a FileSet.
 // If fileSet != nil, ParseModule first adds filename and src to fileSet.
@@ -136,7 +136,7 @@ func (p *Parser) next() (idx file.Idx) {
 }
 
 // ParseFunctionForTests parses a given parameter list and body as a function and returns the
-// corresponding ast.FunctionLiteral node.
+// corresponding ast.FunctionLiteral exprNode.
 //
 // The parameter list, if any, should be a comma-separated list of identifiers.
 //

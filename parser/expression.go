@@ -22,25 +22,24 @@ func (p *Parser) parseString() *ast.StringLiteral {
 	defer p.next()
 
 	return &ast.StringLiteral{
-		Loc:     p.loc(),
-		Literal: p.literal,
+		ExprNode: p.exprNode(),
+		Literal:  p.literal,
 	}
 }
-
 
 func (p *Parser) parseNumber() *ast.NumberLiteral {
 	defer p.next()
 
 	return &ast.NumberLiteral{
-		Loc:     p.loc(),
-		Literal: p.literal,
+		ExprNode: p.exprNode(),
+		Literal:  p.literal,
 	}
 }
 
 func (p *Parser) currentIdentifier() *ast.Identifier {
 	return &ast.Identifier{
-		Loc:  p.loc(),
-		Name: p.literal,
+		ExprNode: p.exprNode(),
+		Name:     p.literal,
 	}
 }
 
@@ -52,8 +51,8 @@ func (p *Parser) parseIdentifierIncludingKeywords() *ast.Identifier {
 		p.next()
 
 		return &ast.Identifier{
-			Loc:  loc,
-			Name: literal,
+			ExprNode: p.exprNodeAt(loc),
+			Name:     literal,
 		}
 	}
 
@@ -97,14 +96,14 @@ func (p *Parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	loc.End(file.Idx(endOffset))
 
 	return &ast.RegExpLiteral{
-		Loc:     loc,
-		Literal: literal,
-		Pattern: pattern,
-		Flags:   flags,
+		ExprNode: p.exprNodeAt(loc),
+		Literal:  literal,
+		Pattern:  pattern,
+		Flags:    flags,
 	}
 }
 
-func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end file.Idx) {
+func (p *Parser) parseArgumentList() (argumentList []ast.IExpr, start, end file.Idx) {
 	start = p.consumeExpected(token.LEFT_PARENTHESIS)
 
 	for p.until(token.RIGHT_PARENTHESIS) {
@@ -113,8 +112,8 @@ func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end 
 			p.consumeExpected(token.DOTDOTDOT)
 
 			argumentList = append(argumentList, &ast.SpreadExpression{
-				Loc:   loc,
-				Value: p.parseAssignmentExpression(),
+				ExprNode: p.exprNodeAt(loc),
+				Value:    p.parseAssignmentExpression(),
 			})
 		} else {
 			argumentList = append(argumentList, p.parseAssignmentExpression())
@@ -127,17 +126,18 @@ func (p *Parser) parseArgumentList() (argumentList []ast.Expression, start, end 
 	return
 }
 
-func (p *Parser) parseCallExpression(left ast.Expression, typeArguments []ast.FlowType) ast.Expression {
+func (p *Parser) parseCallExpression(left ast.IExpr, typeArguments []ast.FlowType) ast.IExpr {
 	argumentList, _, _ := p.parseArgumentList()
 
 	return &ast.CallExpression{
+		ExprNode:      p.exprNodeAt(left.GetLoc()),
 		Callee:        left,
 		TypeArguments: typeArguments,
 		ArgumentList:  argumentList,
 	}
 }
 
-func (p *Parser) parsePostfixExpression() ast.Expression {
+func (p *Parser) parsePostfixExpression() ast.IExpr {
 	operand := p.parseLeftHandSideExpressionAllowCall()
 
 	switch p.token {
@@ -159,7 +159,7 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 		}
 
 		return &ast.UnaryExpression{
-			Loc:      loc,
+			ExprNode: p.exprNodeAt(loc),
 			Operator: tkn,
 			Operand:  operand,
 			Postfix:  true,
@@ -169,8 +169,7 @@ func (p *Parser) parsePostfixExpression() ast.Expression {
 	return operand
 }
 
-func (p *Parser) parseUnaryExpression() ast.Expression {
-
+func (p *Parser) parseUnaryExpression() ast.IExpr {
 	switch p.token {
 	case token.PLUS, token.MINUS, token.NOT, token.BITWISE_NOT:
 		fallthrough
@@ -181,7 +180,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 		p.next()
 
 		return &ast.UnaryExpression{
-			Loc:      loc,
+			ExprNode: p.exprNodeAt(loc),
 			Operator: tkn,
 			Operand:  p.parseUnaryExpression(),
 		}
@@ -198,7 +197,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 			p.error(loc, "Invalid left-hand side in assignment")
 		}
 		return &ast.UnaryExpression{
-			Loc:      loc,
+			ExprNode: p.exprNodeAt(loc),
 			Operator: tkn,
 			Operand:  operand,
 		}
@@ -207,7 +206,7 @@ func (p *Parser) parseUnaryExpression() ast.Expression {
 	return p.parsePostfixExpression()
 }
 
-func (p *Parser) parseShiftExpression() ast.Expression {
+func (p *Parser) parseShiftExpression() ast.IExpr {
 	next := p.parseAdditiveExpression
 	left := next()
 
@@ -216,6 +215,7 @@ func (p *Parser) parseShiftExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    next(),
@@ -225,7 +225,7 @@ func (p *Parser) parseShiftExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseRelationalExpression() ast.Expression {
+func (p *Parser) parseRelationalExpression() ast.IExpr {
 	next := p.parseShiftExpression
 	left := next()
 
@@ -240,6 +240,7 @@ func (p *Parser) parseRelationalExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		return &ast.BinaryExpression{
+			ExprNode:   p.exprNodeAt(left.GetLoc()),
 			Operator:   tkn,
 			Left:       left,
 			Right:      p.parseRelationalExpression(),
@@ -249,6 +250,7 @@ func (p *Parser) parseRelationalExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		return &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    p.parseRelationalExpression(),
@@ -260,6 +262,7 @@ func (p *Parser) parseRelationalExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		return &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    p.parseRelationalExpression(),
@@ -269,7 +272,7 @@ func (p *Parser) parseRelationalExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseEqualityExpression() ast.Expression {
+func (p *Parser) parseEqualityExpression() ast.IExpr {
 	next := p.parseRelationalExpression
 	left := next()
 
@@ -278,6 +281,7 @@ func (p *Parser) parseEqualityExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode:   p.exprNodeAt(left.GetLoc()),
 			Operator:   tkn,
 			Left:       left,
 			Right:      next(),
@@ -288,7 +292,7 @@ func (p *Parser) parseEqualityExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseBitwiseAndExpression() ast.Expression {
+func (p *Parser) parseBitwiseAndExpression() ast.IExpr {
 	next := p.parseEqualityExpression
 	left := next()
 
@@ -296,6 +300,7 @@ func (p *Parser) parseBitwiseAndExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    next(),
@@ -305,7 +310,7 @@ func (p *Parser) parseBitwiseAndExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseBitwiseExclusiveOrExpression() ast.Expression {
+func (p *Parser) parseBitwiseExclusiveOrExpression() ast.IExpr {
 	next := p.parseBitwiseAndExpression
 	left := next()
 
@@ -313,6 +318,7 @@ func (p *Parser) parseBitwiseExclusiveOrExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    next(),
@@ -322,7 +328,7 @@ func (p *Parser) parseBitwiseExclusiveOrExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseBitwiseOrExpression() ast.Expression {
+func (p *Parser) parseBitwiseOrExpression() ast.IExpr {
 	next := p.parseBitwiseExclusiveOrExpression
 	left := next()
 
@@ -330,6 +336,7 @@ func (p *Parser) parseBitwiseOrExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    next(),
@@ -339,7 +346,7 @@ func (p *Parser) parseBitwiseOrExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseLogicalAndExpression() ast.Expression {
+func (p *Parser) parseLogicalAndExpression() ast.IExpr {
 	next := p.parseBitwiseOrExpression
 	left := next()
 
@@ -347,6 +354,7 @@ func (p *Parser) parseLogicalAndExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    next(),
@@ -356,7 +364,7 @@ func (p *Parser) parseLogicalAndExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseLogicalOrExpression() ast.Expression {
+func (p *Parser) parseLogicalOrExpression() ast.IExpr {
 	next := p.parseLogicalAndExpression
 	left := next()
 
@@ -364,6 +372,7 @@ func (p *Parser) parseLogicalOrExpression() ast.Expression {
 		tkn := p.token
 		p.next()
 		left = &ast.BinaryExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Operator: tkn,
 			Left:     left,
 			Right:    next(),
@@ -373,13 +382,13 @@ func (p *Parser) parseLogicalOrExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseExpression() ast.Expression {
+func (p *Parser) parseExpression() ast.IExpr {
 	loc := p.loc()
 	next := p.parseAssignmentExpression
 	left := next()
 
 	if p.is(token.COMMA) {
-		sequence := []ast.Expression{left}
+		sequence := []ast.IExpr{left}
 		for {
 			if !p.is(token.COMMA) {
 				break
@@ -391,13 +400,14 @@ func (p *Parser) parseExpression() ast.Expression {
 			sequence = append(sequence, exp)
 		}
 		return &ast.SequenceExpression{
-			Loc:      loc,
+			ExprNode: p.exprNodeAt(loc),
 			Sequence: sequence,
 		}
 	} else if p.is(token.COLON) && p.scope.allowTypeAssertion {
 		typeAssertion := p.parseFlowTypeAnnotation()
 
-		return &ast.FlowTypeAssertion{
+		return &ast.FlowTypeAssertionExpression{
+			ExprNode: p.exprNodeAt(loc),
 			Left:     left,
 			FlowType: typeAssertion,
 		}

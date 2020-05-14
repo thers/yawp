@@ -3,13 +3,13 @@ package generator
 import "yawp/parser/ast"
 
 
-func (g *Generator) Statement(s ast.Statement) ast.Statement {
+func (g *Generator) Statement(s ast.IStmt) ast.IStmt {
 	s = g.Walker.Statement(s)
 
 	return s
 }
 
-func (g *Generator) BlockStatement(bs *ast.BlockStatement) ast.Statement {
+func (g *Generator) BlockStatement(bs *ast.BlockStatement) ast.IStmt {
 	g.rune('{').indentInc().nl()
 
 	for index, stmt := range bs.List {
@@ -25,13 +25,13 @@ func (g *Generator) BlockStatement(bs *ast.BlockStatement) ast.Statement {
 	return bs
 }
 
-func (g *Generator) ExpressionStatement(stmt *ast.ExpressionStatement) ast.Statement {
+func (g *Generator) ExpressionStatement(stmt *ast.ExpressionStatement) ast.IStmt {
 	g.Expression(stmt.Expression)
 
 	return stmt
 }
 
-func (g *Generator) WhileStatement(stmt *ast.WhileStatement) ast.Statement {
+func (g *Generator) WhileStatement(stmt *ast.WhileStatement) ast.IStmt {
 	g.str("while(")
 	g.Expression(stmt.Test)
 	g.str("){")
@@ -41,7 +41,7 @@ func (g *Generator) WhileStatement(stmt *ast.WhileStatement) ast.Statement {
 	return stmt
 }
 
-func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) ast.Statement {
+func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) ast.IStmt {
 	if !g.options.Minify {
 		g.str("debugger")
 		g.semicolon()
@@ -50,7 +50,7 @@ func (g *Generator) DebuggerStatement(ds *ast.DebuggerStatement) ast.Statement {
 	return ds
 }
 
-func (g *Generator) IfStatement(stmt *ast.IfStatement) ast.Statement {
+func (g *Generator) IfStatement(stmt *ast.IfStatement) ast.IStmt {
 	g.str("if(")
 	g.Expression(stmt.Test)
 	g.str("){")
@@ -66,7 +66,7 @@ func (g *Generator) IfStatement(stmt *ast.IfStatement) ast.Statement {
 	return stmt
 }
 
-func (g *Generator) ReturnStatement(rs *ast.ReturnStatement) ast.Statement {
+func (g *Generator) ReturnStatement(rs *ast.ReturnStatement) ast.IStmt {
 	g.str("return ")
 	g.Expression(rs.Argument)
 

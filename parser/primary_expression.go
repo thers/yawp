@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parsePrimaryExpression() ast.Expression {
+func (p *Parser) parsePrimaryExpression() ast.IExpr {
 	literal := p.literal
 	loc := p.loc()
 
@@ -20,7 +20,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		p.next()
 
 		return &ast.SuperExpression{
-			Loc: loc,
+			ExprNode: p.exprNodeAt(loc),
 		}
 	case token.CLASS:
 		return p.parseClassExpression()
@@ -28,7 +28,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		p.next()
 
 		return &ast.AwaitExpression{
-			Loc:        loc,
+			ExprNode:   p.exprNodeAt(loc),
 			Expression: p.parseAssignmentExpression(),
 		}
 	case token.ASYNC:
@@ -45,8 +45,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.NULL:
 		p.next()
 		return &ast.NullLiteral{
-			Loc:     loc,
-			Literal: literal,
+			ExprNode: p.exprNodeAt(loc),
+			Literal:  literal,
 		}
 	case token.BOOLEAN:
 		p.next()
@@ -56,8 +56,8 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 		}
 
 		return &ast.BooleanLiteral{
-			Loc:     loc,
-			Literal: literal,
+			ExprNode: p.exprNodeAt(loc),
+			Literal:  literal,
 		}
 	case token.TEMPLATE_QUOTE:
 		return p.parseTemplateExpression()
@@ -76,7 +76,7 @@ func (p *Parser) parsePrimaryExpression() ast.Expression {
 	case token.THIS:
 		p.next()
 		return &ast.ThisExpression{
-			Loc: loc,
+			ExprNode: p.exprNodeAt(loc),
 		}
 	case token.FUNCTION:
 		return p.parseFunction(false, loc, false)

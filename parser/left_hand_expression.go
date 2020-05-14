@@ -5,8 +5,8 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseLeftHandSideExpression() ast.Expression {
-	var left ast.Expression
+func (p *Parser) parseLeftHandSideExpression() ast.IExpr {
+	var left ast.IExpr
 	if p.is(token.NEW) {
 		left = p.parseNewExpression()
 	} else {
@@ -30,14 +30,14 @@ func (p *Parser) parseLeftHandSideExpression() ast.Expression {
 	return left
 }
 
-func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.Expression {
+func (p *Parser) parseLeftHandSideExpressionAllowCall() ast.IExpr {
 	allowIn := p.scope.allowIn
 	p.scope.allowIn = true
 	defer func() {
 		p.scope.allowIn = allowIn
 	}()
 
-	var left ast.Expression
+	var left ast.IExpr
 	if p.is(token.NEW) {
 		left = p.parseNewExpression()
 	} else {

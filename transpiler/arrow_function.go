@@ -15,7 +15,7 @@ func (t *Transpiler) ArrowFunctionExpression(af *ast.ArrowFunctionExpression) *a
 	}
 
 	functionLiteral := &ast.FunctionLiteral{
-		Loc: af.GetLoc(),
+		Node: (ast.Node)(af.ExprNode),
 		Parameters: t.FunctionParameters(&ast.FunctionParameters{
 			List: af.Parameters,
 		}),

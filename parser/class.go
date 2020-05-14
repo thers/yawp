@@ -12,7 +12,7 @@ func (p *Parser) parseClassMethodBody(generator bool, async bool) *ast.BlockStat
 	return p.parseBlockStatement()
 }
 
-func (p *Parser) parseClassBodyStatement() ast.Statement {
+func (p *Parser) parseClassBodyStatement() ast.IStmt {
 	loc := p.loc()
 	async := false
 	static := false
@@ -55,17 +55,17 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 
 			if field := p.parseObjectPropertyName(); field != nil {
 				node := &ast.FunctionLiteral{
-					Loc:        loc,
+					Node:       p.nodeAt(loc),
 					Parameters: p.parseFunctionParameterList(),
 				}
 
 				p.parseFunctionNodeBody(node)
 
 				return &ast.ClassAccessorStatement{
-					Loc:   loc,
-					Field: field,
-					Kind:  kind,
-					Body:  node,
+					StmtNode: p.stmtNodeAt(loc),
+					Field:    field,
+					Kind:     kind,
+					Body:     node,
 				}
 			}
 		}
@@ -82,10 +82,10 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		defer p.semicolon()
 
 		stmt := &ast.ClassFieldStatement{
-			Loc:     loc,
-			Name:    identifier,
-			Static:  static,
-			Private: private,
+			StmtNode: p.stmtNodeAt(loc),
+			Name:     identifier,
+			Static:   static,
+			Private:  private,
 		}
 
 		if p.is(token.COLON) {
@@ -104,7 +104,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 	case token.LESS, token.LEFT_PARENTHESIS:
 		// Method declaration
 		method := &ast.ClassMethodStatement{
-			Loc:       loc,
+			StmtNode:  p.stmtNodeAt(loc),
 			Name:      identifier,
 			Static:    static,
 			Private:   private,
@@ -130,7 +130,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 	case token.SEMICOLON:
 		p.consumeExpected(token.SEMICOLON)
 		return &ast.ClassFieldStatement{
-			Loc:         loc,
+			StmtNode:    p.stmtNodeAt(loc),
 			Name:        identifier,
 			Static:      static,
 			Private:     private,
@@ -140,7 +140,7 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 		if p.insertSemicolon {
 			p.insertSemicolon = false
 			return &ast.ClassFieldStatement{
-				Loc:         loc,
+				StmtNode:    p.stmtNodeAt(loc),
 				Name:        identifier,
 				Static:      static,
 				Private:     private,
@@ -155,8 +155,8 @@ func (p *Parser) parseClassBodyStatement() ast.Statement {
 	return nil
 }
 
-func (p *Parser) parseClassBodyStatementList() []ast.Statement {
-	stmts := make([]ast.Statement, 0)
+func (p *Parser) parseClassBodyStatementList() []ast.IStmt {
+	stmts := make([]ast.IStmt, 0)
 
 	for p.until(token.RIGHT_BRACE) {
 		if p.is(token.SEMICOLON) {
@@ -169,7 +169,7 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 			decorators := p.parseDecoratorsList()
 			statement := p.parseClassBodyStatement()
 
-			var subject ast.Statement
+			var subject ast.IStmt
 
 			switch refinedStatement := statement.(type) {
 			case *ast.ClassFieldStatement:
@@ -195,12 +195,12 @@ func (p *Parser) parseClassBodyStatementList() []ast.Statement {
 	return stmts
 }
 
-func (p *Parser) parseClassBody() ast.Statement {
+func (p *Parser) parseClassBody() ast.IStmt {
 	closeClassScope := p.openClassScope()
 	defer closeClassScope()
 
 	node := &ast.BlockStatement{
-		Loc: p.loc(),
+		StmtNode: p.stmtNode(),
 	}
 
 	p.consumeExpected(token.LEFT_BRACE)
@@ -215,7 +215,7 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 	p.consumeExpected(token.CLASS)
 
 	exp := &ast.ClassExpression{
-		Loc: loc,
+		ExprNode: p.exprNodeAt(loc),
 	}
 
 	if p.is(token.IDENTIFIER) {
@@ -243,6 +243,7 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 
 func (p *Parser) parseClassStatement() *ast.ClassStatement {
 	return &ast.ClassStatement{
+		StmtNode:   p.stmtNode(),
 		Expression: p.parseClassExpression(),
 	}
 }

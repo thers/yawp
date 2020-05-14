@@ -76,7 +76,7 @@ func (t *Transpiler) FunctionParameters(fp *ast.FunctionParameters) *ast.Functio
 	}
 
 	return &ast.FunctionParameters{
-		Loc:  fp.Loc,
+		Node: fp.Node,
 		List: list,
 	}
 }

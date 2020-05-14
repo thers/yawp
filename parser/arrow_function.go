@@ -26,24 +26,24 @@ func (p *Parser) parseArrowFunctionBody(async bool) *ast.FunctionBody {
 	}
 
 	returnStatement := &ast.ReturnStatement{
-		Loc:      p.loc(),
+		StmtNode: p.stmtNode(),
 		Argument: p.parseAssignmentExpression(),
 	}
 
 	return &ast.FunctionBody{
-		Loc:  returnStatement.Loc,
+		Node: (ast.Node)(returnStatement.StmtNode),
 		List: ast.Statements{returnStatement},
 	}
 }
 
-func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Expression {
+func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.IExpr {
 	identifier := p.parseIdentifier()
 
 	if p.is(token.ARROW) {
 		// Parsing arrow function
 		return &ast.ArrowFunctionExpression{
-			Loc:   identifier.GetLoc(),
-			Async: async,
+			ExprNode: p.exprNodeAt(identifier.Loc),
+			Async:    async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
 					Id:           identifier,
@@ -66,7 +66,7 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.Ex
 	return identifier
 }
 
-func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expression {
+func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.IExpr {
 	snapshot := p.snapshot()
 
 	// First try to parse as arrow function parameters list
@@ -85,7 +85,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	// And next token is => then it's an arrow function
 	if parameters != nil && p.is(token.ARROW) {
 		return &ast.ArrowFunctionExpression{
-			Loc:        parameters.Loc,
+			ExprNode:   p.exprNodeAt(parameters.Loc),
 			Async:      async,
 			ReturnType: returnType,
 			Parameters: parameters.List,
@@ -106,7 +106,7 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.Expressi
 	return expression
 }
 
-func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) ast.Expression {
+func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) ast.IExpr {
 	var typeParameters []*ast.FlowTypeParameter
 
 	if p.is(token.LESS) {
@@ -123,7 +123,7 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 		identifier := p.parseIdentifier()
 
 		return &ast.ArrowFunctionExpression{
-			Loc:            loc,
+			ExprNode:       p.exprNodeAt(loc),
 			Async:          true,
 			TypeParameters: typeParameters,
 			Parameters: []ast.FunctionParameter{
@@ -157,7 +157,7 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 		}
 
 		return &ast.ArrowFunctionExpression{
-			Loc:            sloc,
+			ExprNode:       p.exprNodeAt(sloc),
 			Async:          true,
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,
@@ -186,7 +186,7 @@ func (p *Parser) parseParametrizedArrowFunction() *ast.ArrowFunctionExpression {
 		}
 
 		return &ast.ArrowFunctionExpression{
-			Loc:            loc,
+			ExprNode:       p.exprNodeAt(loc),
 			Async:          false,
 			TypeParameters: typeParameters,
 			ReturnType:     returnType,

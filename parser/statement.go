@@ -6,12 +6,12 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseSourceElement() ast.Statement {
+func (p *Parser) parseSourceElement() ast.IStmt {
 	return p.parseStatement()
 }
 
-func (p *Parser) parseSourceElements() []ast.Statement {
-	body := make([]ast.Statement, 0)
+func (p *Parser) parseSourceElements() []ast.IStmt {
+	body := make([]ast.IStmt, 0)
 
 	for !p.is(token.EOF) {
 		stmt := p.parseStatement()
@@ -36,13 +36,16 @@ func (p *Parser) parseProgram() *ast.Module {
 	}
 }
 
-func (p *Parser) parseEmptyStatement() ast.Statement {
+func (p *Parser) parseEmptyStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.SEMICOLON)
-	return &ast.EmptyStatement{Loc: loc}
+
+	return &ast.EmptyStatement{
+		StmtNode: p.stmtNodeAt(loc),
+	}
 }
 
-func (p *Parser) parseStatementList() (list []ast.Statement) {
+func (p *Parser) parseStatementList() (list []ast.IStmt) {
 	for !p.is(token.RIGHT_BRACE) && !p.is(token.EOF) {
 		list = append(list, p.parseStatement())
 	}
@@ -50,7 +53,7 @@ func (p *Parser) parseStatementList() (list []ast.Statement) {
 	return
 }
 
-func (p *Parser) parseStatement() ast.Statement {
+func (p *Parser) parseStatement() ast.IStmt {
 	if p.is(token.EOF) {
 		p.unexpectedToken()
 		return nil
@@ -111,6 +114,7 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseFlowInterfaceStatement()
 	}
 
+	loc := p.loc()
 	expression := p.parseExpression()
 
 	if identifier, isIdentifier := expression.(*ast.Identifier); isIdentifier && p.is(token.COLON) {
@@ -136,6 +140,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	p.optionalSemicolon()
 
 	return &ast.ExpressionStatement{
+		StmtNode: p.stmtNodeAt(loc),
 		Expression: expression,
 	}
 }
@@ -159,7 +164,7 @@ func (p *Parser) parseFunctionBody(generator, async bool) *ast.FunctionBody {
 	defer closeFunctionScope()
 
 	body := &ast.FunctionBody{
-		Loc:  p.loc(),
+		Node: p.node(),
 	}
 
 	p.consumeExpected(token.LEFT_BRACE)
@@ -173,12 +178,12 @@ func (p *Parser) parseFunctionNodeBody(node *ast.FunctionLiteral) {
 	node.Body = p.parseFunctionBody(node.Generator, node.Async)
 }
 
-func (p *Parser) parseDebuggerStatement() ast.Statement {
+func (p *Parser) parseDebuggerStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.DEBUGGER)
 
 	node := &ast.DebuggerStatement{
-		Loc: loc,
+		StmtNode: p.stmtNodeAt(loc),
 	}
 
 	p.semicolon()
@@ -186,7 +191,7 @@ func (p *Parser) parseDebuggerStatement() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseThrowStatement() ast.Statement {
+func (p *Parser) parseThrowStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.THROW)
 
@@ -201,7 +206,7 @@ func (p *Parser) parseThrowStatement() ast.Statement {
 	}
 
 	node := &ast.ThrowStatement{
-		Loc:      loc,
+		StmtNode: p.stmtNodeAt(loc),
 		Argument: p.parseExpression(),
 	}
 
@@ -210,12 +215,12 @@ func (p *Parser) parseThrowStatement() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseSwitchStatement() ast.Statement {
+func (p *Parser) parseSwitchStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.SWITCH)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.SwitchStatement{
-		Loc:          loc,
+		StmtNode:     p.stmtNodeAt(loc),
 		Discriminant: p.parseExpression(),
 		Default:      -1,
 	}
@@ -249,13 +254,13 @@ func (p *Parser) parseSwitchStatement() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseWithStatement() ast.Statement {
+func (p *Parser) parseWithStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.WITH)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.WithStatement{
-		Loc:    loc,
-		Object: p.parseExpression(),
+		StmtNode: p.stmtNodeAt(loc),
+		Object:   p.parseExpression(),
 	}
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
@@ -266,7 +271,7 @@ func (p *Parser) parseWithStatement() ast.Statement {
 
 func (p *Parser) parseCaseStatement() *ast.CaseStatement {
 	node := &ast.CaseStatement{
-		Loc: p.loc(),
+		StmtNode: p.stmtNode(),
 	}
 	if p.is(token.DEFAULT) {
 		p.next()
@@ -293,7 +298,7 @@ func (p *Parser) parseCaseStatement() *ast.CaseStatement {
 	return node
 }
 
-func (p *Parser) parseDoWhileStatement() ast.Statement {
+func (p *Parser) parseDoWhileStatement() ast.IStmt {
 	inIteration := p.scope.inIteration
 	p.scope.inIteration = true
 	defer func() {
@@ -304,7 +309,7 @@ func (p *Parser) parseDoWhileStatement() ast.Statement {
 	p.consumeExpected(token.DO)
 
 	node := &ast.DoWhileStatement{
-		Loc: loc,
+		StmtNode: p.stmtNodeAt(loc),
 	}
 
 	if p.is(token.LEFT_BRACE) {
@@ -324,13 +329,13 @@ func (p *Parser) parseDoWhileStatement() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseIfStatement() ast.Statement {
+func (p *Parser) parseIfStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.IF)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.IfStatement{
-		Loc:  loc,
-		Test: p.parseExpression(),
+		StmtNode: p.stmtNodeAt(loc),
+		Test:     p.parseExpression(),
 	}
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 
@@ -348,7 +353,7 @@ func (p *Parser) parseIfStatement() ast.Statement {
 	return node
 }
 
-func (p *Parser) parseBreakStatement() ast.Statement {
+func (p *Parser) parseBreakStatement() ast.IStmt {
 	loc := p.loc()
 
 	p.consumeExpected(token.BREAK)
@@ -365,8 +370,8 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 			goto illegal
 		}
 		return &ast.BranchStatement{
-			Loc:   loc,
-			Token: token.BREAK,
+			StmtNode: p.stmtNodeAt(loc),
+			Token:    token.BREAK,
 		}
 	}
 
@@ -376,9 +381,9 @@ func (p *Parser) parseBreakStatement() ast.Statement {
 		p.semicolon()
 
 		return &ast.BranchStatement{
-			Loc:   loc,
-			Token: token.BREAK,
-			Label: identifier,
+			StmtNode: p.stmtNodeAt(loc),
+			Token:    token.BREAK,
+			Label:    identifier,
 		}
 	}
 
@@ -390,7 +395,7 @@ illegal:
 	return nil
 }
 
-func (p *Parser) parseContinueStatement() ast.Statement {
+func (p *Parser) parseContinueStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.CONTINUE)
 
@@ -407,8 +412,8 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 			goto illegal
 		}
 		return &ast.BranchStatement{
-			Loc:   loc,
-			Token: token.CONTINUE,
+			StmtNode: p.stmtNodeAt(loc),
+			Token:    token.CONTINUE,
 		}
 	}
 
@@ -420,9 +425,9 @@ func (p *Parser) parseContinueStatement() ast.Statement {
 		}
 		p.semicolon()
 		return &ast.BranchStatement{
-			Loc:   loc,
-			Token: token.CONTINUE,
-			Label: identifier,
+			StmtNode: p.stmtNodeAt(loc),
+			Token:    token.CONTINUE,
+			Label:    identifier,
 		}
 	}
 

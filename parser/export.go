@@ -105,7 +105,7 @@ func (p *Parser) parseExportDeclaration() *ast.ExportStatement {
 	p.allowToken(token.TYPE_TYPE)
 
 	declaration := &ast.ExportStatement{
-		Loc: loc,
+		StmtNode: p.stmtNodeAt(loc),
 	}
 
 	switch p.token {

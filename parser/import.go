@@ -8,12 +8,12 @@ import (
 func (p *Parser) parseImportDefaultClause(stmt *ast.ImportStatement) {
 	identifier := p.parseIdentifier()
 	moduleIdentifier := &ast.Identifier{
-		Loc:  identifier.Loc,
-		Name: "default",
+		ExprNode: p.exprNodeAt(identifier.Loc),
+		Name:     "default",
 	}
 
 	exp := &ast.ImportClause{
-		Loc:              p.loc(),
+		ExprNode:         p.exprNode(),
 		Namespace:        false,
 		ModuleIdentifier: moduleIdentifier,
 		LocalIdentifier:  identifier,
@@ -42,7 +42,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportStatement) {
 		}
 
 		stmt.Imports = append(stmt.Imports, &ast.ImportClause{
-			Loc:              moduleIdentifier.Loc,
+			ExprNode:         p.exprNodeAt(moduleIdentifier.Loc),
 			Namespace:        false,
 			ModuleIdentifier: moduleIdentifier,
 			LocalIdentifier:  localIdentifier,
@@ -58,7 +58,7 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportStatement) {
 
 func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportStatement) {
 	exp := &ast.ImportClause{
-		Loc:              p.loc(),
+		ExprNode:         p.exprNode(),
 		Namespace:        true,
 		ModuleIdentifier: nil,
 		LocalIdentifier:  nil,
@@ -94,8 +94,8 @@ func (p *Parser) parseImportDeclaration() *ast.ImportStatement {
 
 	p.consumeExpected(token.IMPORT)
 	stmt := &ast.ImportStatement{
-		Loc:     loc,
-		Imports: make([]*ast.ImportClause, 0),
+		StmtNode: p.stmtNodeAt(loc),
+		Imports:  make([]*ast.ImportClause, 0),
 	}
 
 	p.allowToken(token.TYPE_TYPE)
@@ -153,14 +153,16 @@ func (p *Parser) parseImportDeclaration() *ast.ImportStatement {
 	return stmt
 }
 
-func (p *Parser) parseImportCall() ast.Expression {
+func (p *Parser) parseImportCall() ast.IExpr {
 	loc := p.loc()
 
 	p.consumeExpected(token.IMPORT)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 
+	loc = loc.End(p.consumeExpected(token.RIGHT_PARENTHESIS))
+
 	call := &ast.ImportCall{
-		Loc:        loc.End(p.consumeExpected(token.RIGHT_PARENTHESIS)),
+		ExprNode:   p.exprNodeAt(loc),
 		Expression: p.parseAssignmentExpression(),
 	}
 

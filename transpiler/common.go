@@ -6,10 +6,10 @@ import (
 	"yawp/parser/ast"
 )
 
-func createArraySlice(array ast.Expression, index int) *ast.CallExpression {
+func createArraySlice(array ast.IExpr, index int) *ast.CallExpression {
 	return &ast.CallExpression{
 		Callee: builtins.SlicedArrayRest,
-		ArgumentList: []ast.Expression{
+		ArgumentList: []ast.IExpr{
 			array,
 			&ast.NumberLiteral{
 				Literal: strconv.Itoa(index),

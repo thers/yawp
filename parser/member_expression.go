@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseMemberExpressionOrIdentifier() ast.Expression {
+func (p *Parser) parseMemberExpressionOrIdentifier() ast.IExpr {
 	loc := p.loc()
 	lhs := p.parseLeftHandSideExpressionAllowCall()
 
@@ -22,7 +22,7 @@ func (p *Parser) parseMemberExpressionOrIdentifier() ast.Expression {
 	return lhs
 }
 
-func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
+func (p *Parser) parseDotMember(left ast.IExpr) ast.IExpr {
 	wasAllowIn := p.scope.allowIn
 	p.scope.allowIn = false
 
@@ -58,7 +58,7 @@ func (p *Parser) parseDotMember(left ast.Expression) ast.Expression {
 	}
 }
 
-func (p *Parser) parseBracketMember(left ast.Expression) ast.Expression {
+func (p *Parser) parseBracketMember(left ast.IExpr) ast.IExpr {
 	p.consumeExpected(token.LEFT_BRACKET)
 	member := p.parseExpression()
 	p.consumeExpected(token.RIGHT_BRACKET)

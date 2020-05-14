@@ -4,7 +4,7 @@ import "yawp/parser/file"
 
 type (
 	FunctionLiteral struct {
-		Loc            *file.Loc
+		Node
 		Async          bool
 		Generator      bool
 		Id             *Identifier
@@ -12,23 +12,21 @@ type (
 		ReturnType     FlowType
 		Parameters     *FunctionParameters
 		Body           *FunctionBody
-
-		DeclarationList []Declaration
 	}
 
 	FunctionParameters struct {
-		Loc  *file.Loc
+		Node
 		List []FunctionParameter
 	}
 
 	FunctionBody struct {
-		Loc  *file.Loc
+		Node
 		List Statements
 	}
 
 	FunctionParameter interface {
-		GetDefaultValue() Expression
-		SetDefaultValue(Expression)
+		GetDefaultValue() IExpr
+		SetDefaultValue(IExpr)
 		SetTypeAnnotation(FlowType)
 		SetFlowTypeOptional(bool)
 		_parameterNode()
@@ -36,7 +34,7 @@ type (
 
 	IdentifierParameter struct {
 		Id           *Identifier
-		DefaultValue Expression
+		DefaultValue IExpr
 
 		FlowType         FlowType
 		FlowTypeOptional bool
@@ -51,25 +49,25 @@ type (
 
 	PatternParameter struct {
 		Binder       PatternBinder
-		DefaultValue Expression
+		DefaultValue IExpr
 
 		FlowType         FlowType
 		FlowTypeOptional bool
 	}
 )
 
-func (*FunctionLiteral) _expressionNode() {}
-func (*FunctionLiteral) _statementNode()  {}
-
+func (*FunctionLiteral) _expressionNode()    {}
+func (*FunctionLiteral) _statementNode()     {}
 func (f *FunctionLiteral) GetLoc() *file.Loc { return f.Loc }
+func (f *FunctionLiteral) GetNode() *Node    { return &f.Node }
 
-func (ip *IdentifierParameter) GetDefaultValue() Expression { return ip.DefaultValue }
-func (rp *RestParameter) GetDefaultValue() Expression       { return nil }
-func (odp *PatternParameter) GetDefaultValue() Expression   { return odp.DefaultValue }
+func (ip *IdentifierParameter) GetDefaultValue() IExpr { return ip.DefaultValue }
+func (rp *RestParameter) GetDefaultValue() IExpr       { return nil }
+func (odp *PatternParameter) GetDefaultValue() IExpr   { return odp.DefaultValue }
 
-func (ip *IdentifierParameter) SetDefaultValue(exp Expression) { ip.DefaultValue = exp }
-func (rp *RestParameter) SetDefaultValue(_ Expression)         {}
-func (odp *PatternParameter) SetDefaultValue(exp Expression)   { odp.DefaultValue = exp }
+func (ip *IdentifierParameter) SetDefaultValue(exp IExpr) { ip.DefaultValue = exp }
+func (rp *RestParameter) SetDefaultValue(_ IExpr)         {}
+func (odp *PatternParameter) SetDefaultValue(exp IExpr)   { odp.DefaultValue = exp }
 
 func (ip *IdentifierParameter) SetTypeAnnotation(flowType FlowType) { ip.FlowType = flowType }
 func (rp *RestParameter) SetTypeAnnotation(flowType FlowType)       { rp.FlowType = flowType }

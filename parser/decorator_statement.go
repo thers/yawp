@@ -5,8 +5,8 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseDecoratorsList() []ast.Expression {
-	decorators := make([]ast.Expression, 0, 1)
+func (p *Parser) parseDecoratorsList() []ast.IExpr {
+	decorators := make([]ast.IExpr, 0, 1)
 
 	for p.is(token.AT) {
 		p.consumeExpected(token.AT)

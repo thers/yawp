@@ -7,9 +7,9 @@ import (
 
 func (p *Parser) parseTemplateExpression() *ast.TemplateExpression {
 	exp := &ast.TemplateExpression{
-		Loc:           p.loc(),
+		ExprNode:      p.exprNode(),
 		Strings:       make([]string, 0),
-		Substitutions: make([]ast.Expression, 0),
+		Substitutions: make([]ast.IExpr, 0),
 	}
 
 	currentString := ""
@@ -74,7 +74,7 @@ func (p *Parser) parseTemplateExpression() *ast.TemplateExpression {
 	return exp
 }
 
-func (p *Parser) parseTaggedTemplateExpression(tag ast.Expression) *ast.TaggedTemplateExpression {
+func (p *Parser) parseTaggedTemplateExpression(tag ast.IExpr) *ast.TaggedTemplateExpression {
 	return &ast.TaggedTemplateExpression{
 		Tag:      tag,
 		Template: p.parseTemplateExpression(),

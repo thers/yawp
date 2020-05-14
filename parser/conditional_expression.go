@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseConditionalExpression() ast.Expression {
+func (p *Parser) parseConditionalExpression() ast.IExpr {
 	left := p.parseNullishCoalescingExpression()
 
 	if p.is(token.QUESTION_MARK) {

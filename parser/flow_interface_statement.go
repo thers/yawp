@@ -102,7 +102,7 @@ func (p *Parser) parseFlowInterfaceStatement() *ast.FlowInterfaceStatement {
 	loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return &ast.FlowInterfaceStatement{
-		Loc:            loc,
+		StmtNode:       p.stmtNodeAt(loc),
 		Name:           name,
 		TypeParameters: typeParameters,
 		Body:           stmts,

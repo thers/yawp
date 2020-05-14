@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseOptionalExpression(left ast.IExpr) ast.IExpr {
 	loc := p.loc()
 	p.consumeExpected(token.OPTIONAL_CHAINING)
 	identifier := p.parseIdentifierIncludingKeywords()
@@ -19,16 +19,16 @@ func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
 			loc.End(p.consumeExpected(token.RIGHT_BRACKET))
 
 			return &ast.OptionalArrayMemberAccessExpression{
-				Loc:   loc,
-				Left:  left,
-				Index: index,
+				ExprNode: p.exprNodeAt(loc),
+				Left:     left,
+				Index:    index,
 			}
 		case token.LEFT_PARENTHESIS:
 			arguments, _, end := p.parseArgumentList()
 			loc.End(end)
 
 			return &ast.OptionalCallExpression{
-				Loc:       loc,
+				ExprNode:  p.exprNodeAt(loc),
 				Left:      left,
 				Arguments: arguments,
 			}
@@ -38,6 +38,7 @@ func (p *Parser) parseOptionalExpression(left ast.Expression) ast.Expression {
 	}
 
 	return &ast.OptionalObjectMemberAccessExpression{
+		ExprNode:   p.exprNodeAt(loc),
 		Left:       left,
 		Identifier: identifier,
 	}

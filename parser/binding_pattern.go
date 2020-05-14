@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseBindingDefaultValue() ast.Expression {
+func (p *Parser) parseBindingDefaultValue() ast.IExpr {
 	if p.is(token.ASSIGN) {
 		p.consumeExpected(token.ASSIGN)
 
@@ -56,8 +56,8 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 	p.consumeExpected(token.LEFT_BRACE)
 
 	pattern := &ast.ObjectBinding{
-		Loc:  loc,
-		List: make([]ast.PatternBinder, 0),
+		ExprNode: p.exprNodeAt(loc),
+		List:     make([]ast.PatternBinder, 0),
 	}
 
 	boundProperties := make([]ast.ObjectPropertyName, 0)
@@ -126,8 +126,8 @@ func (p *Parser) parseArrayBinding() *ast.ArrayBinding {
 	p.consumeExpected(token.LEFT_BRACKET)
 
 	pattern := &ast.ArrayBinding{
-		Loc:  loc,
-		List: make([]ast.PatternBinder, 0),
+		ExprNode: p.exprNodeAt(loc),
+		List:     make([]ast.PatternBinder, 0),
 	}
 
 	itemIndex := 0

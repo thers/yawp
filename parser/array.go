@@ -5,8 +5,8 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseArrayLiteral() ast.Expression {
-	var value []ast.Expression
+func (p *Parser) parseArrayLiteral() ast.IExpr {
+	var value []ast.IExpr
 
 	loc := p.loc()
 
@@ -36,8 +36,8 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	loc.End(p.consumeExpected(token.RIGHT_BRACKET))
 
 	return &ast.ArrayLiteral{
-		Loc:  loc,
-		List: value,
+		ExprNode: p.exprNodeAt(loc),
+		List:     value,
 	}
 }
 
@@ -54,7 +54,7 @@ func (p *Parser) maybeParseArrayBinding() (*ast.ArrayBinding, bool) {
 	return p.parseArrayBinding(), true
 }
 
-func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.Expression {
+func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.IExpr {
 	loc := p.loc()
 	snapshot := p.snapshot()
 
@@ -64,7 +64,7 @@ func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.Expression {
 		p.consumeExpected(token.ASSIGN)
 
 		return &ast.VariableBinding{
-			Loc:         loc,
+			ExprNode:    p.exprNodeAt(loc),
 			Binder:      arrayBinding,
 			Initializer: p.parseAssignmentExpression(),
 		}
@@ -75,7 +75,7 @@ func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.Expression {
 	return p.parseArrayLiteral()
 }
 
-func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.Statement {
+func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.IStmt {
 	loc := p.loc()
 	snapshot := p.snapshot()
 
@@ -85,8 +85,9 @@ func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.Statement {
 		p.consumeExpected(token.ASSIGN)
 
 		return &ast.ExpressionStatement{
+			StmtNode: p.stmtNodeAt(loc),
 			Expression: &ast.VariableBinding{
-				Loc:         loc,
+				ExprNode:    p.exprNodeAt(loc),
 				Binder:      arrayBinding,
 				Initializer: p.parseAssignmentExpression(),
 			},
@@ -96,6 +97,7 @@ func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.Statement {
 	p.toSnapshot(snapshot)
 
 	return &ast.ExpressionStatement{
+		StmtNode:   p.stmtNode(),
 		Expression: p.parseAssignmentExpression(),
 	}
 }

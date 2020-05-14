@@ -36,9 +36,11 @@ func (p *Parser) parseObjectPropertyName() ast.ObjectPropertyName {
 }
 
 func (p *Parser) parseObjectPropertyComputedName() ast.ObjectPropertyName {
+	loc := p.loc()
 	p.consumeExpected(token.LEFT_BRACKET)
 
 	propertyName := &ast.ComputedName{
+		ExprNode:   p.exprNodeAt(loc),
 		Expression: p.parseAssignmentExpression(),
 	}
 
@@ -75,7 +77,7 @@ func (p *Parser) parseObjectPropertyMethodShorthand(
 ) *ast.ObjectPropertyValue {
 	parameterList := p.parseFunctionParameterList()
 	functionLiteral := &ast.FunctionLiteral{
-		Loc:        loc,
+		Node:       p.nodeAt(loc),
 		Async:      async,
 		Generator:  generator,
 		Parameters: parameterList,
@@ -94,7 +96,7 @@ func (p *Parser) parseObjectPropertyValue(loc *file.Loc, propertyName ast.Object
 	if p.is(token.LEFT_PARENTHESIS) {
 		parameterList := p.parseFunctionParameterList()
 		functionLiteral := &ast.FunctionLiteral{
-			Loc:        loc,
+			Node:       p.nodeAt(loc),
 			Parameters: parameterList,
 		}
 
@@ -149,6 +151,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 		p.next()
 
 		return &ast.ObjectSpread{
+			ExprNode:   p.exprNodeAt(loc),
 			Expression: p.parseAssignmentExpression(),
 		}
 	}
@@ -208,7 +211,7 @@ func (p *Parser) parseObjectProperty() ast.ObjectProperty {
 					parameterList := p.parseFunctionParameterList()
 
 					functionLiteral := &ast.FunctionLiteral{
-						Loc:        loc,
+						Node:       p.nodeAt(loc),
 						Parameters: parameterList,
 					}
 					p.parseFunctionNodeBody(functionLiteral)
@@ -278,7 +281,7 @@ func (p *Parser) parseObjectLiteral() *ast.ObjectLiteral {
 	loc.End(p.consumeExpected(token.RIGHT_BRACE))
 
 	return &ast.ObjectLiteral{
-		Loc:        loc,
+		ExprNode:   p.exprNodeAt(loc),
 		Properties: value,
 	}
 }
@@ -296,7 +299,7 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 	return p.parseObjectBinding(), true
 }
 
-func (p *Parser) parseObjectLiteralOrObjectPatternAssignment() ast.Expression {
+func (p *Parser) parseObjectLiteralOrObjectPatternAssignment() ast.IExpr {
 	snapshot := p.snapshot()
 
 	objectBinding, success := p.maybeParseObjectBinding()
@@ -304,7 +307,7 @@ func (p *Parser) parseObjectLiteralOrObjectPatternAssignment() ast.Expression {
 	if success && p.is(token.ASSIGN) {
 		p.consumeExpected(token.ASSIGN)
 
-		return &ast.AssignExpression{
+		return &ast.AssignmentExpression{
 			Operator: token.ASSIGN,
 			Left:     objectBinding,
 			Right:    p.parseAssignmentExpression(),

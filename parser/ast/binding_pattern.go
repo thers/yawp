@@ -1,17 +1,12 @@
 package ast
 
-import (
-	"yawp/parser/file"
-	"yawp/parser/token"
-)
-
 type (
 	PatternBinder interface {
 		_patternBinder()
 	}
 
 	ExpressionBinder struct {
-		Expression Expression
+		Expression IExpr
 	}
 
 	IdentifierBinder struct {
@@ -31,31 +26,13 @@ type (
 	ObjectPropertyBinder struct {
 		Binder       PatternBinder
 		PropertyName ObjectPropertyName
-		DefaultValue Expression
+		DefaultValue IExpr
 	}
 
 	ArrayItemBinder struct {
 		Binder       PatternBinder
 		Index        int
-		DefaultValue Expression
-	}
-
-	ArrayBinding struct {
-		Loc  *file.Loc
-		List []PatternBinder
-	}
-
-	ObjectBinding struct {
-		Loc  *file.Loc
-		List []PatternBinder
-	}
-
-	VariableBinding struct {
-		Loc         *file.Loc
-		Kind        token.Token
-		Binder      PatternBinder
-		Initializer Expression
-		FlowType    FlowType
+		DefaultValue IExpr
 	}
 )
 
@@ -68,17 +45,9 @@ func (*ObjectPropertyBinder) _patternBinder() {}
 func (*ArrayItemBinder) _patternBinder()      {}
 func (*ExpressionBinder) _patternBinder()     {}
 
-func (*ArrayBinding) _expressionNode()    {}
-func (*ObjectBinding) _expressionNode()   {}
-func (*VariableBinding) _expressionNode() {}
-
-func (s *ArrayBinding) GetLoc() *file.Loc    { return s.Loc }
-func (s *ObjectBinding) GetLoc() *file.Loc   { return s.Loc }
-func (s *VariableBinding) GetLoc() *file.Loc { return s.Loc }
-
-func (s *VariableBinding) Clone() *VariableBinding {
+func (s *VariableBinding) Copy() *VariableBinding {
 	return &VariableBinding{
-		Loc:         s.Loc,
+		ExprNode:    s.ExprNode.Copy(),
 		Kind:        s.Kind,
 		Binder:      s.Binder,
 		Initializer: s.Initializer,

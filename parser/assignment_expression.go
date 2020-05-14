@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseAssignmentExpression() ast.Expression {
+func (p *Parser) parseAssignmentExpression() ast.IExpr {
 	var operator token.Token
 
 	left := p.parseConditionalExpression()
@@ -51,7 +51,8 @@ func (p *Parser) parseAssignmentExpression() ast.Expression {
 			p.error(left.GetLoc(), "Invalid left-hand side in assignment")
 		}
 
-		return &ast.AssignExpression{
+		return &ast.AssignmentExpression{
+			ExprNode: p.exprNodeAt(left.GetLoc()),
 			Left:     left,
 			Operator: operator,
 			Right:    p.parseAssignmentExpression(),

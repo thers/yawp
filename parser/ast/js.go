@@ -9,5 +9,6 @@ type Js struct {
 }
 
 func (*Js) GetLoc() *file.Loc { return nil }
+func (*Js) GetNode() *Node    { return nil }
 func (*Js) _expressionNode()  {}
 func (*Js) _statementNode()   {}

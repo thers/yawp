@@ -5,13 +5,13 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseWhileStatement() ast.Statement {
+func (p *Parser) parseWhileStatement() ast.IStmt {
 	loc := p.loc()
 	p.consumeExpected(token.WHILE)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 	node := &ast.WhileStatement{
-		Loc:  loc,
-		Test: p.parseExpression(),
+		StmtNode: p.stmtNodeAt(loc),
+		Test:     p.parseExpression(),
 	}
 	p.consumeExpected(token.RIGHT_PARENTHESIS)
 	node.Body = p.parseIterationStatement()

@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseNewExpression() ast.Expression {
+func (p *Parser) parseNewExpression() ast.IExpr {
 	loc := p.loc()
 	p.consumeExpected(token.NEW)
 
@@ -21,14 +21,14 @@ func (p *Parser) parseNewExpression() ast.Expression {
 		loc.End(p.consumeExpected(token.IDENTIFIER))
 
 		return &ast.NewTargetExpression{
-			Loc: loc,
+			ExprNode: p.exprNodeAt(loc),
 		}
 	}
 
 	callee := p.parseLeftHandSideExpression()
 	node := &ast.NewExpression{
-		Loc:    loc,
-		Callee: callee,
+		ExprNode: p.exprNodeAt(loc),
+		Callee:   callee,
 	}
 
 	if p.isFlowTypeArgumentsStart() {

@@ -23,9 +23,9 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 	p.optionalSemicolon()
 
 	return &ast.VariableStatement{
-		Loc:  loc,
-		Kind: kind,
-		List: list,
+		StmtNode: p.stmtNodeAt(loc),
+		Kind:     kind,
+		List:     list,
 	}
 }
 
@@ -42,9 +42,9 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		}
 
 		bnd := &ast.VariableBinding{
-			Loc:    loc,
-			Kind:   kind,
-			Binder: binder,
+			ExprNode: p.exprNodeAt(loc),
+			Kind:     kind,
+			Binder:   binder,
 		}
 
 		if p.is(token.ASSIGN) {
@@ -67,12 +67,12 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 
 	p.next()
 	node := &ast.VariableBinding{
-		Loc:         loc,
-		Kind:        kind,
-		Binder:      &ast.IdentifierBinder{
+		ExprNode: p.exprNodeAt(loc),
+		Kind:     kind,
+		Binder: &ast.IdentifierBinder{
 			Id: &ast.Identifier{
-				Loc:  loc,
-				Name: literal,
+				ExprNode: p.exprNodeAt(loc),
+				Name:     literal,
 			},
 		},
 	}

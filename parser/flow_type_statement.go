@@ -32,7 +32,7 @@ func (p *Parser) parseFlowTypeStatement() *ast.FlowTypeStatement {
 	p.optionalSemicolon()
 
 	return &ast.FlowTypeStatement{
-		Loc:            loc,
+		StmtNode:       p.stmtNodeAt(loc),
 		Name:           name,
 		Opaque:         opaque,
 		Type:           value,

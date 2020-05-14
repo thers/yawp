@@ -5,7 +5,7 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseNullishCoalescingExpression() ast.Expression {
+func (p *Parser) parseNullishCoalescingExpression() ast.IExpr {
 	left := p.parseLogicalOrExpression()
 
 	if p.is(token.NULLISH_COALESCING) {

@@ -11,7 +11,7 @@ func areElementNamesEqual(a, b *ast.JSXElementName) bool {
 }
 
 func (p *Parser) parseJSXElementName() *ast.JSXElementName {
-	var left ast.Expression
+	var left ast.IExpr
 
 	rootIdentifier := p.parseIdentifier()
 	stringName := rootIdentifier.Name
@@ -27,7 +27,7 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 
 		return &ast.JSXElementName{
 			Expression: &ast.JSXNamespacedName{
-				Loc:       loc,
+				ExprNode:  p.exprNodeAt(loc),
 				Namespace: rootIdentifier.Name,
 				Name:      name.Name,
 			},
@@ -75,7 +75,7 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 	case token.LEFT_BRACE:
 		p.consumeExpected(token.LEFT_BRACE)
 
-		var exp ast.Expression
+		var exp ast.IExpr
 
 		if !p.is(token.RIGHT_BRACE) {
 			exp = p.parseAssignmentExpression()
@@ -85,7 +85,7 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 		p.consumeExpected(token.RIGHT_BRACE)
 
 		return &ast.JSXChildExpression{
-			Expression: exp,
+			IExpr: exp,
 		}
 	}
 
@@ -105,7 +105,7 @@ func (p *Parser) parseJSXChild() ast.JSXChild {
 	p.next()
 
 	return &ast.JSXText{
-		Loc:  loc,
+		Node: p.nodeAt(loc),
 		Text: text,
 	}
 }
@@ -136,8 +136,8 @@ func (p *Parser) parseJSXElementAttributes() []ast.JSXAttribute {
 				}
 			} else {
 				attribute.Value = &ast.BooleanLiteral{
-					Loc:     attribute.Name.GetLoc(),
-					Literal: "true",
+					ExprNode: p.exprNodeAt(attribute.Name.GetLoc()),
+					Literal:  "true",
 				}
 			}
 
@@ -178,7 +178,7 @@ func (p *Parser) parseJSXFragment() *ast.JSXFragment {
 	p.jsxTextParseFrom = int(loc.To) + 2
 
 	return &ast.JSXFragment{
-		Loc:      loc,
+		ExprNode: p.exprNodeAt(loc),
 		Children: children,
 	}
 }
@@ -188,7 +188,7 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	p.consumeExpected(token.LESS)
 
 	elm := &ast.JSXElement{
-		Loc:      loc,
+		ExprNode: p.exprNodeAt(loc),
 		Name:     p.parseJSXElementName(),
 		Children: make([]ast.JSXChild, 0),
 	}
@@ -235,8 +235,8 @@ func (p *Parser) parseJSXElement() *ast.JSXElement {
 	return elm
 }
 
-func (p *Parser) maybeParseJSXElement() ast.Expression {
-	defer func(){ _ = recover() }()
+func (p *Parser) maybeParseJSXElement() ast.IExpr {
+	defer func() { _ = recover() }()
 
 	p.genericTypeParametersMode = true
 	jsx := p.parseJSXElement()
@@ -245,7 +245,7 @@ func (p *Parser) maybeParseJSXElement() ast.Expression {
 	return jsx
 }
 
-func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.Expression {
+func (p *Parser) parseJSXElementOrGenericArrowFunction() ast.IExpr {
 	snapshot := p.snapshot()
 
 	// first try to parse as jsx

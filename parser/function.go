@@ -89,7 +89,7 @@ func (p *Parser) parseFunctionParameterList() *ast.FunctionParameters {
 	loc.End(p.consumeExpected(token.RIGHT_PARENTHESIS))
 
 	return &ast.FunctionParameters{
-		Loc:  loc,
+		Node: p.nodeAt(loc),
 		List: list,
 	}
 }
@@ -109,7 +109,7 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 	}
 
 	node := &ast.FunctionLiteral{
-		Loc:       loc,
+		Node:      p.nodeAt(loc),
 		Async:     async,
 		Generator: generator,
 	}
