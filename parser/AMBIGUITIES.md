@@ -23,11 +23,11 @@ const test = (foo, bar)
 
 Until we see an arrow token we're not sure.
 
-**Possible superset:** _SequenceExpression_
+**Possible superset:** _`SequenceSuperset`_
 
-**Superset obstacles:**
-- Need for _ObjectLiteral_ and _ObjectBinding_ superset.
-- Need for _ArrayLiteral_ and _ArrayBinding_ superset.
+**Superset dependencies:**
+- Need for _`ObjectLiteral`_ and _`ObjectBinding`_ superset: _`ObjectSuperset`_.
+- Need for _`ArrayLiteral`_ and _`ArrayBinding`_ superset: _`ArraySuperset`_.
 
 **Example:**
 ```js
@@ -35,7 +35,7 @@ Until we see an arrow token we're not sure.
 ```
 
 This could be parsed as:
-```json
+```
 SequenceSuperset {
   List [
     ObjectSuperset {
@@ -61,6 +61,6 @@ SequenceSuperset {
 }
 ```
 
-Which can be boiled down to _SequenceExpression_ or _FunctionParameters_.
-We can further extend _SequenceSuperset_ to have a `NotASequece` flag that could be determined during parsing phase
-because some syntax of _FunctionParameters" is illegal for _SequenceExpression_.
+Which can be boiled down to _`SequenceExpression`_ or _`FunctionParameters`_.
+We can further extend _`SequenceSuperset`_ to have a `NotASequece` flag that could be determined during parsing phase
+because some syntax of _`FunctionParameters`_ is illegal for _`SequenceExpression`_.
