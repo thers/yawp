@@ -6,7 +6,7 @@ import (
 )
 
 func (p *Parser) parseImportDefaultClause(stmt *ast.ImportStatement) {
-	identifier := p.parseIdentifier()
+	identifier := p.symbol(p.parseIdentifier(), ast.SymbolRead, ast.SRImport)
 	moduleIdentifier := &ast.Identifier{
 		ExprNode: p.exprNodeAt(identifier.Loc),
 		Name:     "default",
@@ -32,13 +32,15 @@ func (p *Parser) parseImportNamedClause(stmt *ast.ImportStatement) {
 			return
 		}
 
-		localIdentifier := p.parseIdentifier()
+		localIdentifier := p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRImport)
 		moduleIdentifier := localIdentifier
+
+		localIdentifier.Symbol.Type = ast.SRImport
 
 		p.allowToken(token.AS)
 		if p.is(token.AS) {
 			p.consumeExpected(token.AS)
-			localIdentifier = p.parseIdentifier()
+			localIdentifier = p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRImport)
 		}
 
 		stmt.Imports = append(stmt.Imports, &ast.ImportClause{
@@ -73,7 +75,7 @@ func (p *Parser) parseImportNamespaceClause(stmt *ast.ImportStatement) {
 		return
 	}
 
-	exp.LocalIdentifier = p.parseIdentifier()
+	exp.LocalIdentifier = p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRImport)
 
 	stmt.Imports = append(stmt.Imports, exp)
 	stmt.HasNamespaceClause = true

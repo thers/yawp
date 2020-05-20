@@ -36,23 +36,29 @@ func (p *Parser) parseArrowFunctionBody(async bool) *ast.FunctionBody {
 	}
 }
 
-func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.IExpr {
+func (p *Parser) parseArrowFunctionOrIdentifier(async bool) ast.IExpr {
+	p.useSymbolsScope(ast.SSTFunction)
+
 	identifier := p.parseIdentifier()
 
 	if p.is(token.ARROW) {
 		// Parsing arrow function
+		defer p.restoreSymbolsScope()
+
 		return &ast.ArrowFunctionExpression{
 			ExprNode: p.exprNodeAt(identifier.Loc),
 			Async:    async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
-					Id:           identifier,
+					Id:           p.symbol(identifier, ast.SymbolDeclaration, ast.SRFnParam),
 					DefaultValue: nil,
 				},
 			},
 			Body: p.parseArrowFunctionBody(async),
 		}
 	}
+
+	p.dropSymbolsScope()
 
 	// Identifier
 	if len(identifier.Name) > 1 {
@@ -63,11 +69,13 @@ func (p *Parser) parseIdentifierOrSingleArgumentArrowFunction(async bool) ast.IE
 			}
 		}
 	}
-	return identifier
+	return p.symbol(identifier, ast.SymbolRead, ast.SRUnknown)
 }
 
 func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.IExpr {
 	snapshot := p.snapshot()
+
+	p.useSymbolsScope(ast.SSTFunction)
 
 	// First try to parse as arrow function parameters list
 	parameters := p.maybeParseArrowFunctionParameterList()
@@ -84,6 +92,8 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.IExpr {
 	// If no errors occurred while parsing parameters
 	// And next token is => then it's an arrow function
 	if parameters != nil && p.is(token.ARROW) {
+		defer p.restoreSymbolsScope()
+
 		return &ast.ArrowFunctionExpression{
 			ExprNode:   p.exprNodeAt(parameters.Loc),
 			Async:      async,
@@ -92,6 +102,8 @@ func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.IExpr {
 			Body:       p.parseArrowFunctionBody(async),
 		}
 	}
+
+	p.dropSymbolsScope()
 
 	// It's a sequence expression or flow type assertion
 	// restoring parser state like we didn't do shit
@@ -113,6 +125,9 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 		typeParameters = p.parseFlowTypeParameters()
 	}
 
+	p.useSymbolsScope(ast.SSTFunction)
+	defer p.restoreSymbolsScope()
+
 	if p.is(token.IDENTIFIER) {
 		if typeParameters != nil {
 			p.error(p.loc(), "Parenthesis required around generic arrow function parameters")
@@ -120,7 +135,7 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 			return nil
 		}
 
-		identifier := p.parseIdentifier()
+		identifier := p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRFnParam)
 
 		return &ast.ArrowFunctionExpression{
 			ExprNode:       p.exprNodeAt(loc),

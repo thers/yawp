@@ -13,7 +13,7 @@ func (t *Transpiler) pushRefScope() *RefScope {
 
 	t.refScope = &RefScope{
 		Parent: parentRefScope,
-		Refs:   make(map[string]*ast.Ref, 0),
+		Refs:   make(map[string]*ast.SymbolRef, 0),
 		ids:    t.ids,
 		minify: t.options.Minify,
 	}
@@ -31,16 +31,16 @@ func (t *Transpiler) popRefScope() *RefScope {
 	return refScope
 }
 
-func (t *Transpiler) resolveTokenToRefKind(tkn token.Token) (kind ast.RefKind) {
+func (t *Transpiler) resolveTokenToRefKind(tkn token.Token) (kind ast.SymbolRefType) {
 	switch tkn {
 	case token.VAR:
-		kind = ast.RVar
+		kind = ast.SRVar
 	case token.CONST:
-		kind = ast.RConst
+		kind = ast.SRConst
 	case token.LET:
-		kind = ast.RLet
+		kind = ast.SRLet
 	default:
-		kind = ast.RUnknown
+		kind = ast.SRUnknown
 	}
 
 	return
@@ -48,7 +48,7 @@ func (t *Transpiler) resolveTokenToRefKind(tkn token.Token) (kind ast.RefKind) {
 
 type RefScope struct {
 	Parent *RefScope
-	Refs   map[string]*ast.Ref
+	Refs   map[string]*ast.SymbolRef
 
 	ids    *ids.Ids
 	minify bool
@@ -58,10 +58,10 @@ func (r *RefScope) NextMangledId() string {
 	return r.ids.Next()
 }
 
-func (r *RefScope) createRef(name string) *ast.Ref {
-	var shadowedRef *ast.Ref
+func (r *RefScope) createRef(name string) *ast.SymbolRef {
+	var shadowedRef *ast.SymbolRef
 
-	ref := &ast.Ref{
+	ref := &ast.SymbolRef{
 		Name:   name,
 		Usages: 0,
 	}
@@ -80,22 +80,22 @@ func (r *RefScope) createRef(name string) *ast.Ref {
 	return ref
 }
 
-func (r *RefScope) GhostRef() *ast.Ref {
-	return &ast.Ref{
-		Name:   r.NextMangledId(),
-		Kind:   ast.RVar,
+func (r *RefScope) GhostRef() *ast.SymbolRef {
+	return &ast.SymbolRef{
+		Name: r.NextMangledId(),
+		Type: ast.SRVar,
 	}
 }
 
 func (r *RefScope) GhostId() *ast.Identifier {
 	return &ast.Identifier{
-		Ref:  r.GhostRef(),
-		Name: ghostIdName,
+		LegacyRef: r.GhostRef(),
+		Name:      ghostIdName,
 	}
 }
 
-func (r *RefScope) GetRef(name string) *ast.Ref {
-	var ref *ast.Ref
+func (r *RefScope) GetRef(name string) *ast.SymbolRef {
+	var ref *ast.SymbolRef
 	var ok bool
 
 	if ref, ok = r.Refs[name]; !ok {
@@ -107,18 +107,18 @@ func (r *RefScope) GetRef(name string) *ast.Ref {
 	return ref
 }
 
-func (r *RefScope) BindRef(kind ast.RefKind, name string) *ast.Ref {
-	var ref *ast.Ref
+func (r *RefScope) BindRef(kind ast.SymbolRefType, name string) *ast.SymbolRef {
+	var ref *ast.SymbolRef
 	var ok bool
 
 	// vars can hoist declarations and they're not block-scoped
 	// we also don't even bother mangling them
-	if kind == ast.RVar {
+	if kind == ast.SRVar {
 		ref = r.GetRef(name)
 
 		if ref != nil {
-			if ref.Kind == ast.RUnknown {
-				ref.Kind = ast.RVar
+			if ref.Type == ast.SRUnknown {
+				ref.Type = ast.SRVar
 			}
 
 			return ref
@@ -133,13 +133,13 @@ func (r *RefScope) BindRef(kind ast.RefKind, name string) *ast.Ref {
 		ref.Name = r.NextMangledId()
 	}
 
-	ref.Kind = kind
+	ref.Type = kind
 
 	return ref
 }
 
-func (r *RefScope) UseRef(name string) *ast.Ref {
-	var ref *ast.Ref
+func (r *RefScope) UseRef(name string) *ast.SymbolRef {
+	var ref *ast.SymbolRef
 
 	ref = r.GetRef(name)
 

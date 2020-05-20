@@ -16,7 +16,7 @@ func (t *Transpiler) VariableStatement(vs *ast.VariableStatement) ast.IStmt {
 	// resolve variable kind to ref kind early
 	t.bindingRefKind = t.resolveTokenToRefKind(vs.Kind)
 	defer func() {
-		t.bindingRefKind = ast.RUnknown
+		t.bindingRefKind = ast.SRUnknown
 	}()
 
 	if t.options.Target < options.ES2015 {

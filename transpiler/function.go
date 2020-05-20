@@ -29,10 +29,10 @@ func (t *Transpiler) unshiftExtraVariableToFunctionScope(vb *ast.VariableBinding
 
 func (t *Transpiler) FunctionLiteral(fl *ast.FunctionLiteral) *ast.FunctionLiteral {
 	if fl.Id != nil {
-		fl.Id.Ref = t.refScope.BindRef(ast.RFn, fl.Id.Name)
+		fl.Id.LegacyRef = t.refScope.BindRef(ast.SRFn, fl.Id.Name)
 	}
 
-	// Ref scope starts from arguments
+	// SymbolRef scope starts from arguments
 	t.pushRefScope()
 	defer t.popRefScope()
 
@@ -82,7 +82,7 @@ func (t *Transpiler) FunctionParameters(fp *ast.FunctionParameters) *ast.Functio
 }
 
 func (t *Transpiler) IdentifierParameter(ip *ast.IdentifierParameter) ast.FunctionParameter {
-	ip.Id.Ref = t.refScope.BindRef(ast.RFnParam, ip.Id.Name)
+	ip.Id.LegacyRef = t.refScope.BindRef(ast.SRFnParam, ip.Id.Name)
 
 	if ip.DefaultValue != nil {
 		// Unshift as it must come before other bindings
@@ -121,7 +121,7 @@ func (t *Transpiler) PatternParameter(pp *ast.PatternParameter) ast.FunctionPara
 	// Pattern parameter become a simple id parameter
 	// and we're pushing pattern binding to the function body
 	paramId := t.refScope.GhostId()
-	paramId.Ref.Kind = ast.RFnParam
+	paramId.LegacyRef.Type = ast.SRFnParam
 
 	t.pushExtraVariableToFunctionScope(&ast.VariableBinding{
 		Kind:        token.VAR,

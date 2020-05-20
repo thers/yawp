@@ -299,10 +299,13 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 	return p.parseObjectBinding(), true
 }
 
-func (p *Parser) parseObjectLiteralOrObjectPatternAssignment() ast.IExpr {
+func (p *Parser) parseObjectPatternAssignmentOrLiteral() ast.IExpr {
 	snapshot := p.snapshot()
+	restoreSymbolFlags := p.useSymbolFlags(ast.SymbolWrite.Add(p.symbolFlags))
 
 	objectBinding, success := p.maybeParseObjectBinding()
+
+	restoreSymbolFlags()
 
 	if success && p.is(token.ASSIGN) {
 		p.consumeExpected(token.ASSIGN)

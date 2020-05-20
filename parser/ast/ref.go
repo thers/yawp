@@ -1,26 +1,43 @@
 package ast
 
-type RefKind int
+import "yawp/parser/token"
+
+type SymbolRefType int
 
 const (
-	RUnknown RefKind = iota
-	RVar
-	RLet
-	RConst
-	RImport
-	RFn
-	RFnParam
-	RLabel
-	RBuiltin
+	SRUnknown SymbolRefType = iota
+	SRVar
+	SRLet
+	SRConst
+	SRClass
+	SRImport
+	SRExport
+	SRFn
+	SRFnParam
+	SRLabel
+	SRBuiltin
 )
 
-type Ref struct {
+type SymbolRef struct {
 	Name   string
-	Kind   RefKind
+	Type   SymbolRefType
 	Usages int
 
-	ShadowsRef    *Ref
-	ShadowedByRef *Ref
+	ShadowsRef    *SymbolRef
+	ShadowedByRef *SymbolRef
 
 	Mangled bool
+}
+
+func SymbolRefTypeFromToken(value token.Token) SymbolRefType {
+	switch value {
+	case token.VAR:
+		return SRVar
+	case token.CONST:
+		return SRConst
+	case token.LET:
+		return SRLet
+	default:
+		return SRUnknown
+	}
 }

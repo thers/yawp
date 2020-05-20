@@ -479,7 +479,7 @@ func (w *Walker) ClassAccessorStatement(stmt *ClassAccessorStatement) IStmt {
 }
 
 func (w *Walker) ClassMethodStatement(stmt *ClassMethodStatement) IStmt {
-	stmt.Body = w.Visitor.Statement(stmt.Body)
+	stmt.Body = w.Visitor.FunctionBody(stmt.Body)
 	stmt.Name = w.Visitor.ObjectPropertyName(stmt.Name)
 	stmt.Parameters = w.Visitor.FunctionParameters(stmt.Parameters)
 

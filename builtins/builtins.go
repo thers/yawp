@@ -7,26 +7,26 @@ import (
 const emptyString = ""
 
 var Arguments = &ast.Identifier{
-	Ref:  &ast.Ref{
-		Name: "arguments",
-		Kind: ast.RBuiltin,
+	LegacyRef:  &ast.SymbolRef{
+		Name:    "arguments",
+		Type:    ast.SRBuiltin,
 		Mangled: true,
 	},
 	Name: "arguments",
 }
 
 var SlicedArrayRest = &ast.Identifier{
-	Ref: &ast.Ref{
+	LegacyRef: &ast.SymbolRef{
 		Name: "@slicedArrayRest",
-		Kind: ast.RBuiltin,
+		Type: ast.SRBuiltin,
 	},
 	Name: "@slicedArrayRest",
 }
 
 var ObjectRest = &ast.Identifier{
-	Ref: &ast.Ref{
+	LegacyRef: &ast.SymbolRef{
 		Name: "@objectRest",
-		Kind: ast.RBuiltin,
+		Type: ast.SRBuiltin,
 	},
 	Name: "@objectRest",
 }

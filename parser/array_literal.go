@@ -75,11 +75,14 @@ func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.IExpr {
 	return p.parseArrayLiteral()
 }
 
-func (p *Parser) parseArrayBindingStatementOrArrayLiteral() ast.IStmt {
+func (p *Parser) parseArrayPatternAssignmentOrLiteral() ast.IStmt {
 	loc := p.loc()
 	snapshot := p.snapshot()
+	restoreSymbolFlags := p.useSymbolFlags(ast.SymbolWrite.Add(p.symbolFlags))
 
 	arrayBinding, success := p.maybeParseArrayBinding()
+
+	restoreSymbolFlags()
 
 	if success && p.is(token.ASSIGN) {
 		p.consumeExpected(token.ASSIGN)

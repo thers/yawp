@@ -12,7 +12,7 @@ type INode interface {
 
 type Node struct {
 	Loc  *file.Loc
-	Flag Flag
+	Flag Flags
 }
 
 func (n *Node) GetLoc() *file.Loc { return n.Loc }

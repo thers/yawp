@@ -93,6 +93,9 @@ func (p *Parser) parseForStatement() ast.IStmt {
 	p.consumeExpected(token.FOR)
 	p.consumeExpected(token.LEFT_PARENTHESIS)
 
+	p.useSymbolsScope(ast.SSTBlock)
+	defer p.restoreSymbolsScope()
+
 	// for (;
 	if p.is(token.SEMICOLON) {
 		p.next()

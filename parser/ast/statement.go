@@ -18,9 +18,10 @@ func (e *StmtNode) GetNode() *Node    { return (*Node)(e) }
 func (s *StmtNode) GetLoc() *file.Loc { return s.Loc }
 
 type Statements []IStmt
-func (Statements) _statementNode()     {}
+
+func (Statements) _statementNode()   {}
 func (Statements) GetLoc() *file.Loc { panic("Can not invoke GetLoc on Statements") }
-func (Statements) GetNode() *Node { panic("Can not invoke GetNode on Statements") }
+func (Statements) GetNode() *Node    { panic("Can not invoke GetNode on Statements") }
 
 type (
 	BlockStatement struct {
@@ -180,7 +181,7 @@ type (
 		TypeParameters []*FlowTypeParameter
 		ReturnType     FlowType
 		Parameters     *FunctionParameters
-		Body           IStmt
+		Body           *FunctionBody
 	}
 
 	ExportStatement struct {

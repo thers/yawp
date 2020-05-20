@@ -41,7 +41,7 @@ func (p *Parser) parseBinder() ast.PatternBinder {
 	} else {
 		if p.is(token.IDENTIFIER) {
 			return &ast.IdentifierBinder{
-				Id: p.parseIdentifier(),
+				Id: p.symbol(p.parseIdentifier(), ast.SymbolWrite.Add(p.symbolFlags), ast.SRUnknown),
 			}
 		}
 	}
@@ -101,7 +101,7 @@ func (p *Parser) parseObjectBinding() *ast.ObjectBinding {
 				}
 
 				property.Binder = &ast.IdentifierBinder{
-					Id: propertyId,
+					Id: p.symbol(propertyId.Copy(), ast.SymbolWrite.Add(p.symbolFlags), ast.SRUnknown),
 				}
 			default:
 				p.error(propertyLoc, "Can not use computed property name without pattern binding")

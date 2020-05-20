@@ -226,12 +226,6 @@ type (
 		FlowType FlowType
 	}
 
-	Identifier struct {
-		ExprNode
-		Ref  *Ref
-		Name string
-	}
-
 	JSXElement struct {
 		ExprNode
 		Name       *JSXElementName

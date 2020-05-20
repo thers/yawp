@@ -5,13 +5,6 @@ import (
 	"yawp/parser/token"
 )
 
-func (p *Parser) parseClassMethodBody(generator bool, async bool) *ast.BlockStatement {
-	closeFunctionScope := p.openFunctionScope(generator, async)
-	defer closeFunctionScope()
-
-	return p.parseBlockStatement()
-}
-
 func (p *Parser) parseClassBodyStatement() ast.IStmt {
 	loc := p.loc()
 	async := false
@@ -116,13 +109,16 @@ func (p *Parser) parseClassBodyStatement() ast.IStmt {
 			method.TypeParameters = p.parseFlowTypeParameters()
 		}
 
+		p.useSymbolsScope(ast.SSTFunction)
+		defer p.restoreSymbolsScope()
+
 		method.Parameters = p.parseFunctionParameterList()
 
 		if p.is(token.COLON) {
 			method.ReturnType = p.parseFlowTypeAnnotation()
 		}
 
-		body := p.parseClassMethodBody(generator, async)
+		body := p.parseFunctionBody(generator, async)
 
 		method.Body = body
 
@@ -199,6 +195,8 @@ func (p *Parser) parseClassBody() ast.IStmt {
 	closeClassScope := p.openClassScope()
 	defer closeClassScope()
 
+	p.useSymbolsScope(ast.SSTClass)
+
 	node := &ast.BlockStatement{
 		StmtNode: p.stmtNode(),
 	}
@@ -219,7 +217,8 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 	}
 
 	if p.is(token.IDENTIFIER) {
-		exp.Name = p.parseIdentifier()
+		exp.Name = p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRClass)
+		exp.Name.Symbol.Type = ast.SRClass
 	}
 
 	if p.isFlowTypeParametersStart() {

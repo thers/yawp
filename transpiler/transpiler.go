@@ -31,7 +31,7 @@ type Transpiler struct {
 	refScope  *RefScope
 	thisScope *ThisScope
 
-	bindingRefKind ast.RefKind
+	bindingRefKind ast.SymbolRefType
 
 	extraVariables []*ast.VariableBinding
 

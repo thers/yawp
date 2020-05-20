@@ -41,7 +41,7 @@ func (p *Parser) parsePrimaryExpression() ast.IExpr {
 			return p.tryParseAsyncArrowFunction(loc, st)
 		}
 	case token.IDENTIFIER:
-		return p.parseIdentifierOrSingleArgumentArrowFunction(false)
+		return p.parseArrowFunctionOrIdentifier(false)
 	case token.NULL:
 		p.next()
 		return &ast.NullLiteral{
@@ -68,7 +68,7 @@ func (p *Parser) parsePrimaryExpression() ast.IExpr {
 	case token.SLASH, token.QUOTIENT_ASSIGN:
 		return p.parseRegExpLiteral()
 	case token.LEFT_BRACE:
-		return p.parseObjectLiteralOrObjectPatternAssignment()
+		return p.parseObjectPatternAssignmentOrLiteral()
 	case token.LEFT_BRACKET:
 		return p.parseArrayLiteralOrArrayPatternAssignment()
 	case token.LEFT_PARENTHESIS:

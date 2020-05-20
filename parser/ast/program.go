@@ -10,8 +10,9 @@ type ModuleAdditions struct {
 }
 
 type Module struct {
-	File *file.File
-	Body []IStmt
+	File    *file.File
+	Body    []IStmt
+	Symbols *SymbolsScope
 
 	Ids       *ids.Ids
 	Additions ModuleAdditions

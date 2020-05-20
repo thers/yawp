@@ -32,6 +32,7 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBinding, kind token.Token) *ast.VariableBinding {
 	if p.is(token.LEFT_BRACKET) || p.is(token.LEFT_BRACE) {
 		loc := p.loc()
+		restoreSymbolFlags := p.useSymbolFlags(ast.SymbolDeclaration)
 
 		var binder ast.PatternBinder
 
@@ -40,6 +41,8 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		} else {
 			binder = p.parseObjectBinding()
 		}
+
+		restoreSymbolFlags()
 
 		bnd := &ast.VariableBinding{
 			ExprNode: p.exprNodeAt(loc),
@@ -50,7 +53,11 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		if p.is(token.ASSIGN) {
 			p.consumeExpected(token.ASSIGN)
 
+			restoreSymbolFlags = p.useSymbolFlags(ast.SymbolRead)
+
 			bnd.Initializer = p.parseAssignmentExpression()
+
+			restoreSymbolFlags()
 		}
 
 		return bnd
@@ -62,18 +69,14 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		return nil
 	}
 
-	loc := p.loc()
-	literal := p.literal
+	id := p.symbol(p.currentIdentifier(), ast.SymbolDeclaration, ast.SymbolRefTypeFromToken(kind))
 
 	p.next()
 	node := &ast.VariableBinding{
-		ExprNode: p.exprNodeAt(loc),
+		ExprNode: id.ExprNode,
 		Kind:     kind,
 		Binder: &ast.IdentifierBinder{
-			Id: &ast.Identifier{
-				ExprNode: p.exprNodeAt(loc),
-				Name:     literal,
-			},
+			Id: id,
 		},
 	}
 

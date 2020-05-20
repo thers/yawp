@@ -24,15 +24,16 @@ func (p *Parser) parseSourceElements() []ast.IStmt {
 	return body
 }
 
-func (p *Parser) parseProgram() *ast.Module {
+func (p *Parser) parseModule() *ast.Module {
 	defer p.recover()
 
 	p.openScope()
 	defer p.closeScope()
 	return &ast.Module{
-		Body: p.parseSourceElements(),
-		File: p.file,
-		Ids:  ids.NewIds(),
+		Symbols: p.symbolsScope,
+		Body:    p.parseSourceElements(),
+		File:    p.file,
+		Ids:     ids.NewIds(),
 	}
 }
 
@@ -67,9 +68,9 @@ func (p *Parser) parseStatement() ast.IStmt {
 	case token.SEMICOLON:
 		return p.parseEmptyStatement()
 	case token.LEFT_BRACKET:
-		return p.parseArrayBindingStatementOrArrayLiteral()
+		return p.parseArrayPatternAssignmentOrLiteral()
 	case token.LEFT_BRACE:
-		return p.parseBlockStatementOrObjectPatternBinding()
+		return p.parseBlockStatement()
 	case token.IF:
 		return p.parseIfStatement()
 	case token.DO:
@@ -85,7 +86,10 @@ func (p *Parser) parseStatement() ast.IStmt {
 	case token.DEBUGGER:
 		return p.parseDebuggerStatement()
 	case token.WITH:
-		return p.parseWithStatement()
+		p.unexpectedToken()
+		return nil
+		// with is banned in strict mode
+		//return p.parseWithStatement()
 	case token.VAR, token.CONST, token.LET:
 		return p.parseVariableStatement()
 	case token.FUNCTION:
@@ -140,7 +144,7 @@ func (p *Parser) parseStatement() ast.IStmt {
 	p.optionalSemicolon()
 
 	return &ast.ExpressionStatement{
-		StmtNode: p.stmtNodeAt(loc),
+		StmtNode:   p.stmtNodeAt(loc),
 		Expression: expression,
 	}
 }
@@ -273,12 +277,17 @@ func (p *Parser) parseCaseStatement() *ast.CaseStatement {
 	node := &ast.CaseStatement{
 		StmtNode: p.stmtNode(),
 	}
+
+	p.useSymbolsScope(ast.SSTBlock)
+	defer p.restoreSymbolsScope()
+
 	if p.is(token.DEFAULT) {
 		p.next()
 	} else {
 		p.consumeExpected(token.CASE)
 		node.Test = p.parseExpression()
 	}
+
 	p.consumeExpected(token.COLON)
 
 	for {
@@ -315,6 +324,9 @@ func (p *Parser) parseDoWhileStatement() ast.IStmt {
 	if p.is(token.LEFT_BRACE) {
 		node.Body = p.parseBlockStatement()
 	} else {
+		p.useSymbolsScope(ast.SSTBlock)
+		defer p.restoreSymbolsScope()
+
 		node.Body = p.parseStatement()
 	}
 
@@ -342,11 +354,18 @@ func (p *Parser) parseIfStatement() ast.IStmt {
 	if p.is(token.LEFT_BRACE) {
 		node.Consequent = p.parseBlockStatement()
 	} else {
+		p.useSymbolsScope(ast.SSTBlock)
+		defer p.restoreSymbolsScope()
+
 		node.Consequent = p.parseStatement()
 	}
 
 	if p.is(token.ELSE) {
 		p.next()
+
+		p.useSymbolsScope(ast.SSTBlock)
+		defer p.restoreSymbolsScope()
+
 		node.Alternate = p.parseStatement()
 	}
 

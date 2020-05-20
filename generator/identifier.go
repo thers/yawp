@@ -7,13 +7,13 @@ func (g *Generator) Identifier(id *ast.Identifier) *ast.Identifier {
 		return id
 	}
 
-	if id.Ref != nil {
-		if id.Ref.Kind == ast.RBuiltin && !id.Ref.Mangled {
-			id.Ref.Mangled = true
-			id.Ref.Name = g.ids.Next()
+	if id.LegacyRef != nil {
+		if id.LegacyRef.Type == ast.SRBuiltin && !id.LegacyRef.Mangled {
+			id.LegacyRef.Mangled = true
+			id.LegacyRef.Name = g.ids.Next()
 		}
 
-		g.str(id.Ref.Name)
+		g.str(id.LegacyRef.Name)
 	} else {
 		g.str(id.Name)
 	}

@@ -35,6 +35,8 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 		}
 	}
 
+	p.symbol(rootIdentifier, ast.SymbolRead, ast.SRUnknown)
+
 	for {
 		if p.is(token.PERIOD) {
 			p.consumeExpected(token.PERIOD)

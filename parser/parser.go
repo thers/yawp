@@ -30,10 +30,13 @@ type Parser struct {
 
 	scope *Scope
 
-	insertSemicolon           bool // If we see a newline, then insert an implicit semicolon
-	implicitSemicolon         bool // An implicit semicolon exists
+	symbolsScope *ast.SymbolsScope
+	symbolFlags  ast.Flags
 
-	advanceLine     bool
+	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
+	implicitSemicolon bool // An implicit semicolon exists
+
+	advanceLine bool
 
 	genericTypeParametersMode                  bool
 	forbidUnparenthesizedFunctionType          bool
@@ -56,7 +59,13 @@ func newParser(filename, src string) *Parser {
 		src:    src,
 		length: len(src),
 		file:   file.NewFile(filename, src),
-		scope: &Scope{},
+		scope:  &Scope{},
+		symbolsScope: &ast.SymbolsScope{
+			Type:     ast.SSTModule,
+			Symbols:  make([]*ast.Symbol, 0),
+			Parent:   nil,
+			Children: make([]*ast.SymbolsScope, 0),
+		},
 	}
 }
 
@@ -116,7 +125,7 @@ func (p *Parser) parse() (*ast.Module, error) {
 		return nil, p.err
 	}
 
-	program := p.parseProgram()
+	program := p.parseModule()
 
 	return program, p.err
 }

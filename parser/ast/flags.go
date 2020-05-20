@@ -1,15 +1,15 @@
 package ast
 
-type Flag uint64
+type Flags uint64
 
-func (f Flag) Add(index uint64) Flag {
-	return f | (1 << (index - 1))
+func (f Flags) Add(flag Flags) Flags {
+	return f | flag
 }
 
-func (f Flag) Delete(index uint64) Flag {
-	return f ^ (1 << (index - 1))
+func (f Flags) Delete(flag Flags) Flags {
+	return f ^ flag
 }
 
-func (f Flag) Has(flags Flag) bool {
+func (f Flags) Has(flags Flags) bool {
 	return (f & flags) > 0
 }

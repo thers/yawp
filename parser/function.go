@@ -27,7 +27,7 @@ func (p *Parser) parseFunctionParameterEndingBy(ending token.Token) ast.Function
 		parameter = p.parseRestParameterFollowedBy(ending)
 	case token.IDENTIFIER:
 		parameter = &ast.IdentifierParameter{
-			Id:           p.parseIdentifier(),
+			Id:           p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRFnParam),
 			DefaultValue: nil,
 		}
 	case token.LEFT_BRACKET, token.LEFT_BRACE:
@@ -116,7 +116,7 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 
 	var name *ast.Identifier
 	if p.is(token.IDENTIFIER) {
-		name = p.parseIdentifier()
+		name = p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRFn)
 	} else if declaration {
 		// Use consumeExpected error handling
 		p.consumeExpected(token.IDENTIFIER)
@@ -129,6 +129,9 @@ func (p *Parser) parseFunction(declaration bool, loc *file.Loc, async bool) *ast
 	if p.is(token.LESS) {
 		node.TypeParameters = p.parseFlowTypeParameters()
 	}
+
+	p.useSymbolsScope(ast.SSTFunction)
+	defer p.restoreSymbolsScope()
 
 	node.Id = name
 	node.Parameters = p.parseFunctionParameterList()
