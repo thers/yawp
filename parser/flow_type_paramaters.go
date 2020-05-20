@@ -34,7 +34,7 @@ func (p *Parser) parseFlowTypeParameters() []*ast.FlowTypeParameter {
 		parameter.Name = p.parseFlowTypeIdentifierIncludingKeywords()
 
 		if parameter.Name == nil {
-			p.error(parameterNameLoc, "Type parameter name is required")
+			p.error(parameterNameLoc, "RefType parameter name is required")
 			p.next()
 			continue
 		}

@@ -35,7 +35,7 @@ func (p *Parser) parseJSXElementName() *ast.JSXElementName {
 		}
 	}
 
-	p.symbol(rootIdentifier, ast.SymbolRead, ast.SRUnknown)
+	p.symbol(rootIdentifier, ast.SRead, ast.SRUnknown)
 
 	for {
 		if p.is(token.PERIOD) {

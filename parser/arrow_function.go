@@ -50,7 +50,7 @@ func (p *Parser) parseArrowFunctionOrIdentifier(async bool) ast.IExpr {
 			Async:    async,
 			Parameters: []ast.FunctionParameter{
 				&ast.IdentifierParameter{
-					Id:           p.symbol(identifier, ast.SymbolDeclaration, ast.SRFnParam),
+					Id:           p.symbol(identifier, ast.SDeclaration, ast.SRFnParam),
 					DefaultValue: nil,
 				},
 			},
@@ -69,7 +69,7 @@ func (p *Parser) parseArrowFunctionOrIdentifier(async bool) ast.IExpr {
 			}
 		}
 	}
-	return p.symbol(identifier, ast.SymbolRead, ast.SRUnknown)
+	return p.symbol(identifier, ast.SRead, ast.SRUnknown)
 }
 
 func (p *Parser) parseArrowFunctionOrSequenceExpression(async bool) ast.IExpr {
@@ -135,7 +135,7 @@ func (p *Parser) tryParseAsyncArrowFunction(loc *file.Loc, st *ParserSnapshot) a
 			return nil
 		}
 
-		identifier := p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRFnParam)
+		identifier := p.symbol(p.parseIdentifier(), ast.SDeclaration, ast.SRFnParam)
 
 		return &ast.ArrowFunctionExpression{
 			ExprNode:       p.exprNodeAt(loc),

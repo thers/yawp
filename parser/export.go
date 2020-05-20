@@ -21,7 +21,7 @@ func (p *Parser) parseExportNamespaceFromClause() *ast.ExportNamespaceFromClause
 
 	if p.is(token.AS) {
 		p.consumeExpected(token.AS)
-		clause.ModuleIdentifier = p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRExport)
+		clause.ModuleIdentifier = p.symbol(p.parseIdentifier(), ast.SDeclaration, ast.SRExport)
 	}
 
 	p.allowToken(token.FROM)
@@ -46,12 +46,12 @@ func (p *Parser) parseExportNamedClause() *ast.ExportNamedClause {
 	p.allowToken(token.AS)
 
 	for !p.is(token.RIGHT_BRACE) {
-		localIdentifier := p.symbol(p.parseIdentifier(), ast.SymbolRead, ast.SRExport)
+		localIdentifier := p.symbol(p.parseIdentifier(), ast.SRead, ast.SRExport)
 		moduleIdentifier := localIdentifier
 
 		if p.is(token.AS) {
 			p.consumeExpected(token.AS)
-			moduleIdentifier = p.symbol(p.parseIdentifier(), ast.SymbolRead, ast.SRExport)
+			moduleIdentifier = p.symbol(p.parseIdentifier(), ast.SRead, ast.SRExport)
 		}
 
 		clause.Exports = append(clause.Exports, &ast.NamedExportClause{

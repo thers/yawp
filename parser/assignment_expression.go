@@ -46,7 +46,7 @@ func (p *Parser) parseAssignmentExpression() ast.IExpr {
 
 		switch l := left.(type) {
 		case *ast.Identifier:
-			p.symbol(l, ast.SymbolWrite.Add(l.Symbol.Flags), ast.SRUnknown)
+			p.symbol(l, ast.SWrite.Add(l.Symbol.Flags), ast.SRUnknown)
 		case *ast.MemberExpression:
 			// these are the only valid types of left expression in this context
 			// pattern binding assignments are handled outside by
@@ -57,7 +57,7 @@ func (p *Parser) parseAssignmentExpression() ast.IExpr {
 			p.error(left.GetLoc(), "Invalid left-hand side in assignment")
 		}
 
-		restoreSymbolFlags := p.useSymbolFlags(ast.SymbolRead)
+		restoreSymbolFlags := p.useSymbolFlags(ast.SRead)
 		right := p.parseAssignmentExpression()
 		restoreSymbolFlags()
 

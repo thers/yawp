@@ -46,9 +46,9 @@ func (p *Parser) useSymbolFlags(flags ast.Flags) func() {
 }
 
 func (p *Parser) symbol(id *ast.Identifier, flags ast.Flags, stype ast.SymbolRefType) *ast.Identifier {
-	id.Symbol = p.symbolsScope.MakeSymbol(id.Name)
+	id.Symbol = p.symbolsScope.AllocateSymbol(id.Name)
 
-	id.Symbol.Type = stype
+	id.Symbol.RefType = stype
 	id.Symbol.Flags = flags
 
 	return id

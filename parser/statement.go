@@ -29,12 +29,17 @@ func (p *Parser) parseModule() *ast.Module {
 
 	p.openScope()
 	defer p.closeScope()
-	return &ast.Module{
+
+	module := &ast.Module{
 		Symbols: p.symbolsScope,
 		Body:    p.parseSourceElements(),
 		File:    p.file,
 		Ids:     ids.NewIds(),
 	}
+
+	p.symbolsScope.ReferenceSymbols()
+
+	return module
 }
 
 func (p *Parser) parseEmptyStatement() ast.IStmt {

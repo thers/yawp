@@ -32,7 +32,7 @@ func (p *Parser) parseVariableStatement() *ast.VariableStatement {
 func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBinding, kind token.Token) *ast.VariableBinding {
 	if p.is(token.LEFT_BRACKET) || p.is(token.LEFT_BRACE) {
 		loc := p.loc()
-		restoreSymbolFlags := p.useSymbolFlags(ast.SymbolDeclaration)
+		restoreSymbolFlags := p.useSymbolFlags(ast.SDeclaration)
 
 		var binder ast.PatternBinder
 
@@ -53,7 +53,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		if p.is(token.ASSIGN) {
 			p.consumeExpected(token.ASSIGN)
 
-			restoreSymbolFlags = p.useSymbolFlags(ast.SymbolRead)
+			restoreSymbolFlags = p.useSymbolFlags(ast.SRead)
 
 			bnd.Initializer = p.parseAssignmentExpression()
 
@@ -69,7 +69,7 @@ func (p *Parser) parseVariableDeclaration(declarationList *[]*ast.VariableBindin
 		return nil
 	}
 
-	id := p.symbol(p.currentIdentifier(), ast.SymbolDeclaration, ast.SymbolRefTypeFromToken(kind))
+	id := p.symbol(p.currentIdentifier(), ast.SDeclaration, ast.SymbolRefTypeFromToken(kind))
 
 	p.next()
 	node := &ast.VariableBinding{

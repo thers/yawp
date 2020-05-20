@@ -78,7 +78,7 @@ func (p *Parser) parseArrayLiteralOrArrayPatternAssignment() ast.IExpr {
 func (p *Parser) parseArrayPatternAssignmentOrLiteral() ast.IStmt {
 	loc := p.loc()
 	snapshot := p.snapshot()
-	restoreSymbolFlags := p.useSymbolFlags(ast.SymbolWrite.Add(p.symbolFlags))
+	restoreSymbolFlags := p.useSymbolFlags(ast.SWrite.Add(p.symbolFlags))
 
 	arrayBinding, success := p.maybeParseArrayBinding()
 

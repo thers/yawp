@@ -301,7 +301,7 @@ func (p *Parser) maybeParseObjectBinding() (*ast.ObjectBinding, bool) {
 
 func (p *Parser) parseObjectPatternAssignmentOrLiteral() ast.IExpr {
 	snapshot := p.snapshot()
-	restoreSymbolFlags := p.useSymbolFlags(ast.SymbolWrite.Add(p.symbolFlags))
+	restoreSymbolFlags := p.useSymbolFlags(ast.SWrite.Add(p.symbolFlags))
 
 	objectBinding, success := p.maybeParseObjectBinding()
 

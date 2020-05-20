@@ -113,7 +113,7 @@ const (
 	EXPORT
 	FROM
 
-	// Type system
+	// RefType system
 	PUBLIC
 	PROTECTED
 	PRIVATE
@@ -125,7 +125,7 @@ const (
 	TYPE_TYPE
 	TYPE_OPAQUE
 	TYPE_MIXED
-	// /Type system
+	// /RefType system
 
 	FOR
 	NEW

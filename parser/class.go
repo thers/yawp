@@ -217,8 +217,8 @@ func (p *Parser) parseClassExpression() *ast.ClassExpression {
 	}
 
 	if p.is(token.IDENTIFIER) {
-		exp.Name = p.symbol(p.parseIdentifier(), ast.SymbolDeclaration, ast.SRClass)
-		exp.Name.Symbol.Type = ast.SRClass
+		exp.Name = p.symbol(p.parseIdentifier(), ast.SDeclaration, ast.SRClass)
+		exp.Name.Symbol.RefType = ast.SRClass
 	}
 
 	if p.isFlowTypeParametersStart() {
